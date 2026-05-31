@@ -1,0 +1,45 @@
+# ===== Secretos / entorno =====
+.env
+.env.*
+!.env.example
+*.env.supabase
+
+# ===== Node / Frontend =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+*.tsbuildinfo
+
+# ===== Go / Backend =====
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/02-backend/02-backend
+/02-backend/backend
+/02-backend/main
+/02-backend/server
+__debug_bin*
+
+# ===== Datos pesados / binarios =====
+*.kmz
+*.kml
+*.zip
+*.tar.gz
+
+# ===== Editores / SO =====
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# ===== Logs =====
+*.log
+logs/
+npm-debug.log*

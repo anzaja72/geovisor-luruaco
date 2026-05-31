@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restauración Ecológica - Ciénaga de Luruaco</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        
+        /* Leaflet popup styling */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            padding: 0;
+            overflow: hidden;
+        }
+        .leaflet-popup-content { margin: 0; padding: 0; }
+        .leaflet-popup-tip { background: white; }
+        
+        /* Animation */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .slide-in { animation: slideIn 0.4s ease-out; }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 leading-tight">Restauración Ecológica</h1>
+                    <p class="text-xs text-slate-500">Ciénaga de Luruaco, Atlántico - Colombia</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                    ● En Progreso
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="fixed left-4 top-20 bottom-4 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/50 z-[999] overflow-hidden flex flex-col slide-in border border-slate-100">
+        
+        <!-- Project Header -->
+        <div class="p-5 bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="px-2 py-0.5 bg-white/20 rounded text-xs font-mono">LUR-BIO-2024-001</span>
+            </div>
+            <h2 class="text-xl font-bold mb-1">Restauración Ecológica y Resiliencia Climática</h2>
+            <p class="text-emerald-100 text-sm leading-relaxed">Cuenca hidrográfica de la Ciénaga de Luruaco</p>
+        </div>
+        
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-5 space-y-4">
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <p class="text-xs text-slate-500 mb-1">Área Total</p>
+                    <p class="text-lg font-bold text-slate-800">12.5 <span class="text-sm font-normal text-slate-500">ha</span></p>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <p class="text-xs text-slate-500 mb-1">Estado</p>
+                    <p class="text-sm font-semibold text-amber-600">En Progreso</p>
+                </div>
+            </div>
+            
+            <!-- Details -->
+            <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Organización Responsable</p>
+                        <p class="text-sm font-medium text-slate-800">Fundación ProNature - MC Consultorías</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Responsable Técnico Desarrollo</p>
+                        <p class="text-sm font-medium text-slate-800">Ángel Zambrano</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Fecha de Inicio</p>
+                        <p class="text-sm font-medium text-slate-800">15 de enero, 2024</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Tipo de Ecosistema</p>
+                        <p class="text-sm font-medium text-slate-800">Suelo Degradado</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Coordinates -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                <p class="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wider">Coordenadas del Polígono</p>
+                <div class="space-y-1 font-mono text-xs text-slate-600">
+                    <div class="flex justify-between">
+                        <span>Punto 1:</span>
+                        <span class="text-slate-800">-75.148814, 10.605410</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Punto 2:</span>
+                        <span class="text-slate-800">-75.153383, 10.615296</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Punto 3:</span>
+                        <span class="text-slate-800">-75.163980, 10.613388</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Punto 4:</span>
+                        <span class="text-slate-800">-75.160903, 10.599840</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Punto 5:</span>
+                        <span class="text-slate-800">-75.157158, 10.607800</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legend -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                <p class="text-xs text-slate-500 mb-3 font-semibold uppercase tracking-wider">Leyenda</p>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-[#a16207] border-2 border-white shadow"></div>
+                        <span class="text-xs text-slate-600">Suelo Degradado (En Progreso)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-[#059669] border-2 border-white shadow"></div>
+                        <span class="text-xs text-slate-600">Bosque Nativo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-[#0ea5e9] border-2 border-white shadow"></div>
+                        <span class="text-xs text-slate-600">Humedal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <p class="text-xs text-slate-400 text-center">Spatial Eco DB v1.0 • Colombia</p>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <script>
+        // Coordenadas del centro del polígono
+        const center = [10.6078, -75.154];
+        
+        // Coordenadas del polígono de bioaumentación
+        const polygonCoords = [
+            [10.60541, -75.148814],
+            [10.615296, -75.153383],
+            [10.613388, -75.16398],
+            [10.59984, -75.160903],
+            [10.6078, -75.157158],
+            [10.60541, -75.148814]  // Cerrar el polígono
+        ];
+        
+        // Inicializar el mapa
+        const map = L.map('map', {
+            center: center,
+            zoom: 14,
+            zoomControl: false,
+            attributionControl: false
+        });
+        
+        // Añadir control de zoom en posición personalizada
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
+        
+        // Capa base - OpenStreetMap
+        const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Capa satelital (opcional)
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri'
+        });
+        
+        // Control de capas
+        const layerControl = L.control.layers({
+            'Mapa': baseLayer,
+            'Satélite': satelliteLayer
+        }, null, {
+            position: 'topright',
+            collapsed: true
+        }).addTo(map);
+        
+        // Estilo del polígono
+        const polygonStyle = {
+            fillColor: '#a16207',
+            weight: 3,
+            opacity: 1,
+            color: '#ffffff',
+            dashArray: '8, 6',
+            fillOpacity: 0.6
+        };
+        
+        // Estilo hover
+        const polygonHoverStyle = {
+            fillColor: '#ca8a04',
+            weight: 4,
+            opacity: 1,
+            color: '#fbbf24',
+            dashArray: '8, 6',
+            fillOpacity: 0.8
+        };
+        
+        // Crear el polígono
+        const polygon = L.polygon(polygonCoords, polygonStyle).addTo(map);
+        
+        // Popup con información
+        const popupContent = `
+            <div style="font-family: 'Inter', system-ui, sans-serif; min-width: 280px;">
+                <div style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%); padding: 16px; color: white;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: monospace;">LUR-BIO-2024-001</span>
+                    </div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Restauración Ecológica y Resiliencia Climática</h3>
+                </div>
+                <div style="padding: 16px;">
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                        Cuenca hidrográfica de la Ciénaga de Luruaco
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div style="background: #f8fafc; padding: 8px; border-radius: 8px;">
+                            <p style="margin: 0; font-size: 11px; color: #94a3b8;">Área</p>
+                            <p style="margin: 4px 0 0 0; font-size: 14px; font-weight: 700; color: #1e293b;">12.5 ha</p>
+                        </div>
+                        <div style="background: #f8fafc; padding: 8px; border-radius: 8px;">
+                            <p style="margin: 0; font-size: 11px; color: #94a3b8;">Estado</p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: 600; color: #d97706;">En Progreso</p>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <div style="width: 24px; height: 24px; background: #dbeafe; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="margin: 0; font-size: 11px; color: #94a3b8;">Responsable Técnico</p>
+                                <p style="margin: 0; font-size: 12px; font-weight: 500; color: #334155;">Ángel Zambrano</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 24px; height: 24px; background: #dcfce7; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="margin: 0; font-size: 11px; color: #94a3b8;">Organización</p>
+                                <p style="margin: 0; font-size: 12px; font-weight: 500; color: #334155;">Fundación ProNature</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        polygon.bindPopup(popupContent, {
+            maxWidth: 320,
+            className: 'custom-popup'
+        });
+        
+        // Eventos hover
+        polygon.on('mouseover', function(e) {
+            this.setStyle(polygonHoverStyle);
+            this.openPopup();
+        });
+        
+        polygon.on('mouseout', function(e) {
+            this.setStyle(polygonStyle);
+        });
+        
+        // Ajustar vista al polígono
+        map.fitBounds(polygon.getBounds(), { padding: [50, 50] });
+        
+        // Añadir marcador en el centro
+        const centerMarker = L.circleMarker(center, {
+            radius: 8,
+            fillColor: '#059669',
+            color: '#ffffff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 1
+        }).addTo(map);
+        
+        // Efecto de pulso en el marcador
+        const pulseIcon = L.divIcon({
+            className: 'pulse-icon',
+            html: '<div style="width: 20px; height: 20px; background: rgba(5, 150, 105, 0.3); border-radius: 50%; position: relative;"><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: #059669; border-radius: 50%; border: 2px solid white;"></div></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+        
+        L.marker(center, { icon: pulseIcon, zIndexOffset: -1000 }).addTo(map);
+        
+        // Escala
+        L.control.scale({
+            position: 'bottomleft',
+            metric: true,
+            imperial: false
+        }).addTo(map);
+        
+        // Mini mapa (opcional - usando un plugin simple)
+        // Nota: Para un mini mapa necesitaríamos el plugin leaflet-minimap
+        
+        console.log('🌿 Visor de Bioaumentación cargado correctamente');
+        console.log('📍 Coordenadas del polígono:', polygonCoords);
+        console.log('📊 Área: 12.5 hectáreas');
+    </script>
+</body>
+</html>
