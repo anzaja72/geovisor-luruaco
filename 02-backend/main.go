@@ -13,10 +13,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
-// Estructuras para GeoJSON
+// ============================================================
+// Tipos GeoJSON
+// ============================================================
+
 type FeatureCollection struct {
 	Type     string    `json:"type"`
 	Features []Feature `json:"features"`
@@ -28,39 +32,17 @@ type Feature struct {
 	Properties map[string]interface{} `json:"properties"`
 }
 
-// Estructura para Zona de Restauración
-type ZonaRestauracion struct {
-	ID                    int64           `json:"id"`
-	Nombre                string          `json:"nombre"`
-	Descripcion           sql.NullString  `json:"descripcion"`
-	CodigoProyecto        sql.NullString  `json:"codigo_proyecto"`
-	TipoEcosistema        string          `json:"tipo_ecosistema"`
-	EstadoRestauracion    string          `json:"estado_restauracion"`
-	AreaHectareas         sql.NullFloat64 `json:"area_hectareas"`
-	OrganizacionResponsable sql.NullString `json:"organizacion_responsable"`
-	ResponsableTecnico    sql.NullString  `json:"responsable_tecnico"`
-	ContactoEmail         sql.NullString  `json:"contacto_email"`
-	FechaInicio           sql.NullTime    `json:"fecha_inicio_restauracion"`
-	FechaEstimadaFin      sql.NullTime    `json:"fecha_estimada_fin"`
-	GeoJSON               string          `json:"-"`
-}
-
 var db *sql.DB
 
+// ============================================================
+// main
+// ============================================================
+
 func main() {
-	// Configurar conexión a la base de datos desde variable de entorno
-	databaseURL := getEnv("DATABASE_URL", "")
-	if databaseURL == "" {
-		// Fallback para desarrollo local
-		dbHost := getEnv("DB_HOST", "localhost")
-		dbPort := getEnv("DB_PORT", "5432")
-		dbUser := getEnv("DB_USER", "eco_admin")
-		dbPassword := getEnv("DB_PASSWORD", "EcoRest2024!")
-		dbName := getEnv("DB_NAME", "restauracion_ecologica")
-		dbSSLMode := getEnv("DB_SSLMODE", "disable")
-		databaseURL = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-			dbHost, dbPort, dbUser, dbPassword, dbName, dbSSLMode)
-	}
+	// Carga .env si existe (no es error si no está presente).
+	_ = godotenv.Load()
+
+	databaseURL := buildDatabaseURL()
 
 	var err error
 	db, err = sql.Open("postgres", databaseURL)
@@ -69,30 +51,31 @@ func main() {
 	}
 	defer db.Close()
 
-	// Verificar conexión
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
 	if err := db.PingContext(ctx); err != nil {
 		log.Fatalf("Error al conectar a la base de datos: %v", err)
 	}
 	log.Println("✅ Conexión a PostGIS establecida")
 
-	// Configurar Fiber
 	app := fiber.New(fiber.Config{
 		AppName: "Luruaco API - Restauración Ecológica",
 	})
 
-	// Middleware CORS - Permitir cualquier origen para el geovisor
+	// CORS configurable por entorno. Por defecto "*" (cómodo en dev),
+	// pero en producción define CORS_ALLOW_ORIGINS con tu(s) dominio(s).
+	allowOrigins := getEnv("CORS_ALLOW_ORIGINS", "*")
+	if allowOrigins == "*" {
+		log.Println("⚠️  CORS abierto a cualquier origen (*). Define CORS_ALLOW_ORIGINS en producción.")
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: allowOrigins,
 		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
 	app.Use(logger.New())
 
-	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status":    "ok",
@@ -101,465 +84,390 @@ func main() {
 		})
 	})
 
-	// API Routes
 	api := app.Group("/api")
 	api.Get("/zonas", getZonas)
 	api.Get("/zonas/:id", getZonaByID)
 	api.Get("/zonas/:id/puntos", getPuntosByZona)
 	api.Get("/lotes", getLotes)
 	api.Get("/lotes/:id", getLoteByID)
+	api.Get("/resumen", getResumen)
 
-	// Iniciar servidor
 	port := getEnv("PORT", "8080")
 	log.Printf("🚀 Servidor iniciado en puerto %s", port)
 	log.Fatal(app.Listen(":" + port))
 }
 
-// getZonas retorna todas las zonas de restauración como FeatureCollection GeoJSON
-func getZonas(c *fiber.Ctx) error {
-	query := `
-		SELECT 
-			id, nombre, descripcion, codigo_proyecto, tipo_ecosistema,
-			estado_restauracion, area_hectareas, organizacion_responsable,
-			responsable_tecnico, contacto_email, fecha_inicio_restauracion,
-			fecha_estimada_fin, ST_AsGeoJSON(geom) as geojson
-		FROM eco_restauracion.poligonos_restauracion
-		ORDER BY id
-	`
+// buildDatabaseURL arma la cadena de conexión desde DATABASE_URL o variables sueltas.
+// Nota de seguridad: no hay contraseña por defecto; debe venir del entorno.
+func buildDatabaseURL() string {
+	if url := getEnv("DATABASE_URL", ""); url != "" {
+		return url
+	}
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_PORT", "5432"),
+		getEnv("DB_USER", "eco_admin"),
+		getEnv("DB_PASSWORD", ""),
+		getEnv("DB_NAME", "restauracion_ecologica"),
+		getEnv("DB_SSLMODE", "disable"),
+	)
+}
 
-	rows, err := db.QueryContext(context.Background(), query)
+// ============================================================
+// Helpers comunes
+// ============================================================
+
+// setIfValid agrega una clave al mapa solo si el sql.Null* es válido.
+func setStr(p map[string]interface{}, k string, v sql.NullString) {
+	if v.Valid {
+		p[k] = v.String
+	}
+}
+func setFloat(p map[string]interface{}, k string, v sql.NullFloat64) {
+	if v.Valid {
+		p[k] = v.Float64
+	}
+}
+func setDate(p map[string]interface{}, k string, v sql.NullTime) {
+	if v.Valid {
+		p[k] = v.Time.Format("2006-01-02")
+	}
+}
+
+func newFeature(geojson string, props map[string]interface{}) Feature {
+	return Feature{
+		Type:       "Feature",
+		Geometry:   json.RawMessage(geojson),
+		Properties: props,
+	}
+}
+
+func serverError(c *fiber.Ctx, msg string, err error) error {
+	log.Printf("%s: %v", msg, err)
+	return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": msg})
+}
+
+// ============================================================
+// Zonas de restauración
+// ============================================================
+
+const zonaColumns = `
+	id, nombre, descripcion, codigo_proyecto, tipo_ecosistema,
+	estado_restauracion, area_hectareas, organizacion_responsable,
+	responsable_tecnico, contacto_email, fecha_inicio_restauracion,
+	fecha_estimada_fin, categoria_calidad, periodo, ST_AsGeoJSON(geom) as geojson`
+
+// scanZona lee una fila de zona y construye su Feature GeoJSON.
+func scanZona(scan func(dest ...any) error) (Feature, error) {
+	var (
+		id                                                          int64
+		nombre, tipoEco, estado                                     string
+		desc, codProy, org, tecnico, email, geojson                 sql.NullString
+		categoria, periodo                                          sql.NullString
+		area                                                        sql.NullFloat64
+		fInicio, fFin                                               sql.NullTime
+	)
+	err := scan(
+		&id, &nombre, &desc, &codProy, &tipoEco, &estado, &area,
+		&org, &tecnico, &email, &fInicio, &fFin, &categoria, &periodo, &geojson,
+	)
 	if err != nil {
-		log.Printf("Error en consulta: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error al consultar zonas",
-		})
+		return Feature{}, err
+	}
+	props := map[string]interface{}{
+		"id":                  id,
+		"nombre":              nombre,
+		"tipo_ecosistema":     tipoEco,
+		"estado_restauracion": estado,
+	}
+	setStr(props, "descripcion", desc)
+	setStr(props, "codigo_proyecto", codProy)
+	setFloat(props, "area_hectareas", area)
+	setStr(props, "organizacion_responsable", org)
+	setStr(props, "responsable_tecnico", tecnico)
+	setStr(props, "contacto_email", email)
+	setStr(props, "categoria_calidad", categoria)
+	setStr(props, "periodo", periodo)
+	setDate(props, "fecha_inicio_restauracion", fInicio)
+	setDate(props, "fecha_estimada_fin", fFin)
+	return newFeature(geojson.String, props), nil
+}
+
+func getZonas(c *fiber.Ctx) error {
+	query := "SELECT " + zonaColumns + " FROM eco_restauracion.poligonos_restauracion ORDER BY id"
+	rows, err := db.QueryContext(c.UserContext(), query)
+	if err != nil {
+		return serverError(c, "Error al consultar zonas", err)
 	}
 	defer rows.Close()
 
-	var features []Feature
-
+	features := []Feature{}
 	for rows.Next() {
-		var zona ZonaRestauracion
-		err := rows.Scan(
-			&zona.ID, &zona.Nombre, &zona.Descripcion, &zona.CodigoProyecto,
-			&zona.TipoEcosistema, &zona.EstadoRestauracion, &zona.AreaHectareas,
-			&zona.OrganizacionResponsable, &zona.ResponsableTecnico, &zona.ContactoEmail,
-			&zona.FechaInicio, &zona.FechaEstimadaFin, &zona.GeoJSON,
-		)
+		f, err := scanZona(rows.Scan)
 		if err != nil {
-			log.Printf("Error al escanear fila: %v", err)
+			log.Printf("Error al escanear zona: %v", err)
 			continue
 		}
-
-		properties := map[string]interface{}{
-			"id":                     zona.ID,
-			"nombre":                 zona.Nombre,
-			"tipo_ecosistema":        zona.TipoEcosistema,
-			"estado_restauracion":    zona.EstadoRestauracion,
-		}
-
-		if zona.Descripcion.Valid {
-			properties["descripcion"] = zona.Descripcion.String
-		}
-		if zona.CodigoProyecto.Valid {
-			properties["codigo_proyecto"] = zona.CodigoProyecto.String
-		}
-		if zona.AreaHectareas.Valid {
-			properties["area_hectareas"] = zona.AreaHectareas.Float64
-		}
-		if zona.OrganizacionResponsable.Valid {
-			properties["organizacion_responsable"] = zona.OrganizacionResponsable.String
-		}
-		if zona.ResponsableTecnico.Valid {
-			properties["responsable_tecnico"] = zona.ResponsableTecnico.String
-		}
-		if zona.ContactoEmail.Valid {
-			properties["contacto_email"] = zona.ContactoEmail.String
-		}
-		if zona.FechaInicio.Valid {
-			properties["fecha_inicio_restauracion"] = zona.FechaInicio.Time.Format("2006-01-02")
-		}
-		if zona.FechaEstimadaFin.Valid {
-			properties["fecha_estimada_fin"] = zona.FechaEstimadaFin.Time.Format("2006-01-02")
-		}
-
-		feature := Feature{
-			Type:       "Feature",
-			Geometry:   json.RawMessage(zona.GeoJSON),
-			Properties: properties,
-		}
-		features = append(features, feature)
+		features = append(features, f)
 	}
-
 	if err := rows.Err(); err != nil {
-		log.Printf("Error iterando filas: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error procesando resultados",
-		})
+		return serverError(c, "Error procesando zonas", err)
 	}
-
-	featureCollection := FeatureCollection{
-		Type:     "FeatureCollection",
-		Features: features,
-	}
-
-	return c.JSON(featureCollection)
+	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
 }
 
-// getZonaByID retorna una zona específica por ID
 func getZonaByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-	
-	query := `
-		SELECT 
-			id, nombre, descripcion, codigo_proyecto, tipo_ecosistema,
-			estado_restauracion, area_hectareas, organizacion_responsable,
-			responsable_tecnico, contacto_email, fecha_inicio_restauracion,
-			fecha_estimada_fin, ST_AsGeoJSON(geom) as geojson
-		FROM eco_restauracion.poligonos_restauracion
-		WHERE id = $1
-	`
-
-	var zona ZonaRestauracion
-	err := db.QueryRowContext(context.Background(), query, id).Scan(
-		&zona.ID, &zona.Nombre, &zona.Descripcion, &zona.CodigoProyecto,
-		&zona.TipoEcosistema, &zona.EstadoRestauracion, &zona.AreaHectareas,
-		&zona.OrganizacionResponsable, &zona.ResponsableTecnico, &zona.ContactoEmail,
-		&zona.FechaInicio, &zona.FechaEstimadaFin, &zona.GeoJSON,
-	)
-
+	query := "SELECT " + zonaColumns + " FROM eco_restauracion.poligonos_restauracion WHERE id = $1"
+	row := db.QueryRowContext(c.UserContext(), query, c.Params("id"))
+	f, err := scanZona(row.Scan)
 	if err == sql.ErrNoRows {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{
-			"error": "Zona no encontrada",
-		})
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Zona no encontrada"})
 	}
 	if err != nil {
-		log.Printf("Error consultando zona: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error al consultar zona",
-		})
+		return serverError(c, "Error al consultar zona", err)
 	}
-
-	properties := map[string]interface{}{
-		"id":                  zona.ID,
-		"nombre":              zona.Nombre,
-		"tipo_ecosistema":     zona.TipoEcosistema,
-		"estado_restauracion": zona.EstadoRestauracion,
-	}
-
-	if zona.Descripcion.Valid {
-		properties["descripcion"] = zona.Descripcion.String
-	}
-	if zona.CodigoProyecto.Valid {
-		properties["codigo_proyecto"] = zona.CodigoProyecto.String
-	}
-	if zona.AreaHectareas.Valid {
-		properties["area_hectareas"] = zona.AreaHectareas.Float64
-	}
-	if zona.OrganizacionResponsable.Valid {
-		properties["organizacion_responsable"] = zona.OrganizacionResponsable.String
-	}
-	if zona.ResponsableTecnico.Valid {
-		properties["responsable_tecnico"] = zona.ResponsableTecnico.String
-	}
-	if zona.ContactoEmail.Valid {
-		properties["contacto_email"] = zona.ContactoEmail.String
-	}
-	if zona.FechaInicio.Valid {
-		properties["fecha_inicio_restauracion"] = zona.FechaInicio.Time.Format("2006-01-02")
-	}
-	if zona.FechaEstimadaFin.Valid {
-		properties["fecha_estimada_fin"] = zona.FechaEstimadaFin.Time.Format("2006-01-02")
-	}
-
-	feature := Feature{
-		Type:       "Feature",
-		Geometry:   json.RawMessage(zona.GeoJSON),
-		Properties: properties,
-	}
-
-	return c.JSON(feature)
+	return c.JSON(f)
 }
 
-// getPuntosByZona retorna los puntos de monitoreo de una zona específica
 func getPuntosByZona(c *fiber.Ctx) error {
-	id := c.Params("id")
-
 	query := `
-		SELECT 
-			pm.id, pm.codigo_punto, pm.nombre_punto, pm.descripcion,
+		SELECT pm.id, pm.codigo_punto, pm.nombre_punto, pm.descripcion,
 			pm.tipo_monitoreo, pm.metodo_muestreo, pm.estado_punto,
 			pm.longitud, pm.latitud, pm.elevacion,
 			pm.tecnico_responsable, pm.equipo_monitoreo,
 			ST_AsGeoJSON(pm.geom) as geojson
 		FROM eco_restauracion.puntos_monitoreo pm
 		WHERE pm.poligono_id = $1
-		ORDER BY pm.id
-	`
+		ORDER BY pm.id`
 
-	rows, err := db.QueryContext(context.Background(), query, id)
+	rows, err := db.QueryContext(c.UserContext(), query, c.Params("id"))
 	if err != nil {
-		log.Printf("Error consultando puntos: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error al consultar puntos de monitoreo",
-		})
+		return serverError(c, "Error al consultar puntos de monitoreo", err)
 	}
 	defer rows.Close()
 
-	type PuntoMonitoreo struct {
-		ID                 int64          `json:"id"`
-		CodigoPunto        string         `json:"codigo_punto"`
-		NombrePunto        sql.NullString `json:"nombre_punto"`
-		Descripcion        sql.NullString `json:"descripcion"`
-		TipoMonitoreo      string         `json:"tipo_monitoreo"`
-		MetodoMuestreo     sql.NullString `json:"metodo_muestreo"`
-		EstadoPunto        string         `json:"estado_punto"`
-		Longitud           float64        `json:"longitud"`
-		Latitud            float64        `json:"latitud"`
-		Elevacion          sql.NullFloat64 `json:"elevacion"`
-		TecnicoResponsable sql.NullString `json:"tecnico_responsable"`
-		EquipoMonitoreo    sql.NullString `json:"equipo_monitoreo"`
-		GeoJSON            string         `json:"-"`
-	}
-
-	var features []Feature
-
+	features := []Feature{}
 	for rows.Next() {
-		var punto PuntoMonitoreo
+		var (
+			id                          int64
+			codigo, tipoMon             string
+			estadoPunto                 string
+			nombre, desc, metodo        sql.NullString
+			tecnico, equipo, geojson    sql.NullString
+			lon, lat                    float64
+			elev                        sql.NullFloat64
+		)
 		err := rows.Scan(
-			&punto.ID, &punto.CodigoPunto, &punto.NombrePunto, &punto.Descripcion,
-			&punto.TipoMonitoreo, &punto.MetodoMuestreo, &punto.EstadoPunto,
-			&punto.Longitud, &punto.Latitud, &punto.Elevacion,
-			&punto.TecnicoResponsable, &punto.EquipoMonitoreo, &punto.GeoJSON,
+			&id, &codigo, &nombre, &desc, &tipoMon, &metodo, &estadoPunto,
+			&lon, &lat, &elev, &tecnico, &equipo, &geojson,
 		)
 		if err != nil {
 			log.Printf("Error escaneando punto: %v", err)
 			continue
 		}
-
-		properties := map[string]interface{}{
-			"id":             punto.ID,
-			"codigo_punto":   punto.CodigoPunto,
-			"tipo_monitoreo": punto.TipoMonitoreo,
-			"estado_punto":   punto.EstadoPunto,
-			"longitud":       punto.Longitud,
-			"latitud":        punto.Latitud,
+		props := map[string]interface{}{
+			"id":             id,
+			"codigo_punto":   codigo,
+			"tipo_monitoreo": tipoMon,
+			"estado_punto":   estadoPunto,
+			"longitud":       lon,
+			"latitud":        lat,
 		}
-
-		if punto.NombrePunto.Valid {
-			properties["nombre_punto"] = punto.NombrePunto.String
-		}
-		if punto.Descripcion.Valid {
-			properties["descripcion"] = punto.Descripcion.String
-		}
-		if punto.MetodoMuestreo.Valid {
-			properties["metodo_muestreo"] = punto.MetodoMuestreo.String
-		}
-		if punto.Elevacion.Valid {
-			properties["elevacion"] = punto.Elevacion.Float64
-		}
-		if punto.TecnicoResponsable.Valid {
-			properties["tecnico_responsable"] = punto.TecnicoResponsable.String
-		}
-		if punto.EquipoMonitoreo.Valid {
-			properties["equipo_monitoreo"] = punto.EquipoMonitoreo.String
-		}
-
-		feature := Feature{
-			Type:       "Feature",
-			Geometry:   json.RawMessage(punto.GeoJSON),
-			Properties: properties,
-		}
-		features = append(features, feature)
+		setStr(props, "nombre_punto", nombre)
+		setStr(props, "descripcion", desc)
+		setStr(props, "metodo_muestreo", metodo)
+		setFloat(props, "elevacion", elev)
+		setStr(props, "tecnico_responsable", tecnico)
+		setStr(props, "equipo_monitoreo", equipo)
+		features = append(features, newFeature(geojson.String, props))
 	}
-
-	featureCollection := FeatureCollection{
-		Type:     "FeatureCollection",
-		Features: features,
-	}
-
-	return c.JSON(featureCollection)
+	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
 }
 
-// Estructura para Lote de Bioaumentación
-type LoteBioaumentacion struct {
-	ID                  int64           `json:"id"`
-	Nombre              string          `json:"nombre"`
-	CodigoLote          string          `json:"codigo_lote"`
-	Descripcion         sql.NullString  `json:"descripcion"`
-	AreaHectareas       sql.NullFloat64 `json:"area_hectareas"`
-	AreaMetrosCuadrados sql.NullFloat64 `json:"area_metros_cuadrados"`
-	PerimetroMetros     sql.NullFloat64 `json:"perimetro_metros"`
-	TipoIntervencion    string          `json:"tipo_intervencion"`
-	Estado              string          `json:"estado"`
-	PuntosReferencia    sql.NullString  `json:"puntos_referencia"`
-	Metadata            sql.NullString  `json:"metadata"`
-	FechaCreacion       time.Time       `json:"fecha_creacion"`
-	FechaActualizacion  time.Time       `json:"fecha_actualizacion"`
-	GeoJSON             string          `json:"-"`
-}
+// ============================================================
+// Lotes de bioaumentación
+// ============================================================
 
-// getLotes retorna todos los lotes de bioaumentación como FeatureCollection GeoJSON
-func getLotes(c *fiber.Ctx) error {
-	query := `
-		SELECT 
-			id, nombre, codigo_lote, descripcion, area_hectareas,
-			area_metros_cuadrados, perimetro_metros, tipo_intervencion,
-			estado, puntos_referencia, metadata, fecha_creacion,
-			fecha_actualizacion, ST_AsGeoJSON(geom) as geojson
-		FROM eco_restauracion.lotes_bioaumentacion
-		ORDER BY id
-	`
+const loteColumns = `
+	id, nombre, codigo_lote, descripcion, area_hectareas,
+	area_metros_cuadrados, perimetro_metros, tipo_intervencion,
+	estado, puntos_referencia, metadata, categoria_calidad, periodo,
+	ST_AsGeoJSON(geom) as geojson`
 
-	rows, err := db.QueryContext(context.Background(), query)
+func scanLote(scan func(dest ...any) error) (Feature, error) {
+	var (
+		id                                       int64
+		nombre, codigo, tipoInt, estado          string
+		desc, refs, meta, categoria, periodo      sql.NullString
+		areaHa, areaM2, perim                    sql.NullFloat64
+		geojson                                  sql.NullString
+	)
+	err := scan(
+		&id, &nombre, &codigo, &desc, &areaHa, &areaM2, &perim,
+		&tipoInt, &estado, &refs, &meta, &categoria, &periodo, &geojson,
+	)
 	if err != nil {
-		log.Printf("Error en consulta de lotes: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error al consultar lotes",
-		})
+		return Feature{}, err
+	}
+	props := map[string]interface{}{
+		"id":                  id,
+		"nombre":              nombre,
+		"codigo_lote":         codigo,
+		"tipo_intervencion":   tipoInt,
+		"estado":              estado,
+		"tipo_ecosistema":     "bioaumentacion",
+		"estado_restauracion": estado,
+	}
+	setStr(props, "descripcion", desc)
+	setFloat(props, "area_hectareas", areaHa)
+	setFloat(props, "area_metros_cuadrados", areaM2)
+	setFloat(props, "perimetro_metros", perim)
+	setStr(props, "puntos_referencia", refs)
+	setStr(props, "metadata", meta)
+	setStr(props, "categoria_calidad", categoria)
+	setStr(props, "periodo", periodo)
+	return newFeature(geojson.String, props), nil
+}
+
+func getLotes(c *fiber.Ctx) error {
+	query := "SELECT " + loteColumns + " FROM eco_restauracion.lotes_bioaumentacion ORDER BY id"
+	rows, err := db.QueryContext(c.UserContext(), query)
+	if err != nil {
+		return serverError(c, "Error al consultar lotes", err)
 	}
 	defer rows.Close()
 
-	var features []Feature
-
+	features := []Feature{}
 	for rows.Next() {
-		var lote LoteBioaumentacion
-		err := rows.Scan(
-			&lote.ID, &lote.Nombre, &lote.CodigoLote, &lote.Descripcion,
-			&lote.AreaHectareas, &lote.AreaMetrosCuadrados, &lote.PerimetroMetros,
-			&lote.TipoIntervencion, &lote.Estado, &lote.PuntosReferencia,
-			&lote.Metadata, &lote.FechaCreacion, &lote.FechaActualizacion, &lote.GeoJSON,
-		)
+		f, err := scanLote(rows.Scan)
 		if err != nil {
-			log.Printf("Error al escanear fila de lote: %v", err)
+			log.Printf("Error al escanear lote: %v", err)
 			continue
 		}
-
-		properties := map[string]interface{}{
-			"id":                lote.ID,
-			"nombre":            lote.Nombre,
-			"codigo_lote":       lote.CodigoLote,
-			"tipo_intervencion": lote.TipoIntervencion,
-			"estado":            lote.Estado,
-			"tipo_ecosistema":   "bioaumentacion",
-			"estado_restauracion": lote.Estado,
-		}
-
-		if lote.Descripcion.Valid {
-			properties["descripcion"] = lote.Descripcion.String
-		}
-		if lote.AreaHectareas.Valid {
-			properties["area_hectareas"] = lote.AreaHectareas.Float64
-		}
-		if lote.AreaMetrosCuadrados.Valid {
-			properties["area_metros_cuadrados"] = lote.AreaMetrosCuadrados.Float64
-		}
-		if lote.PerimetroMetros.Valid {
-			properties["perimetro_metros"] = lote.PerimetroMetros.Float64
-		}
-		if lote.PuntosReferencia.Valid {
-			properties["puntos_referencia"] = lote.PuntosReferencia.String
-		}
-		if lote.Metadata.Valid {
-			properties["metadata"] = lote.Metadata.String
-		}
-
-		feature := Feature{
-			Type:       "Feature",
-			Geometry:   json.RawMessage(lote.GeoJSON),
-			Properties: properties,
-		}
-		features = append(features, feature)
+		features = append(features, f)
 	}
-
 	if err := rows.Err(); err != nil {
-		log.Printf("Error iterando filas de lotes: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error procesando resultados de lotes",
-		})
+		return serverError(c, "Error procesando lotes", err)
 	}
-
-	featureCollection := FeatureCollection{
-		Type:     "FeatureCollection",
-		Features: features,
-	}
-
-	return c.JSON(featureCollection)
+	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
 }
 
-// getLoteByID retorna un lote específico por ID
 func getLoteByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	query := `
-		SELECT 
-			id, nombre, codigo_lote, descripcion, area_hectareas,
-			area_metros_cuadrados, perimetro_metros, tipo_intervencion,
-			estado, puntos_referencia, metadata, fecha_creacion,
-			fecha_actualizacion, ST_AsGeoJSON(geom) as geojson
-		FROM eco_restauracion.lotes_bioaumentacion
-		WHERE id = $1
-	`
-
-	var lote LoteBioaumentacion
-	err := db.QueryRowContext(context.Background(), query, id).Scan(
-		&lote.ID, &lote.Nombre, &lote.CodigoLote, &lote.Descripcion,
-		&lote.AreaHectareas, &lote.AreaMetrosCuadrados, &lote.PerimetroMetros,
-		&lote.TipoIntervencion, &lote.Estado, &lote.PuntosReferencia,
-		&lote.Metadata, &lote.FechaCreacion, &lote.FechaActualizacion, &lote.GeoJSON,
-	)
-
+	query := "SELECT " + loteColumns + " FROM eco_restauracion.lotes_bioaumentacion WHERE id = $1"
+	row := db.QueryRowContext(c.UserContext(), query, c.Params("id"))
+	f, err := scanLote(row.Scan)
 	if err == sql.ErrNoRows {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{
-			"error": "Lote no encontrado",
-		})
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Lote no encontrado"})
 	}
 	if err != nil {
-		log.Printf("Error consultando lote: %v", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error al consultar lote",
+		return serverError(c, "Error al consultar lote", err)
+	}
+	return c.JSON(f)
+}
+
+// ============================================================
+// Resumen (alimenta el dashboard tipo ICAM)
+// ============================================================
+
+// ordenCategorias define el orden de la escala de calidad (peor → mejor).
+var ordenCategorias = []string{"pesima", "inadecuada", "aceptable", "adecuada", "optima"}
+
+type CategoriaResumen struct {
+	Categoria  string  `json:"categoria"`
+	Cantidad   int     `json:"cantidad"`
+	Porcentaje float64 `json:"porcentaje"`
+}
+
+type Resumen struct {
+	Periodo          string             `json:"periodo"`
+	SitiosVisitados  int                `json:"sitios_visitados"`
+	SitiosReportados int                `json:"sitios_reportados"`
+	Categorias       []CategoriaResumen `json:"categorias"`
+}
+
+// getResumen agrega polígonos + lotes en una sola dimensión de "sitios" y
+// devuelve totales y conteo/proporción por categoría de calidad.
+// Filtro opcional: ?periodo=2024-2
+func getResumen(c *fiber.Ctx) error {
+	periodo := c.Query("periodo", "")
+
+	const baseSitios = `
+		WITH sitios AS (
+			SELECT periodo, categoria_calidad FROM eco_restauracion.poligonos_restauracion
+			UNION ALL
+			SELECT periodo, categoria_calidad FROM eco_restauracion.lotes_bioaumentacion
+		)`
+
+	// Totales
+	var visitados, reportados int
+	err := db.QueryRowContext(c.UserContext(),
+		baseSitios+`
+		SELECT COUNT(*), COUNT(categoria_calidad)
+		FROM sitios
+		WHERE ($1 = '' OR periodo = $1)`, periodo,
+	).Scan(&visitados, &reportados)
+	if err != nil {
+		return serverError(c, "Error al calcular resumen", err)
+	}
+
+	// Conteo por categoría
+	rows, err := db.QueryContext(c.UserContext(),
+		baseSitios+`
+		SELECT categoria_calidad, COUNT(*)
+		FROM sitios
+		WHERE ($1 = '' OR periodo = $1) AND categoria_calidad IS NOT NULL
+		GROUP BY categoria_calidad`, periodo,
+	)
+	if err != nil {
+		return serverError(c, "Error al calcular categorías", err)
+	}
+	defer rows.Close()
+
+	conteo := map[string]int{}
+	for rows.Next() {
+		var cat string
+		var n int
+		if err := rows.Scan(&cat, &n); err != nil {
+			log.Printf("Error escaneando categoría: %v", err)
+			continue
+		}
+		conteo[cat] = n
+	}
+
+	// Construir respuesta en orden fijo de la escala, solo categorías con datos.
+	categorias := []CategoriaResumen{}
+	for _, cat := range ordenCategorias {
+		n, ok := conteo[cat]
+		if !ok || n == 0 {
+			continue
+		}
+		pct := 0.0
+		if reportados > 0 {
+			pct = float64(n) / float64(reportados) * 100
+		}
+		categorias = append(categorias, CategoriaResumen{
+			Categoria:  cat,
+			Cantidad:   n,
+			Porcentaje: pct,
 		})
 	}
 
-	properties := map[string]interface{}{
-		"id":                lote.ID,
-		"nombre":            lote.Nombre,
-		"codigo_lote":       lote.CodigoLote,
-		"tipo_intervencion": lote.TipoIntervencion,
-		"estado":            lote.Estado,
-		"tipo_ecosistema":   "bioaumentacion",
-		"estado_restauracion": lote.Estado,
+	if periodo == "" {
+		periodo = "todos"
 	}
-
-	if lote.Descripcion.Valid {
-		properties["descripcion"] = lote.Descripcion.String
-	}
-	if lote.AreaHectareas.Valid {
-		properties["area_hectareas"] = lote.AreaHectareas.Float64
-	}
-	if lote.AreaMetrosCuadrados.Valid {
-		properties["area_metros_cuadrados"] = lote.AreaMetrosCuadrados.Float64
-	}
-	if lote.PerimetroMetros.Valid {
-		properties["perimetro_metros"] = lote.PerimetroMetros.Float64
-	}
-	if lote.PuntosReferencia.Valid {
-		properties["puntos_referencia"] = lote.PuntosReferencia.String
-	}
-	if lote.Metadata.Valid {
-		properties["metadata"] = lote.Metadata.String
-	}
-
-	feature := Feature{
-		Type:       "Feature",
-		Geometry:   json.RawMessage(lote.GeoJSON),
-		Properties: properties,
-	}
-
-	return c.JSON(feature)
+	return c.JSON(Resumen{
+		Periodo:          periodo,
+		SitiosVisitados:  visitados,
+		SitiosReportados: reportados,
+		Categorias:       categorias,
+	})
 }
 
-// getEnv obtiene variable de entorno o valor por defecto
+// ============================================================
+// Utilidades
+// ============================================================
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
