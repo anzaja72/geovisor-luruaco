@@ -25,6 +25,13 @@ export interface FeatureProps {
   fecha_inicio_restauracion?: string
   categoria_calidad?: Categoria
   periodo?: string
+  // Puntos de monitoreo / control
+  codigo_punto?: string
+  nombre_punto?: string
+  tipo_monitoreo?: string
+  elevacion?: number
+  longitud?: number
+  latitud?: number
 }
 
 export interface GeoFeature {

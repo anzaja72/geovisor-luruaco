@@ -86,7 +86,8 @@ Popup Info ← Datos JSON ←─────────────────
 | `/health` | GET | Health check |
 | `/api/zonas` | GET | Listar todas las zonas |
 | `/api/zonas/:id` | GET | Obtener zona específica |
-| `/api/zonas/:id/puntos` | GET | Puntos de monitoreo |
+| `/api/zonas/:id/puntos` | GET | Puntos de monitoreo de una zona |
+| `/api/puntos` | GET | Todos los puntos de monitoreo/control |
 | `/api/lotes` | GET | Listar lotes de bioaumentación |
 | `/api/lotes/:id` | GET | Obtener lote específico |
 | `/api/resumen` | GET | Totales y conteo/proporción por categoría de calidad (filtro `?periodo=`) |

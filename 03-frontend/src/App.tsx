@@ -15,7 +15,7 @@ import type { GeoFeature } from './lib/types'
 const PERIODO_DEFAULT = '2024-2'
 
 export default function App() {
-  const { loading, error, features, periodos } = useGeoData()
+  const { loading, error, features, puntos, periodos } = useGeoData()
   // `null` = aún no hay elección del usuario → se usa el periodo más reciente.
   const [periodoSel, setPeriodoSel] = useState<string | null>(null)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
@@ -67,7 +67,12 @@ export default function App() {
           <MetricsPanel resumen={resumen} />
           <div className="map-wrap">
             {mapTab === 'mapa' ? (
-              <MapView features={visibles} selected={selected} onSelect={setSelected} />
+              <MapView
+                features={visibles}
+                puntos={puntos}
+                selected={selected}
+                onSelect={setSelected}
+              />
             ) : (
               <div className="historico-placeholder">
                 <p>Histórico departamental</p>

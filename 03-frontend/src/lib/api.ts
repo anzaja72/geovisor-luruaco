@@ -30,3 +30,7 @@ export function fetchResumen(periodo: string, signal?: AbortSignal): Promise<Res
   const q = periodo ? `?periodo=${encodeURIComponent(periodo)}` : ''
   return getJSON<Resumen>(`/api/resumen${q}`, signal)
 }
+
+export function fetchPuntos(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/puntos', signal)
+}

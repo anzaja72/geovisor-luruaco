@@ -126,6 +126,7 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   if (url === '/api/zonas') body = zonas()
   else if (url === '/api/lotes') body = lotes()
   else if (url === '/api/resumen') body = resumen()
+  else if (url === '/api/puntos') body = { type: 'FeatureCollection', features: [] }
   else return next()
 
   res.setHeader('Content-Type', 'application/json')

@@ -63,7 +63,7 @@ La fuente de verdad del esquema son estos scripts (aplicar en orden):
 |-------|---------|-----------|
 | 1 | `schema-completo.sql` | Esquema base (tablas, índices, lote LUR-BIO-001, vistas, funciones) |
 | 2 | `04-base-de-datos/02_add_categoria_calidad.sql` | Migración: `categoria_calidad` + `periodo`, índices, trigger de lotes, vista de resumen |
-| 3 | `04-base-de-datos/03_seed_proyecto.sql` | Datos del proyecto: 2 zonas (ANEXO_B) + punto GPS real (EPSG:9377→WGS84) |
+| 3 | `04-base-de-datos/03_seed_proyecto.sql` | **Solo datos reales**: punto GPS de control (EPSG:9377→WGS84) y limpieza de las zonas de EJEMPLO del ANEXO_B |
 
 > Nota: `04-base-de-datos/01_init_schema.sql` es una variante histórica del esquema
 > (patrón NENA). El backend Go usa la estructura de `schema-completo.sql`.

@@ -4,6 +4,7 @@ import {
   GeoJSON,
   LayersControl,
   MapContainer,
+  Marker,
   Popup,
   TileLayer,
   useMap,
@@ -16,8 +17,22 @@ import FeaturePopup from './FeaturePopup'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 
+// Símbolo de punto de control topográfico (crosshair morado, fuera de la
+// escala de calidad para que no se confunda con un "sitio").
+const controlIcon = L.divIcon({
+  className: 'control-pt',
+  html:
+    '<svg width="22" height="22" viewBox="0 0 22 22">' +
+    '<circle cx="11" cy="11" r="8" fill="#fff" stroke="#7c3aed" stroke-width="2"/>' +
+    '<path d="M11 2 V20 M2 11 H20" stroke="#7c3aed" stroke-width="1.4"/>' +
+    '</svg>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+})
+
 interface Props {
   features: GeoFeature[]
+  puntos: GeoFeature[]
   selected: GeoFeature | null
   onSelect: (f: GeoFeature) => void
 }
@@ -70,7 +85,7 @@ function FitController({
   return null
 }
 
-export default function MapView({ features, selected, onSelect }: Props) {
+export default function MapView({ features, puntos, selected, onSelect }: Props) {
   return (
     <MapContainer center={LURUACO_CENTER} zoom={13} className="map" zoomControl={false}>
       <LayersControl position="topright">
@@ -139,7 +154,43 @@ export default function MapView({ features, selected, onSelect }: Props) {
         )
       })}
 
-      <FitController selected={selected} features={features} />
+      {/* Puntos de control topográfico (datos reales del levantamiento) */}
+      {puntos.map((pt) => {
+        const coords = pt.geometry.coordinates as [number, number] | undefined
+        if (!coords || coords.length < 2) return null
+        const p = pt.properties
+        return (
+          <Marker key={`ctrl-${p.id}`} position={[coords[1], coords[0]]} icon={controlIcon}>
+            <Popup>
+              <div className="popup">
+                <h3 className="popup-title">{p.codigo_punto ?? 'Punto'}</h3>
+                <span className="popup-chip" style={{ background: '#7c3aed', color: '#fff' }}>
+                  PUNTO DE CONTROL
+                </span>
+                <dl className="popup-grid">
+                  {p.nombre_punto && (
+                    <>
+                      <dt>Nombre</dt>
+                      <dd>{p.nombre_punto}</dd>
+                    </>
+                  )}
+                  <dt>Coordenadas</dt>
+                  <dd>{coords[1].toFixed(5)}, {coords[0].toFixed(5)}</dd>
+                  {p.elevacion != null && (
+                    <>
+                      <dt>Elevación</dt>
+                      <dd>{p.elevacion} m</dd>
+                    </>
+                  )}
+                </dl>
+                {p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
+              </div>
+            </Popup>
+          </Marker>
+        )
+      })}
+
+      <FitController selected={selected} features={[...features, ...puntos]} />
     </MapContainer>
   )
 }

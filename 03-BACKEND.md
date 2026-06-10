@@ -37,7 +37,10 @@ GET /api/zonas/:id
 Response: GeoJSON Feature
 
 GET /api/zonas/:id/puntos
-Response: GeoJSON FeatureCollection (puntos de monitoreo)
+Response: GeoJSON FeatureCollection (puntos de una zona)
+
+GET /api/puntos
+Response: GeoJSON FeatureCollection (todos los puntos de monitoreo/control)
 ```
 
 ### Lotes de Bioaumentación

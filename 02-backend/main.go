@@ -88,6 +88,7 @@ func main() {
 	api.Get("/zonas", getZonas)
 	api.Get("/zonas/:id", getZonaByID)
 	api.Get("/zonas/:id/puntos", getPuntosByZona)
+	api.Get("/puntos", getPuntos)
 	api.Get("/lotes", getLotes)
 	api.Get("/lotes/:id", getLoteByID)
 	api.Get("/resumen", getResumen)
@@ -230,59 +231,81 @@ func getZonaByID(c *fiber.Ctx) error {
 	return c.JSON(f)
 }
 
-func getPuntosByZona(c *fiber.Ctx) error {
-	query := `
-		SELECT pm.id, pm.codigo_punto, pm.nombre_punto, pm.descripcion,
-			pm.tipo_monitoreo, pm.metodo_muestreo, pm.estado_punto,
-			pm.longitud, pm.latitud, pm.elevacion,
-			pm.tecnico_responsable, pm.equipo_monitoreo,
-			ST_AsGeoJSON(pm.geom) as geojson
-		FROM eco_restauracion.puntos_monitoreo pm
-		WHERE pm.poligono_id = $1
-		ORDER BY pm.id`
+const puntoColumns = `
+	id, codigo_punto, nombre_punto, descripcion, tipo_monitoreo,
+	metodo_muestreo, estado_punto, longitud, latitud, elevacion,
+	tecnico_responsable, equipo_monitoreo, ST_AsGeoJSON(geom) as geojson`
 
-	rows, err := db.QueryContext(c.UserContext(), query, c.Params("id"))
+func scanPunto(scan func(dest ...any) error) (Feature, error) {
+	var (
+		id                       int64
+		codigo, tipoMon, estado  string
+		nombre, desc, metodo     sql.NullString
+		tecnico, equipo, geojson sql.NullString
+		lon, lat                 float64
+		elev                     sql.NullFloat64
+	)
+	err := scan(
+		&id, &codigo, &nombre, &desc, &tipoMon, &metodo, &estado,
+		&lon, &lat, &elev, &tecnico, &equipo, &geojson,
+	)
 	if err != nil {
-		return serverError(c, "Error al consultar puntos de monitoreo", err)
+		return Feature{}, err
 	}
-	defer rows.Close()
+	props := map[string]interface{}{
+		"id":             id,
+		"codigo_punto":   codigo,
+		"tipo_monitoreo": tipoMon,
+		"estado_punto":   estado,
+		"longitud":       lon,
+		"latitud":        lat,
+	}
+	setStr(props, "nombre_punto", nombre)
+	setStr(props, "descripcion", desc)
+	setStr(props, "metodo_muestreo", metodo)
+	setFloat(props, "elevacion", elev)
+	setStr(props, "tecnico_responsable", tecnico)
+	setStr(props, "equipo_monitoreo", equipo)
+	return newFeature(geojson.String, props), nil
+}
 
+func puntosToCollection(c *fiber.Ctx, rows *sql.Rows) error {
+	defer rows.Close()
 	features := []Feature{}
 	for rows.Next() {
-		var (
-			id                          int64
-			codigo, tipoMon             string
-			estadoPunto                 string
-			nombre, desc, metodo        sql.NullString
-			tecnico, equipo, geojson    sql.NullString
-			lon, lat                    float64
-			elev                        sql.NullFloat64
-		)
-		err := rows.Scan(
-			&id, &codigo, &nombre, &desc, &tipoMon, &metodo, &estadoPunto,
-			&lon, &lat, &elev, &tecnico, &equipo, &geojson,
-		)
+		f, err := scanPunto(rows.Scan)
 		if err != nil {
 			log.Printf("Error escaneando punto: %v", err)
 			continue
 		}
-		props := map[string]interface{}{
-			"id":             id,
-			"codigo_punto":   codigo,
-			"tipo_monitoreo": tipoMon,
-			"estado_punto":   estadoPunto,
-			"longitud":       lon,
-			"latitud":        lat,
-		}
-		setStr(props, "nombre_punto", nombre)
-		setStr(props, "descripcion", desc)
-		setStr(props, "metodo_muestreo", metodo)
-		setFloat(props, "elevacion", elev)
-		setStr(props, "tecnico_responsable", tecnico)
-		setStr(props, "equipo_monitoreo", equipo)
-		features = append(features, newFeature(geojson.String, props))
+		features = append(features, f)
+	}
+	if err := rows.Err(); err != nil {
+		return serverError(c, "Error procesando puntos", err)
 	}
 	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
+}
+
+// getPuntosByZona retorna los puntos de monitoreo de una zona específica.
+func getPuntosByZona(c *fiber.Ctx) error {
+	query := "SELECT " + puntoColumns +
+		" FROM eco_restauracion.puntos_monitoreo WHERE poligono_id = $1 ORDER BY id"
+	rows, err := db.QueryContext(c.UserContext(), query, c.Params("id"))
+	if err != nil {
+		return serverError(c, "Error al consultar puntos de monitoreo", err)
+	}
+	return puntosToCollection(c, rows)
+}
+
+// getPuntos retorna todos los puntos de monitoreo / control.
+func getPuntos(c *fiber.Ctx) error {
+	query := "SELECT " + puntoColumns +
+		" FROM eco_restauracion.puntos_monitoreo ORDER BY id"
+	rows, err := db.QueryContext(c.UserContext(), query)
+	if err != nil {
+		return serverError(c, "Error al consultar puntos", err)
+	}
+	return puntosToCollection(c, rows)
 }
 
 // ============================================================
