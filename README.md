@@ -3,13 +3,14 @@
 **Proyecto:** Geovisor Ecológico Luruaco  
 **Cliente:** MC Consultorías / Fundación ProNature  
 **Responsable:** Ángel Zambrano Jaraba  
-**Fecha:** Mayo 2026  
-**Versión:** 2.0
+**Fecha:** Junio 2026  
+**Versión:** 3.0
 
 ---
 
 ## 📋 Índice de Documentación
 
+- [▶️ Cómo correr el proyecto en local](./00-COMO-CORRER.md)
 1. [Arquitectura del Sistema](./01-ARQUITECTURA.md)
 2. [Base de Datos PostGIS](./02-BASE-DE-DATOS.md)
 3. [Backend API REST](./03-BACKEND.md)
@@ -18,6 +19,7 @@
 6. [Guía de Despliegue](./06-DESPLIEGUE.md)
 7. [Diseño UI/UX](./07-DISENO-UI-UX.md)
 8. [Referencias y Recursos](./08-REFERENCIAS.md)
+9. [Registro de cambios](./09-CAMBIOS.md)
 
 ---
 
@@ -32,10 +34,12 @@ Sistema completo de geodatabase espacial para monitorear proyectos de restauraci
 - ✅ Datos reales del lote de bioaumentación cargados
 
 ### URLs de Acceso
-| Servicio | URL |
-|----------|-----|
-| Geovisor | http://187.77.4.10:8081 |
-| API | http://187.77.4.10:8080 |
+| Servicio | Dev (local) | Prod |
+|----------|-------------|------|
+| Geovisor | http://localhost:5173 | http://187.77.4.10:8081 |
+| API | http://localhost:8080 | http://187.77.4.10:8080 |
+
+> Para correrlo localmente, ver **[00-COMO-CORRER.md](./00-COMO-CORRER.md)**.
 
 ---
 

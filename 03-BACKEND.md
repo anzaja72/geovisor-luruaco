@@ -4,7 +4,8 @@
 - **Lenguaje:** Go 1.22
 - **Framework:** Fiber v2.52.13
 - **Driver PostgreSQL:** lib/pq
-- **CORS:** Habilitado para cualquier origen
+- **Entorno:** godotenv (carga `.env`)
+- **CORS:** Configurable vía `CORS_ALLOW_ORIGINS` (por defecto `*` en dev)
 
 ## Estructura del Código
 
@@ -48,6 +49,17 @@ GET /api/lotes/:id
 Response: GeoJSON Feature
 ```
 
+### Resumen (dashboard)
+```
+GET /api/resumen?periodo=2024-2
+Response: {
+  "periodo": "2024-2",
+  "sitios_visitados": 3,
+  "sitios_reportados": 3,
+  "categorias": [{"categoria":"adecuada","cantidad":2,"porcentaje":66.6}, ...]
+}
+```
+
 ## Estructuras de Datos
 
 ```go
@@ -65,14 +77,22 @@ type Feature struct {
 
 ## Variables de Entorno
 
+Ver plantilla en `02-backend/.env.example`. La contraseña **solo** viene del
+entorno (no hay valor por defecto en el binario).
+
 ```bash
 PORT=8080
-DATABASE_URL=postgres://user:pass@host:5432/dbname
+# Opción A: cadena completa
+DATABASE_URL=postgres://user:pass@host:5432/dbname?sslmode=require
+# Opción B: variables sueltas
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=eco_admin
-DB_PASSWORD=EcoRest2024!
+DB_PASSWORD=          # obligatoria; sin default
 DB_NAME=restauracion_ecologica
+DB_SSLMODE=disable
+# CORS (usa tu dominio en producción)
+CORS_ALLOW_ORIGINS=http://localhost:5173
 ```
 
 ## Comandos

@@ -10,11 +10,11 @@
                             │ HTTP
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  🌐 FRONTEND (React 18 + TypeScript + Leaflet)                  │
-│  • Mapa interactivo con capas vectoriales                        │
-│  • Panel de estadísticas y filtros                               │
+│  🌐 FRONTEND (React 19 + TypeScript + Leaflet 5)                │
+│  • Dashboard departamental (estilo ICAM) con mapa y gráficas     │
+│  • Escala de calidad, KPIs, dona y barras (SVG)                  │
 │  • Diseño responsive (móvil/desktop)                             │
-│  • Puerto: 8081                                                  │
+│  • Dev: Vite en puerto 5173 · Prod: build estático en dist/      │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ API REST (JSON/GeoJSON)
                             ▼
@@ -45,11 +45,12 @@
 - **CORS:** Habilitado para cualquier origen
 
 ### Frontend
-- **Framework:** React 18
+- **Framework:** React 19
 - **Lenguaje:** TypeScript
-- **Build Tool:** Vite
-- **Mapas:** Leaflet + React-Leaflet
-- **Estilos:** CSS moderno con glassmorphism
+- **Build Tool:** Vite 8
+- **Mapas:** Leaflet 1.9 + React-Leaflet 5 (basemaps Esri)
+- **Gráficas:** SVG/CSS puro (sin librería de charting)
+- **Estilos:** CSS puro con variables (tema ICAM)
 
 ### Base de Datos
 - **Motor:** PostgreSQL 15
@@ -88,3 +89,4 @@ Popup Info ← Datos JSON ←─────────────────
 | `/api/zonas/:id/puntos` | GET | Puntos de monitoreo |
 | `/api/lotes` | GET | Listar lotes de bioaumentación |
 | `/api/lotes/:id` | GET | Obtener lote específico |
+| `/api/resumen` | GET | Totales y conteo/proporción por categoría de calidad (filtro `?periodo=`) |

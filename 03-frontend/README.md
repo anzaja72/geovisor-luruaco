@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# Frontend — Geovisor Luruaco
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Visor web del índice de calidad (dashboard departamental tipo ICAM) para la
+geodatabase de restauración ecológica de la Ciénaga de Luruaco.
 
-Currently, two official plugins are available:
+**Stack:** React 19 · TypeScript · Vite 8 · Leaflet 5 · gráficas SVG.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Requisitos
+- Node.js 20+ y npm.
 
-## React Compiler
+## Puesta en marcha
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
 
-## Expanding the ESLint configuration
+# Opción A — con el backend Go corriendo en :8080
+echo 'VITE_API_URL=http://localhost:8080' > .env.local
+npm run dev          # http://localhost:5173
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Opción B — sin backend (datos de demostración)
+# No definas VITE_API_URL: Vite sirve un mock de /api/* automáticamente.
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Comando | Acción |
+|---------|--------|
+| `npm run dev` | Servidor de desarrollo (HMR) |
+| `npm run build` | `tsc -b && vite build` → `dist/` |
+| `npm run preview` | Sirve el build de producción |
+| `npm run lint` | ESLint (flat config) |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Estructura
+
+Ver `../04-FRONTEND.md` para el detalle de carpetas (`src/lib`, `src/hooks`,
+`src/components`, `src/mock`) y el modelo de datos.
+
+## Variables de entorno
+
+`VITE_API_URL` — URL base del backend. Si se omite en dev, se usa el mock.
+Plantilla en `.env.example`.

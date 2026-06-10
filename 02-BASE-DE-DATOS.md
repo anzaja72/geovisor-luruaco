@@ -20,6 +20,8 @@ Almacena áreas poligonales de proyectos de restauración.
 | organizacion_responsable | VARCHAR(255) | Entidad ejecutora |
 | responsable_tecnico | VARCHAR(255) | Profesional a cargo |
 | fecha_inicio_restauracion | DATE | Fecha de inicio |
+| categoria_calidad | VARCHAR(20) | Escala ICAM: pesima/inadecuada/aceptable/adecuada/optima (migración 02) |
+| periodo | VARCHAR(20) | Periodo de reporte, ej. `2024-2` (migración 02) |
 
 #### 2. lotes_bioaumentacion
 Almacena lotes para bioaumentación.
@@ -38,6 +40,8 @@ Almacena lotes para bioaumentación.
 | geom | GEOMETRY(POLYGON, 4326) | Geometría espacial |
 | puntos_referencia | JSONB | Puntos de referencia |
 | metadata | JSONB | Metadatos adicionales |
+| categoria_calidad | VARCHAR(20) | Escala ICAM (migración 02) |
+| periodo | VARCHAR(20) | Periodo de reporte (migración 02) |
 
 #### 3. puntos_monitoreo
 Puntos de muestreo dentro de las zonas.
@@ -51,7 +55,38 @@ Puntos de muestreo dentro de las zonas.
 | longitud/latitud | DECIMAL | Coordenadas geográficas |
 | geom | GEOMETRY(POINT, 4326) | Geometría espacial |
 
+## Scripts y orden de aplicación
+
+La fuente de verdad del esquema son estos scripts (aplicar en orden):
+
+| Orden | Archivo | Contenido |
+|-------|---------|-----------|
+| 1 | `schema-completo.sql` | Esquema base (tablas, índices, lote LUR-BIO-001, vistas, funciones) |
+| 2 | `04-base-de-datos/02_add_categoria_calidad.sql` | Migración: `categoria_calidad` + `periodo`, índices, trigger de lotes, vista de resumen |
+| 3 | `04-base-de-datos/03_seed_proyecto.sql` | Datos del proyecto: 2 zonas (ANEXO_B) + punto GPS real (EPSG:9377→WGS84) |
+
+> Nota: `04-base-de-datos/01_init_schema.sql` es una variante histórica del esquema
+> (patrón NENA). El backend Go usa la estructura de `schema-completo.sql`.
+
+```bash
+docker compose -f 04-base-de-datos/docker-compose.yml up -d
+docker exec -i postgis-eco-restauracion psql -U eco_admin -d restauracion_ecologica < schema-completo.sql
+docker exec -i postgis-eco-restauracion psql -U eco_admin -d restauracion_ecologica < 04-base-de-datos/02_add_categoria_calidad.sql
+docker exec -i postgis-eco-restauracion psql -U eco_admin -d restauracion_ecologica < 04-base-de-datos/03_seed_proyecto.sql
+```
+
 ## Datos Cargados
+
+### Punto de control GPS (PC Luruaco.csv)
+Origen del levantamiento topográfico en **EPSG:9377** (MAGNA-SIRGAS / Origen-Nacional),
+reproyectado a WGS84 por PostGIS:
+
+| Código | Norte (9377) | Este (9377) | Lon (WGS84) | Lat (WGS84) |
+|--------|--------------|-------------|-------------|-------------|
+| GPS1 | 2730826.963 | 4762570.153 | -75.170943 | 10.606029 |
+
+> EPSG:9377 no viene en algunas imágenes de PostGIS; `03_seed_proyecto.sql` lo
+> registra en `spatial_ref_sys` antes de reproyectar.
 
 ### Lote Planta Bioaumentación (LUR-BIO-001)
 
