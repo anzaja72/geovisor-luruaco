@@ -9,19 +9,44 @@ import MetricsPanel from './components/MetricsPanel'
 import DonutChart from './components/DonutChart'
 import BarsChart from './components/BarsChart'
 import MapView from './components/MapView'
+import CompareView from './components/CompareView'
+import ReportsPanel from './components/ReportsPanel'
 import Footer from './components/Footer'
+import ImportModal from './components/ImportModal'
+import LoginPage from './components/LoginPage'
 import { useGeoData, useResumen } from './hooks/useGeoData'
 import { resumenLocal } from './lib/aggregate'
 import { ESCALA } from './lib/quality'
+import { cerrarSesion, getUsuario, puedeEditar, type Usuario } from './lib/auth'
 import type { Categoria, GeoFeature } from './lib/types'
 
 const PERIODO_DEFAULT = '2024-2'
 
 export default function App() {
-  const { loading, error, zonas, lotes, puntos, features, periodos } = useGeoData()
+  const [usuario, setUsuario] = useState<Usuario | null>(getUsuario())
+
+  if (!usuario) {
+    return <LoginPage onLogin={setUsuario} />
+  }
+  return (
+    <Dashboard
+      usuario={usuario}
+      onLogout={() => {
+        cerrarSesion()
+        setUsuario(null)
+      }}
+    />
+  )
+}
+
+function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void }) {
+  const { loading, error, zonas, lotes, puntos, capas, features, periodos, reload } =
+    useGeoData()
   const [periodoSel, setPeriodoSel] = useState<string | null>(null)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
-  const [mapTab, setMapTab] = useState<'mapa' | 'historico'>('mapa')
+  const [mapTab, setMapTab] = useState<'mapa' | 'comparar' | 'historico'>('mapa')
+  const [navTab, setNavTab] = useState('Escala departamental')
+  const [importOpen, setImportOpen] = useState(false)
   const [catSel, setCatSel] = useState<Set<Categoria>>(new Set())
   const [tipoSel, setTipoSel] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
@@ -100,84 +125,101 @@ export default function App() {
 
   return (
     <div className="dashboard">
-      <BrandHeader />
-      <NavTabs active="Escala departamental" />
-      <SubHeader periodo={periodo} periodos={periodos} onPeriodoChange={setPeriodoSel} />
+      <BrandHeader usuario={usuario} onLogout={onLogout} />
+      <NavTabs active={navTab} onChange={setNavTab} />
 
-      {error && (
-        <div className="banner-warn">
-          ⚠️ No se pudo conectar con la API ({error}). Mostrando lo disponible; las
-          gráficas usan cálculo local si hay datos.
-        </div>
+      {navTab === 'Descarga de datos' ? (
+        <ReportsPanel />
+      ) : (
+        <>
+          <SubHeader periodo={periodo} periodos={periodos} onPeriodoChange={setPeriodoSel} />
+
+          {error && (
+            <div className="banner-warn">
+              ⚠️ No se pudo conectar con la API ({error}). Mostrando lo disponible; las
+              gráficas usan cálculo local si hay datos.
+            </div>
+          )}
+
+          <div className="dash-body">
+            <DepartmentSidebar
+              features={fFeatures}
+              selected={selected}
+              onSelect={setSelected}
+              query={query}
+              onQuery={setQuery}
+              filters={
+                <FiltersPanel
+                  categoriasDisponibles={categoriasDisponibles}
+                  tiposDisponibles={tiposDisponibles}
+                  catSel={catSel}
+                  tipoSel={tipoSel}
+                  onToggleCat={(c) => setCatSel((s) => toggle(s, c))}
+                  onToggleTipo={(t) => setTipoSel((s) => toggle(s, t))}
+                  onClear={clearFilters}
+                />
+              }
+            />
+
+            <main className="center">
+              <MetricsPanel resumen={resumen} />
+              <div className="map-wrap">
+                {mapTab === 'mapa' && (
+                  <MapView
+                    zonas={fZonas}
+                    lotes={fLotes}
+                    puntos={puntos}
+                    capas={capas}
+                    selected={selected}
+                    onSelect={setSelected}
+                  />
+                )}
+                {mapTab === 'comparar' && (
+                  <CompareView features={features} periodos={periodos} />
+                )}
+                {mapTab === 'historico' && (
+                  <div className="historico-placeholder">
+                    <p>Histórico departamental</p>
+                    <small>Use «Comparar periodos» para la evolución antes/después.</small>
+                  </div>
+                )}
+                <div className="map-tabs">
+                  <button
+                    className={mapTab === 'mapa' ? 'active' : ''}
+                    onClick={() => setMapTab('mapa')}
+                  >
+                    Mapa y características del muestreo
+                  </button>
+                  <button
+                    className={mapTab === 'comparar' ? 'active' : ''}
+                    onClick={() => setMapTab('comparar')}
+                  >
+                    Comparar periodos (antes/después)
+                  </button>
+                </div>
+              </div>
+            </main>
+
+            <aside className="right-panels">
+              <section className="panel">
+                <h4>Proporción de sitios por categoría de calidad</h4>
+                <DonutChart categorias={resumen.categorias} />
+              </section>
+              <section className="panel">
+                <h4>Cantidad de sitios</h4>
+                <BarsChart categorias={resumen.categorias} />
+              </section>
+            </aside>
+          </div>
+        </>
       )}
 
-      <div className="dash-body">
-        <DepartmentSidebar
-          features={fFeatures}
-          selected={selected}
-          onSelect={setSelected}
-          query={query}
-          onQuery={setQuery}
-          filters={
-            <FiltersPanel
-              categoriasDisponibles={categoriasDisponibles}
-              tiposDisponibles={tiposDisponibles}
-              catSel={catSel}
-              tipoSel={tipoSel}
-              onToggleCat={(c) => setCatSel((s) => toggle(s, c))}
-              onToggleTipo={(t) => setTipoSel((s) => toggle(s, t))}
-              onClear={clearFilters}
-            />
-          }
-        />
-
-        <main className="center">
-          <MetricsPanel resumen={resumen} />
-          <div className="map-wrap">
-            {mapTab === 'mapa' ? (
-              <MapView
-                zonas={fZonas}
-                lotes={fLotes}
-                puntos={puntos}
-                selected={selected}
-                onSelect={setSelected}
-              />
-            ) : (
-              <div className="historico-placeholder">
-                <p>Histórico departamental</p>
-                <small>Vista de evolución por periodo (próximamente).</small>
-              </div>
-            )}
-            <div className="map-tabs">
-              <button
-                className={mapTab === 'mapa' ? 'active' : ''}
-                onClick={() => setMapTab('mapa')}
-              >
-                Mapa y características del muestreo
-              </button>
-              <button
-                className={mapTab === 'historico' ? 'active' : ''}
-                onClick={() => setMapTab('historico')}
-              >
-                Histórico departamental
-              </button>
-            </div>
-          </div>
-        </main>
-
-        <aside className="right-panels">
-          <section className="panel">
-            <h4>Proporción de sitios por categoría de calidad</h4>
-            <DonutChart categorias={resumen.categorias} />
-          </section>
-          <section className="panel">
-            <h4>Cantidad de sitios</h4>
-            <BarsChart categorias={resumen.categorias} />
-          </section>
-        </aside>
-      </div>
-
-      <Footer />
+      <Footer onImport={puedeEditar(usuario) ? () => setImportOpen(true) : undefined} />
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={reload}
+      />
     </div>
   )
 }

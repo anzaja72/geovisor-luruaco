@@ -1,0 +1,88 @@
+# ============================================================
+# Despliegue productivo — Geovisor Luruaco
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Requiere un archivo .env junto a este compose con:
+#   DB_PASSWORD=...        (contraseña fuerte de PostGIS)
+#   JWT_SECRET=...         (openssl rand -hex 32)
+#   ADMIN_EMAIL=...        ADMIN_PASSWORD=...
+#   CORS_ALLOW_ORIGINS=https://tu-dominio.com
+# ============================================================
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: gdb-postgis
+    environment:
+      POSTGRES_USER: eco_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Definir DB_PASSWORD en .env}
+      POSTGRES_DB: restauracion_ecologica
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+      - ./schema-completo.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./04-base-de-datos/02_add_categoria_calidad.sql:/docker-entrypoint-initdb.d/02_categoria.sql:ro
+      - ./04-base-de-datos/03_seed_proyecto.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+      - ./04-base-de-datos/04_capas_geograficas.sql:/docker-entrypoint-initdb.d/04_capas.sql:ro
+      - ./04-base-de-datos/05_modelo_spec_completo.sql:/docker-entrypoint-initdb.d/05_spec.sql:ro
+      - ./04-base-de-datos/06_usuarios_auth.sql:/docker-entrypoint-initdb.d/06_usuarios.sql:ro
+      - ./backups:/backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eco_admin -d restauracion_ecologica"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Sin puerto publicado: solo accesible en la red interna.
+
+  backend:
+    build: ./02-backend
+    container_name: gdb-backend
+    environment:
+      DB_HOST: postgis
+      DB_PORT: "5432"
+      DB_USER: eco_admin
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: restauracion_ecologica
+      DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET:?Definir JWT_SECRET en .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@luruaco.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Definir ADMIN_PASSWORD en .env}
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
+      PORT: "8080"
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./03-frontend
+      args:
+        VITE_API_URL: ""   # mismo origen: Nginx proxy /api → backend
+    container_name: gdb-frontend
+    ports:
+      - "80:80"
+      # Para HTTPS directo en el contenedor, publicar 443 y montar certificados,
+      # o (recomendado) poner un Nginx/Caddy del host con certbot por delante.
+    volumes:
+      - ./tiles:/usr/share/nginx/tiles:ro   # tiles de la ortofoto (gdal2tiles)
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Backup diario de la base con retención de 14 días.
+  backup:
+    image: postgis/postgis:16-3.4
+    container_name: gdb-backup
+    entrypoint: /bin/bash
+    command: -c 'while true; do PGPASSWORD=$$DB_PASSWORD pg_dump -h postgis -U eco_admin -d restauracion_ecologica -F c -f /backups/gdb_$$(date +%Y%m%d_%H%M).dump && find /backups -name "gdb_*.dump" -mtime +14 -delete; sleep 86400; done'
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgis_data:

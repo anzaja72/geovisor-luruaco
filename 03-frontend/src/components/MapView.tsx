@@ -15,6 +15,7 @@ import 'leaflet/dist/leaflet.css'
 import { colorDe } from '../lib/quality'
 import type { GeoFeature } from '../lib/types'
 import FeaturePopup from './FeaturePopup'
+import MeasureTool from './MeasureTool'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 
@@ -34,9 +35,13 @@ interface Props {
   zonas: GeoFeature[]
   lotes: GeoFeature[]
   puntos: GeoFeature[]
+  capas: GeoFeature[]
   selected: GeoFeature | null
   onSelect: (f: GeoFeature) => void
 }
+
+// Paleta para capas importadas (distinta de la escala de calidad).
+const CAPA_COLORS = ['#0ea5e9', '#f97316', '#a855f7', '#14b8a6', '#eab308', '#ec4899']
 
 /** Centro seguro de cualquier geometría (no asume Polygon). */
 function centroOf(feature: GeoFeature): [number, number] | null {
@@ -177,8 +182,20 @@ function SearchControl() {
   )
 }
 
-export default function MapView({ zonas, lotes, puntos, selected, onSelect }: Props) {
+export default function MapView({ zonas, lotes, puntos, capas, selected, onSelect }: Props) {
   const all = useMemo(() => [...zonas, ...lotes, ...puntos], [zonas, lotes, puntos])
+  const [medir, setMedir] = useState<'off' | 'distancia' | 'area'>('off')
+
+  // Agrupar capas importadas por nombre de capa.
+  const capasGroups = useMemo(() => {
+    const m = new Map<string, GeoFeature[]>()
+    for (const f of capas) {
+      const k = f.properties.capa ?? 'capa'
+      if (!m.has(k)) m.set(k, [])
+      m.get(k)!.push(f)
+    }
+    return Array.from(m.entries())
+  }, [capas])
   return (
     <MapContainer center={LURUACO_CENTER} zoom={13} className="map">
       <SearchControl />
@@ -249,8 +266,49 @@ export default function MapView({ zonas, lotes, puntos, selected, onSelect }: Pr
             })}
           </LayerGroup>
         </LayersControl.Overlay>
+
+        {/* Capas importadas (GeoJSON/CSV/Shapefile) */}
+        {capasGroups.map(([nombre, feats], i) => {
+          const color = CAPA_COLORS[i % CAPA_COLORS.length]
+          return (
+            <LayersControl.Overlay key={`capa-${nombre}`} checked name={`📥 ${nombre}`}>
+              <GeoJSON
+                key={`capa-data-${nombre}-${feats.length}`}
+                data={
+                  { type: 'FeatureCollection', features: feats } as unknown as GeoJSON.GeoJsonObject
+                }
+                style={{ color, weight: 2, fillColor: color, fillOpacity: 0.25 }}
+                pointToLayer={(_f, latlng) =>
+                  L.circleMarker(latlng, {
+                    radius: 5,
+                    color: '#fff',
+                    weight: 1.5,
+                    fillColor: color,
+                    fillOpacity: 1,
+                  })
+                }
+                onEachFeature={(f, layer) => {
+                  const p = (f.properties || {}) as Record<string, unknown>
+                  const el = document.createElement('div')
+                  el.className = 'popup'
+                  const title = document.createElement('strong')
+                  title.textContent = nombre
+                  el.appendChild(title)
+                  const nom = p.nombre ?? p.name
+                  if (nom) {
+                    const sub = document.createElement('div')
+                    sub.textContent = String(nom)
+                    el.appendChild(sub)
+                  }
+                  layer.bindPopup(el)
+                }}
+              />
+            </LayersControl.Overlay>
+          )
+        })}
       </LayersControl>
 
+      <MeasureTool modo={medir} onModo={setMedir} />
       <FitController selected={selected} all={all} />
     </MapContainer>
   )

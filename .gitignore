@@ -31,6 +31,9 @@ __debug_bin*
 *.kml
 *.zip
 *.tar.gz
+datos-dron/
+backups/
+tiles/
 
 # ===== Editores / SO =====
 .DS_Store

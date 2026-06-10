@@ -32,6 +32,8 @@ export interface FeatureProps {
   elevacion?: number
   longitud?: number
   latitud?: number
+  // Capas importadas
+  capa?: string
 }
 
 export interface GeoFeature {

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -58,8 +62,12 @@ func main() {
 	}
 	log.Println("✅ Conexión a PostGIS establecida")
 
+	// Autenticación: secreto JWT + admin inicial.
+	initAuth()
+
 	app := fiber.New(fiber.Config{
-		AppName: "Luruaco API - Restauración Ecológica",
+		AppName:   "Luruaco API - Restauración Ecológica",
+		BodyLimit: 50 * 1024 * 1024, // 50 MB para importación de archivos
 	})
 
 	// CORS configurable por entorno. Por defecto "*" (cómodo en dev),
@@ -85,13 +93,37 @@ func main() {
 	})
 
 	api := app.Group("/api")
-	api.Get("/zonas", getZonas)
-	api.Get("/zonas/:id", getZonaByID)
-	api.Get("/zonas/:id/puntos", getPuntosByZona)
-	api.Get("/puntos", getPuntos)
-	api.Get("/lotes", getLotes)
-	api.Get("/lotes/:id", getLoteByID)
-	api.Get("/resumen", getResumen)
+
+	// --- Autenticación (público) ---
+	api.Post("/auth/login", login)
+	api.Get("/auth/me", requireAuth(), me)
+
+	// --- Lectura: cualquier usuario autenticado (administrador/tecnico/consulta) ---
+	lectura := requireAuth()
+	api.Get("/zonas", lectura, getZonas)
+	api.Get("/zonas/:id", lectura, getZonaByID)
+	api.Get("/zonas/:id/puntos", lectura, getPuntosByZona)
+	api.Get("/puntos", lectura, getPuntos)
+	api.Get("/lotes", lectura, getLotes)
+	api.Get("/lotes/:id", lectura, getLoteByID)
+	api.Get("/resumen", lectura, getResumen)
+	api.Get("/capas", lectura, getCapas)
+	api.Get("/capas/geojson", lectura, getCapasGeoJSON)
+
+	// --- Escritura/carga: administrador y técnico ---
+	edicion := requireAuth("administrador", "tecnico")
+	api.Post("/import/geojson", edicion, importGeoJSON)
+	api.Post("/import/csv", edicion, importCSV)
+
+	// --- Reportes (CSV/Excel/PDF): cualquier usuario autenticado ---
+	api.Get("/reportes/:tipo", lectura, getReporte)
+
+	// --- Gestión de usuarios: solo administrador ---
+	admin := requireAuth("administrador")
+	api.Get("/usuarios", admin, listarUsuarios)
+	api.Post("/usuarios", admin, crearUsuario)
+	api.Put("/usuarios/:id", admin, actualizarUsuario)
+	api.Delete("/usuarios/:id", admin, eliminarUsuario)
 
 	port := getEnv("PORT", "8080")
 	log.Printf("🚀 Servidor iniciado en puerto %s", port)
@@ -485,6 +517,208 @@ func getResumen(c *fiber.Ctx) error {
 		SitiosReportados: reportados,
 		Categorias:       categorias,
 	})
+}
+
+// ============================================================
+// Capas importadas
+// ============================================================
+
+type ImportResult struct {
+	Capa       string `json:"capa"`
+	Insertados int    `json:"insertados"`
+	Errores    int    `json:"errores"`
+}
+
+func nombreFromProps(p map[string]interface{}) sql.NullString {
+	for _, k := range []string{"nombre", "name", "NOMBRE", "Name", "NAME"} {
+		if v, ok := p[k]; ok {
+			if s, ok := v.(string); ok && s != "" {
+				return sql.NullString{String: s, Valid: true}
+			}
+		}
+	}
+	return sql.NullString{}
+}
+
+// getCapas: inventario de capas importadas (nombre, tipo, total).
+func getCapas(c *fiber.Ctx) error {
+	rows, err := db.QueryContext(c.UserContext(),
+		`SELECT capa, tipo_geometria, total FROM eco_restauracion.vw_capas_inventario`)
+	if err != nil {
+		return serverError(c, "Error al listar capas", err)
+	}
+	defer rows.Close()
+	out := []fiber.Map{}
+	for rows.Next() {
+		var capa, tipo string
+		var total int
+		if err := rows.Scan(&capa, &tipo, &total); err != nil {
+			continue
+		}
+		out = append(out, fiber.Map{"capa": capa, "tipo_geometria": tipo, "total": total})
+	}
+	return c.JSON(fiber.Map{"capas": out})
+}
+
+// getCapasGeoJSON: features de capas importadas (filtro opcional ?capa=).
+func getCapasGeoJSON(c *fiber.Ctx) error {
+	capa := c.Query("capa", "")
+	query := `
+		SELECT capa, nombre, COALESCE(propiedades, '{}'::jsonb), ST_AsGeoJSON(geom)
+		FROM eco_restauracion.capas_geograficas
+		WHERE ($1 = '' OR capa = $1)
+		ORDER BY capa, id`
+	rows, err := db.QueryContext(c.UserContext(), query, capa)
+	if err != nil {
+		return serverError(c, "Error al consultar capas", err)
+	}
+	defer rows.Close()
+
+	features := []Feature{}
+	for rows.Next() {
+		var capaN, geojson string
+		var nombre sql.NullString
+		var propsRaw []byte
+		if err := rows.Scan(&capaN, &nombre, &propsRaw, &geojson); err != nil {
+			continue
+		}
+		props := map[string]interface{}{}
+		_ = json.Unmarshal(propsRaw, &props)
+		props["capa"] = capaN
+		if nombre.Valid {
+			props["nombre"] = nombre.String
+		}
+		features = append(features, newFeature(geojson, props))
+	}
+	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
+}
+
+// importGeoJSON: POST body = FeatureCollection GeoJSON; ?capa=NOMBRE&origen=...
+func importGeoJSON(c *fiber.Ctx) error {
+	capa := strings.TrimSpace(c.Query("capa"))
+	if capa == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Falta el parámetro ?capa="})
+	}
+	origen := c.Query("origen", "geojson")
+
+	var fc FeatureCollection
+	if err := json.Unmarshal(c.Body(), &fc); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "GeoJSON inválido: " + err.Error()})
+	}
+	if len(fc.Features) == 0 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "FeatureCollection sin features"})
+	}
+
+	tx, err := db.BeginTx(c.UserContext(), nil)
+	if err != nil {
+		return serverError(c, "Error iniciando transacción", err)
+	}
+	defer tx.Rollback()
+
+	const stmt = `
+		INSERT INTO eco_restauracion.capas_geograficas (capa, nombre, propiedades, origen, geom)
+		VALUES ($1, $2, $3::jsonb, $4, ST_SetSRID(ST_GeomFromGeoJSON($5), 4326))`
+
+	ins, errs := 0, 0
+	for _, f := range fc.Features {
+		if len(f.Geometry) == 0 {
+			errs++
+			continue
+		}
+		props, _ := json.Marshal(f.Properties)
+		_, err := tx.ExecContext(c.UserContext(), stmt,
+			capa, nombreFromProps(f.Properties), string(props), origen, string(f.Geometry))
+		if err != nil {
+			log.Printf("import feature: %v", err)
+			errs++
+			continue
+		}
+		ins++
+	}
+	if err := tx.Commit(); err != nil {
+		return serverError(c, "Error al confirmar importación", err)
+	}
+	return c.JSON(ImportResult{Capa: capa, Insertados: ins, Errores: errs})
+}
+
+// importCSV: POST body = CSV con cabecera (lon/lat + opcional nombre); ?capa=&srid=
+func importCSV(c *fiber.Ctx) error {
+	capa := strings.TrimSpace(c.Query("capa"))
+	if capa == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Falta el parámetro ?capa="})
+	}
+	srid := c.QueryInt("srid", 4326)
+
+	r := csv.NewReader(bytes.NewReader(c.Body()))
+	r.FieldsPerRecord = -1
+	r.TrimLeadingSpace = true
+	records, err := r.ReadAll()
+	if err != nil || len(records) < 2 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "CSV inválido o sin filas de datos"})
+	}
+
+	// Detectar columnas por cabecera (insensible a mayúsculas/acentos básicos).
+	idx := map[string]int{}
+	for i, h := range records[0] {
+		idx[strings.ToLower(strings.TrimSpace(h))] = i
+	}
+	col := func(names ...string) int {
+		for _, n := range names {
+			if v, ok := idx[n]; ok {
+				return v
+			}
+		}
+		return -1
+	}
+	lonI := col("lon", "longitud", "longitude", "x", "este", "east")
+	latI := col("lat", "latitud", "latitude", "y", "norte", "north")
+	nomI := col("nombre", "name", "codigo", "id")
+	if lonI < 0 || latI < 0 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "El CSV debe tener columnas de longitud y latitud (lon/lat, x/y, este/norte)",
+		})
+	}
+
+	tx, err := db.BeginTx(c.UserContext(), nil)
+	if err != nil {
+		return serverError(c, "Error iniciando transacción", err)
+	}
+	defer tx.Rollback()
+
+	const stmt = `
+		INSERT INTO eco_restauracion.capas_geograficas (capa, nombre, propiedades, origen, geom)
+		VALUES ($1, $2, $3::jsonb, 'csv',
+			ST_Transform(ST_SetSRID(ST_MakePoint($4, $5), $6), 4326))`
+
+	ins, errs := 0, 0
+	for _, rec := range records[1:] {
+		if len(rec) <= lonI || len(rec) <= latI {
+			errs++
+			continue
+		}
+		lon, err1 := strconv.ParseFloat(strings.TrimSpace(rec[lonI]), 64)
+		lat, err2 := strconv.ParseFloat(strings.TrimSpace(rec[latI]), 64)
+		if err1 != nil || err2 != nil {
+			errs++
+			continue
+		}
+		var nombre sql.NullString
+		if nomI >= 0 && len(rec) > nomI && strings.TrimSpace(rec[nomI]) != "" {
+			nombre = sql.NullString{String: strings.TrimSpace(rec[nomI]), Valid: true}
+		}
+		props, _ := json.Marshal(map[string]string{"fuente": "csv"})
+		_, err := tx.ExecContext(c.UserContext(), stmt, capa, nombre, string(props), lon, lat, srid)
+		if err != nil {
+			log.Printf("import csv row: %v", err)
+			errs++
+			continue
+		}
+		ins++
+	}
+	if err := tx.Commit(); err != nil {
+		return serverError(c, "Error al confirmar importación", err)
+	}
+	return c.JSON(ImportResult{Capa: capa, Insertados: ins, Errores: errs})
 }
 
 // ============================================================

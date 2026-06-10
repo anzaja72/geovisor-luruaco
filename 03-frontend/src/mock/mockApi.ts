@@ -123,10 +123,20 @@ function resumen() {
 export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
   const url = (req.url || '').split('?')[0]
   let body: unknown
-  if (url === '/api/zonas') body = zonas()
+  if (url === '/api/auth/login') {
+    // Modo demo sin backend: acepta cualquier credencial como administrador.
+    body = {
+      token: 'demo-token',
+      usuario: { id: 0, nombre: 'Demo (sin backend)', email: 'demo@local', rol: 'administrador' },
+    }
+  } else if (url === '/api/auth/me') {
+    body = { id: 0, nombre: 'Demo (sin backend)', email: 'demo@local', rol: 'administrador' }
+  } else if (url === '/api/zonas') body = zonas()
   else if (url === '/api/lotes') body = lotes()
   else if (url === '/api/resumen') body = resumen()
   else if (url === '/api/puntos') body = { type: 'FeatureCollection', features: [] }
+  else if (url === '/api/capas/geojson') body = { type: 'FeatureCollection', features: [] }
+  else if (url === '/api/capas') body = { capas: [] }
   else return next()
 
   res.setHeader('Content-Type', 'application/json')

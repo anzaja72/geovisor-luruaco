@@ -1,7 +1,13 @@
 import { ESCALA } from '../lib/quality'
+import type { Usuario } from '../lib/auth'
 
-/** Cabecera de marca con la escala de calificación de índice (estilo ICAM). */
-export default function BrandHeader() {
+interface Props {
+  usuario?: Usuario | null
+  onLogout?: () => void
+}
+
+/** Cabecera de marca con la escala de calificación y la sesión activa. */
+export default function BrandHeader({ usuario, onLogout }: Props) {
   return (
     <header className="brand-header">
       <div className="brand-left">
@@ -12,19 +18,33 @@ export default function BrandHeader() {
         </div>
       </div>
 
-      <div className="brand-scale">
-        <span className="scale-caption">Escala de calificación de índice</span>
-        <div className="scale-chips">
-          {ESCALA.map((c) => (
-            <span
-              key={c.key}
-              className="scale-chip"
-              style={{ background: c.color, color: c.text }}
-            >
-              {c.label}
-            </span>
-          ))}
+      <div className="brand-right">
+        <div className="brand-scale">
+          <span className="scale-caption">Escala de calificación de índice</span>
+          <div className="scale-chips">
+            {ESCALA.map((c) => (
+              <span
+                key={c.key}
+                className="scale-chip"
+                style={{ background: c.color, color: c.text }}
+              >
+                {c.label}
+              </span>
+            ))}
+          </div>
         </div>
+
+        {usuario && (
+          <div className="brand-user">
+            <span className="user-name" title={usuario.email}>
+              {usuario.nombre}
+            </span>
+            <span className={`user-rol rol-${usuario.rol}`}>{usuario.rol}</span>
+            <button className="user-logout" onClick={onLogout} title="Cerrar sesión">
+              Salir
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )
