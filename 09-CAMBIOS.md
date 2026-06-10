@@ -35,6 +35,14 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
 - Mock de API en dev (plugin Vite) para trabajar sin backend.
 - Verificado: `npm run build`, `npm run lint` y screenshot contra backend real.
 
+## Geovisor — Fase F1 (completar visualización)
+- **Capas conmutables (overlays):** Zonas, Lotes y Puntos de control se pueden
+  encender/apagar de forma independiente (`LayersControl.Overlay`).
+- **Filtros:** por categoría de calidad y tipo de ecosistema; afectan mapa,
+  listado y gráficas (`FiltersPanel`).
+- **Búsqueda geográfica:** por nombre de sitio (filtra el listado) y por lugar
+  mediante geocodificación Nominatim/OSM con *flyTo* en el mapa.
+
 ## Control de versiones
 - `git init` + `.gitignore` (excluye `.env`, `node_modules`, binarios).
 
