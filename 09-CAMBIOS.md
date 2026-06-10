@@ -51,3 +51,20 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
   de puntos LiDAR están en Drive en formato binario; pendientes de descargar a una
   carpeta local para ingerirlos con `ogr2ogr` → PostGIS/GeoJSON y visualizarlos.
 - Cálculo automático de `area_hectareas` por trigger (hoy solo en el lote).
+
+## Cierre de brechas contractuales (Especificación Maestra, jun-2026)
+- **Geodatabase completa (§3):** parcelas, monitoreos, coberturas Corine,
+  indicadores, fotografías, documentos, catálogo de insumos dron (mig. 05).
+- **Insumos del dron (§4):** 8 productos de "Entregables predio 50 Ha"
+  catalogados con metadatos; MDT/DSM descargados; **1106 curvas de nivel
+  importadas a PostGIS** (EPSG:9377→WGS84) y visibles en el visor.
+- **Autenticación (§8):** JWT + roles administrador/técnico/consulta,
+  login obligatorio, CRUD de usuarios, admin inicial por entorno (mig. 06).
+- **Reportes (§7):** CSV/Excel/PDF para sitios, coberturas, monitoreos,
+  indicadores e insumos; pestaña "Descarga de datos".
+- **Geovisor (§5):** medición de distancia/área y comparación temporal
+  ANTES/DESPUÉS con mapas sincronizados.
+- **Implementación (§9):** Dockerfiles, Nginx, docker-compose.prod.yml,
+  backups automáticos; `10-INFRAESTRUCTURA-PRODUCCION.md` (operación 1 año).
+- **Documentación (§10-11):** manuales usuario/administrador, diccionario
+  de datos, plan de capacitación (4 talleres).
