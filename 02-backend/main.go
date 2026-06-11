@@ -110,6 +110,7 @@ func main() {
 	api.Get("/resumen", lectura, getResumen)
 	api.Get("/capas", lectura, getCapas)
 	api.Get("/capas/geojson", lectura, getCapasGeoJSON)
+	api.Get("/coberturas", lectura, getCoberturas)
 
 	// --- Escritura/carga: administrador y técnico ---
 	edicion := requireAuth("administrador", "tecnico")
@@ -596,6 +597,41 @@ func getCapasGeoJSON(c *fiber.Ctx) error {
 			props["nombre"] = nombre.String
 		}
 		features = append(features, newFeature(geojson, props))
+	}
+	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
+}
+
+// getCoberturas: coberturas vegetales (Corine) como FeatureCollection.
+// Geometría simplificada (~1 m) para aligerar la transferencia.
+func getCoberturas(c *fiber.Ctx) error {
+	rows, err := db.QueryContext(c.UserContext(), `
+		SELECT codigo_corine, COALESCE(descripcion,''), COALESCE(area_hectareas,0),
+		       COALESCE(porcentaje,0), COALESCE(periodo,''), COALESCE(fuente,''),
+		       ST_AsGeoJSON(ST_SimplifyPreserveTopology(geom, 0.00001))
+		FROM eco_restauracion.coberturas_vegetales
+		ORDER BY area_hectareas DESC`)
+	if err != nil {
+		return serverError(c, "Error al consultar coberturas", err)
+	}
+	defer rows.Close()
+
+	features := []Feature{}
+	for rows.Next() {
+		var (
+			codigo, desc, periodo, fuente, geojson string
+			ha, pct                                 float64
+		)
+		if err := rows.Scan(&codigo, &desc, &ha, &pct, &periodo, &fuente, &geojson); err != nil {
+			continue
+		}
+		features = append(features, newFeature(geojson, map[string]interface{}{
+			"codigo_corine":  codigo,
+			"descripcion":    desc,
+			"area_hectareas": ha,
+			"porcentaje":     pct,
+			"periodo":        periodo,
+			"fuente":         fuente,
+		}))
 	}
 	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})
 }

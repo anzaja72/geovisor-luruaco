@@ -36,12 +36,20 @@ interface Props {
   lotes: GeoFeature[]
   puntos: GeoFeature[]
   capas: GeoFeature[]
+  coberturas: GeoFeature[]
   selected: GeoFeature | null
   onSelect: (f: GeoFeature) => void
 }
 
 // Paleta para capas importadas (distinta de la escala de calidad).
 const CAPA_COLORS = ['#0ea5e9', '#f97316', '#a855f7', '#14b8a6', '#eab308', '#ec4899']
+
+// Paleta para las 12 clases de cobertura (tonos tipo Corine: verdes/tierras/agua).
+const CORINE_COLORS: Record<string, string> = {
+  clase_1: '#1a9850', clase_2: '#66bd63', clase_3: '#a6d96a', clase_4: '#d9ef8b',
+  clase_5: '#fee08b', clase_6: '#fdae61', clase_7: '#f46d43', clase_8: '#d73027',
+  clase_9: '#9e0142', clase_10: '#c2a5cf', clase_11: '#7b3294', clase_12: '#2b83ba',
+}
 
 /** Centro seguro de cualquier geometría (no asume Polygon). */
 function centroOf(feature: GeoFeature): [number, number] | null {
@@ -182,7 +190,15 @@ function SearchControl() {
   )
 }
 
-export default function MapView({ zonas, lotes, puntos, capas, selected, onSelect }: Props) {
+export default function MapView({
+  zonas,
+  lotes,
+  puntos,
+  capas,
+  coberturas,
+  selected,
+  onSelect,
+}: Props) {
   const all = useMemo(() => [...zonas, ...lotes, ...puntos], [zonas, lotes, puntos])
   const [medir, setMedir] = useState<'off' | 'distancia' | 'area'>('off')
 
@@ -281,6 +297,37 @@ export default function MapView({ zonas, lotes, puntos, capas, selected, onSelec
             })}
           </LayerGroup>
         </LayersControl.Overlay>
+
+        {/* Coberturas vegetales (Corine) del levantamiento dron */}
+        {coberturas.length > 0 && (
+          <LayersControl.Overlay name="🌿 Coberturas (Corine)">
+            <GeoJSON
+              key={`cob-${coberturas.length}`}
+              data={
+                { type: 'FeatureCollection', features: coberturas } as unknown as GeoJSON.GeoJsonObject
+              }
+              style={(f) => {
+                const cod = (f?.properties as Record<string, string>)?.codigo_corine ?? ''
+                const color = CORINE_COLORS[cod] ?? '#94a3b8'
+                return { color: '#ffffff', weight: 0.6, fillColor: color, fillOpacity: 0.6 }
+              }}
+              onEachFeature={(f, layer) => {
+                const p = (f.properties || {}) as Record<string, unknown>
+                const el = document.createElement('div')
+                el.className = 'popup'
+                el.innerHTML = ''
+                const t = document.createElement('strong')
+                t.textContent = String(p.codigo_corine ?? 'Cobertura')
+                const d = document.createElement('div')
+                d.textContent = `${Number(p.area_hectareas ?? 0).toFixed(2)} ha · ${Number(
+                  p.porcentaje ?? 0,
+                ).toFixed(1)}% · ${String(p.periodo ?? '')}`
+                el.append(t, d)
+                layer.bindPopup(el)
+              }}
+            />
+          </LayersControl.Overlay>
+        )}
 
         {/* Capas importadas (GeoJSON/CSV/Shapefile) */}
         {capasGroups.map(([nombre, feats], i) => {

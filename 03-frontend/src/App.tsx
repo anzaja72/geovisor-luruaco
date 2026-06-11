@@ -41,8 +41,18 @@ export default function App() {
 }
 
 function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void }) {
-  const { loading, error, zonas, lotes, puntos, capas, features, periodos, reload } =
-    useGeoData()
+  const {
+    loading,
+    error,
+    zonas,
+    lotes,
+    puntos,
+    capas,
+    coberturas,
+    features,
+    periodos,
+    reload,
+  } = useGeoData()
   const [periodoSel, setPeriodoSel] = useState<string | null>(null)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
   const [mapTab, setMapTab] = useState<'mapa' | 'comparar' | 'historico'>('mapa')
@@ -172,6 +182,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
                     lotes={fLotes}
                     puntos={puntos}
                     capas={capas}
+                    coberturas={coberturas}
                     selected={selected}
                     onSelect={setSelected}
                   />

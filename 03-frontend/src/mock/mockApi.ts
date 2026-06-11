@@ -137,6 +137,7 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   else if (url === '/api/puntos') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas/geojson') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas') body = { capas: [] }
+  else if (url === '/api/coberturas') body = { type: 'FeatureCollection', features: [] }
   else return next()
 
   res.setHeader('Content-Type', 'application/json')

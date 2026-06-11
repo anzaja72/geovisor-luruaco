@@ -54,6 +54,10 @@ export function fetchCapas(signal?: AbortSignal): Promise<FeatureCollection> {
   return getJSON<FeatureCollection>('/api/capas/geojson', signal)
 }
 
+export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/coberturas', signal)
+}
+
 export interface NuevoMonitoreo {
   estacion_id?: number
   fecha: string

@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchCapas, fetchLotes, fetchPuntos, fetchResumen, fetchZonas } from '../lib/api'
+import {
+  fetchCapas,
+  fetchCoberturas,
+  fetchLotes,
+  fetchPuntos,
+  fetchResumen,
+  fetchZonas,
+} from '../lib/api'
 import { periodosDe, resumenLocal } from '../lib/aggregate'
 import type { FeatureCollection, GeoFeature, Resumen } from '../lib/types'
 
@@ -10,6 +17,7 @@ interface GeoData {
   lotes: GeoFeature[]
   puntos: GeoFeature[]
   capas: GeoFeature[]
+  coberturas: GeoFeature[]
   features: GeoFeature[]
   periodos: string[]
   reload: () => void
@@ -23,6 +31,7 @@ export function useGeoData(): GeoData {
   const [lotes, setLotes] = useState<GeoFeature[]>([])
   const [puntos, setPuntos] = useState<GeoFeature[]>([])
   const [capas, setCapas] = useState<GeoFeature[]>([])
+  const [coberturas, setCoberturas] = useState<GeoFeature[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -35,17 +44,20 @@ export function useGeoData(): GeoData {
       fetchLotes(ac.signal),
       fetchPuntos(ac.signal),
       fetchCapas(ac.signal),
+      fetchCoberturas(ac.signal),
     ])
-      .then(([z, l, p, ca]) => {
+      .then(([z, l, p, ca, co]) => {
         if (ac.signal.aborted) return
         const okZ = z.status === 'fulfilled' ? z.value : EMPTY
         const okL = l.status === 'fulfilled' ? l.value : EMPTY
         const okP = p.status === 'fulfilled' ? p.value : EMPTY
         const okC = ca.status === 'fulfilled' ? ca.value : EMPTY
+        const okCo = co.status === 'fulfilled' ? co.value : EMPTY
         setZonas(okZ.features ?? [])
         setLotes(okL.features ?? [])
         setPuntos(okP.features ?? [])
         setCapas(okC.features ?? [])
+        setCoberturas(okCo.features ?? [])
 
         if (z.status === 'rejected' && l.status === 'rejected') {
           setError(
@@ -73,6 +85,7 @@ export function useGeoData(): GeoData {
     lotes,
     puntos,
     capas,
+    coberturas,
     features,
     periodos,
     reload: () => setTick((t) => t + 1),

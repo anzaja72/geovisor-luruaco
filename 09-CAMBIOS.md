@@ -83,3 +83,13 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
 - Visor: overlay "🛩 Ortofoto dron (predio)" (TileLayer con bounds del predio);
   en dev la sirve Vite (plugin /tiles) y en producción Nginx (misma ruta).
 - Catálogo: insumo marcado como 'publicado'. La carpeta Corine sigue en descarga.
+
+## Coberturas Corine en la geodatabase y el visor (jun-2026)
+- Ráster clasificado `isoc_12` (ArcInfo GRID, 3.4 cm/px, 12 clases, EPSG:9377)
+  procesado: remuestreo a 0.5 m (moda) → sieve → vectorización (20.057 polígonos).
+- Cargado a `coberturas_vegetales`: 11 clases consolidadas con área (96.3 ha) y
+  porcentaje por clase; periodo 2026-1. Leyenda temática Corine por homologar
+  con el consultor (clases espectrales de isocluster).
+- Endpoint `GET /api/coberturas` (geometría simplificada ~1 m) y overlay
+  "🌿 Coberturas (Corine)" en el visor con paleta de 12 clases y popup ha/%.
+- El reporte de coberturas (CSV/Excel/PDF) ahora contiene datos reales.
