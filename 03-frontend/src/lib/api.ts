@@ -54,6 +54,28 @@ export function fetchCapas(signal?: AbortSignal): Promise<FeatureCollection> {
   return getJSON<FeatureCollection>('/api/capas/geojson', signal)
 }
 
+export interface NuevoMonitoreo {
+  estacion_id?: number
+  fecha: string
+  indicador: string
+  valor?: number
+  unidad?: string
+  responsable?: string
+  observaciones?: string
+}
+
+/** Registra una medición de monitoreo (roles administrador/técnico). */
+export async function crearMonitoreo(m: NuevoMonitoreo): Promise<{ id: number }> {
+  const res = await fetch(`${API_URL}/api/monitoreos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(m),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+  return data as { id: number }
+}
+
 export interface ImportResult {
   capa: string
   insertados: number

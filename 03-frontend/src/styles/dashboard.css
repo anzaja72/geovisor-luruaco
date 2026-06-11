@@ -972,12 +972,19 @@
   font-weight: 600;
   color: var(--ink);
 }
-.modal-body input {
+.modal-body input,
+.modal-body select {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 13px;
   font-weight: 400;
+  background: #fff;
+}
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 .modal-hint {
   font-size: 12px;

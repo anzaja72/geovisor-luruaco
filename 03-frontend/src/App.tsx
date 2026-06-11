@@ -13,6 +13,7 @@ import CompareView from './components/CompareView'
 import ReportsPanel from './components/ReportsPanel'
 import Footer from './components/Footer'
 import ImportModal from './components/ImportModal'
+import MonitoreoModal from './components/MonitoreoModal'
 import LoginPage from './components/LoginPage'
 import { useGeoData, useResumen } from './hooks/useGeoData'
 import { resumenLocal } from './lib/aggregate'
@@ -47,6 +48,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
   const [mapTab, setMapTab] = useState<'mapa' | 'comparar' | 'historico'>('mapa')
   const [navTab, setNavTab] = useState('Escala departamental')
   const [importOpen, setImportOpen] = useState(false)
+  const [monitoreoOpen, setMonitoreoOpen] = useState(false)
   const [catSel, setCatSel] = useState<Set<Categoria>>(new Set())
   const [tipoSel, setTipoSel] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
@@ -214,11 +216,19 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
         </>
       )}
 
-      <Footer onImport={puedeEditar(usuario) ? () => setImportOpen(true) : undefined} />
+      <Footer
+        onImport={puedeEditar(usuario) ? () => setImportOpen(true) : undefined}
+        onMonitoreo={puedeEditar(usuario) ? () => setMonitoreoOpen(true) : undefined}
+      />
       <ImportModal
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImported={reload}
+      />
+      <MonitoreoModal
+        open={monitoreoOpen}
+        onClose={() => setMonitoreoOpen(false)}
+        estaciones={puntos}
       />
     </div>
   )

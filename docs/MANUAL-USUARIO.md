@@ -32,7 +32,18 @@
 ## 6. Descarga de datos (reportes)
 Pestaña **Descarga de datos** → elija el reporte (áreas, coberturas Corine, monitoreos, indicadores, insumos dron) y el formato **CSV**, **Excel** o **PDF**. El archivo se descarga al instante.
 
-## 7. Problemas frecuentes
+## 7. Registrar monitoreos (roles técnico y administrador)
+Botón **"📝 Registrar monitoreo"** (barra inferior): seleccione la estación
+(opcional), fecha, indicador (con sugerencias: pH, oxígeno disuelto, cobertura
+vegetal…), valor, unidad y observaciones. El responsable se registra
+automáticamente con su usuario. Las mediciones alimentan el reporte
+"Histórico de monitoreos".
+
+## 8. Cambiar su contraseña
+Disponible vía API (`PUT /api/auth/password` con la contraseña actual y la
+nueva) o solicitándolo al administrador.
+
+## 9. Problemas frecuentes
 | Síntoma | Solución |
 |---|---|
 | "Token inválido o expirado" | Vuelva a iniciar sesión (la sesión dura 24 h). |

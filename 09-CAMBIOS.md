@@ -68,3 +68,11 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
   backups automáticos; `10-INFRAESTRUCTURA-PRODUCCION.md` (operación 1 año).
 - **Documentación (§10-11):** manuales usuario/administrador, diccionario
   de datos, plan de capacitación (4 talleres).
+
+## CRUD de monitoreos y clave autoservicio (jun-2026)
+- Backend: `GET/POST/PUT /api/monitoreos` (admin/técnico) y `DELETE` (solo admin);
+  `PUT /api/auth/password` (cambio de contraseña del propio usuario).
+- Frontend: modal **"Registrar monitoreo"** (estación, fecha, indicador con
+  sugerencias, valor/unidad, observaciones; responsable = usuario autenticado).
+- Verificado e2e: creación por técnico, 403 al eliminar, reporte de monitoreos
+  refleja las mediciones, cambio de clave + relogin.

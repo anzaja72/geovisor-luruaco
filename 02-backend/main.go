@@ -97,6 +97,7 @@ func main() {
 	// --- Autenticación (público) ---
 	api.Post("/auth/login", login)
 	api.Get("/auth/me", requireAuth(), me)
+	api.Put("/auth/password", requireAuth(), cambiarPassword)
 
 	// --- Lectura: cualquier usuario autenticado (administrador/tecnico/consulta) ---
 	lectura := requireAuth()
@@ -114,6 +115,12 @@ func main() {
 	edicion := requireAuth("administrador", "tecnico")
 	api.Post("/import/geojson", edicion, importGeoJSON)
 	api.Post("/import/csv", edicion, importCSV)
+
+	// --- Monitoreos (CRUD §3/§8) ---
+	api.Get("/monitoreos", lectura, listarMonitoreos)
+	api.Post("/monitoreos", edicion, crearMonitoreo)
+	api.Put("/monitoreos/:id", edicion, actualizarMonitoreo)
+	api.Delete("/monitoreos/:id", requireAuth("administrador"), eliminarMonitoreo)
 
 	// --- Reportes (CSV/Excel/PDF): cualquier usuario autenticado ---
 	api.Get("/reportes/:tipo", lectura, getReporte)
