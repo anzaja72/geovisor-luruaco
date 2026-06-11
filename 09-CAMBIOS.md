@@ -76,3 +76,10 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
   sugerencias, valor/unidad, observaciones; responsable = usuario autenticado).
 - Verificado e2e: creación por técnico, 403 al eliminar, reporte de monitoreos
   refleja las mediciones, cambio de clave + relogin.
+
+## Ortofoto del dron publicada en el visor (jun-2026)
+- GeoTIFF "Ortofoto predio completo 100 Ha" (8.9 GB, EPSG:4326, 3.1 cm/px)
+  tileado con gdal2tiles (`--xyz`, z13–20): 2378 tiles / 259 MB en `tiles/ortofoto`.
+- Visor: overlay "🛩 Ortofoto dron (predio)" (TileLayer con bounds del predio);
+  en dev la sirve Vite (plugin /tiles) y en producción Nginx (misma ruta).
+- Catálogo: insumo marcado como 'publicado'. La carpeta Corine sigue en descarga.

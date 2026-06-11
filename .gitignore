@@ -46,3 +46,4 @@ tiles/
 *.log
 logs/
 npm-debug.log*
+info pendiente/

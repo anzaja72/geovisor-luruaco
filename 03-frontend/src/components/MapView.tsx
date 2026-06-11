@@ -222,6 +222,21 @@ export default function MapView({ zonas, lotes, puntos, capas, selected, onSelec
           />
         </LayersControl.BaseLayer>
 
+        {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod) */}
+        <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
+          <TileLayer
+            url="/tiles/ortofoto/{z}/{x}/{y}.png"
+            minNativeZoom={13}
+            maxNativeZoom={20}
+            maxZoom={22}
+            bounds={[
+              [10.5965959, -75.1810361],
+              [10.6128232, -75.1648012],
+            ]}
+            attribution="Ortofoto © dronticom — Entregables predio 50 Ha"
+          />
+        </LayersControl.Overlay>
+
         <LayersControl.Overlay checked name="Zonas de restauración">
           <FeatureLayer features={zonas} selected={selected} onSelect={onSelect} />
         </LayersControl.Overlay>
