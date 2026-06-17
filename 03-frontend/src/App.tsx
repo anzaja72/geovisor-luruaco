@@ -16,6 +16,7 @@ import Footer from './components/Footer'
 import ImportModal from './components/ImportModal'
 import MonitoreoModal from './components/MonitoreoModal'
 import LoginPage from './components/LoginPage'
+import LandingPage from './components/LandingPage'
 import { useGeoData, useResumen } from './hooks/useGeoData'
 import { resumenLocal } from './lib/aggregate'
 import { ESCALA } from './lib/quality'
@@ -26,9 +27,14 @@ const PERIODO_DEFAULT = '2024-2'
 
 export default function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(getUsuario())
+  const [entrar, setEntrar] = useState(false)
 
   if (!usuario) {
-    return <LoginPage onLogin={setUsuario} />
+    return entrar ? (
+      <LoginPage onLogin={setUsuario} />
+    ) : (
+      <LandingPage onEnter={() => setEntrar(true)} />
+    )
   }
   return (
     <Dashboard
