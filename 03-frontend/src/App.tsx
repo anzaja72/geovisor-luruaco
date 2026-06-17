@@ -11,6 +11,7 @@ import BarsChart from './components/BarsChart'
 import MapView from './components/MapView'
 import CompareView from './components/CompareView'
 import ReportsPanel from './components/ReportsPanel'
+import AcercaDe from './components/AcercaDe'
 import Footer from './components/Footer'
 import ImportModal from './components/ImportModal'
 import MonitoreoModal from './components/MonitoreoModal'
@@ -57,7 +58,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
   const [periodoSel, setPeriodoSel] = useState<string | null>(null)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
   const [mapTab, setMapTab] = useState<'mapa' | 'comparar' | 'historico'>('mapa')
-  const [navTab, setNavTab] = useState('Escala departamental')
+  const [navTab, setNavTab] = useState('Geovisor')
   const [importOpen, setImportOpen] = useState(false)
   const [monitoreoOpen, setMonitoreoOpen] = useState(false)
   const [catSel, setCatSel] = useState<Set<Categoria>>(new Set())
@@ -143,6 +144,8 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
 
       {navTab === 'Descarga de datos' ? (
         <ReportsPanel />
+      ) : navTab === 'Acerca de' ? (
+        <AcercaDe />
       ) : (
         <>
           <SubHeader periodo={periodo} periodos={periodos} onPeriodoChange={setPeriodoSel} />

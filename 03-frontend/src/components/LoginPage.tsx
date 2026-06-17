@@ -30,7 +30,7 @@ export default function LoginPage({ onLogin }: Props) {
     <div className="login-screen">
       <form className="login-card" onSubmit={submit}>
         <div className="login-brand">
-          <span className="login-logo" aria-hidden>🌿</span>
+          <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" className="login-logo-img" />
           <h1>Geovisor de Restauración Ecológica</h1>
           <p>Ciénaga de Luruaco, Atlántico</p>
         </div>
@@ -68,6 +68,10 @@ export default function LoginPage({ onLogin }: Props) {
           {ESCALA.map((c) => (
             <span key={c.key} style={{ background: c.color }} />
           ))}
+        </div>
+        <div className="login-cra">
+          <img src="/logo-cra.jpeg" alt="C.R.A." />
+          <span>Proyecto financiado por la Corporación Autónoma Regional del Atlántico</span>
         </div>
         <p className="login-foot">Acceso restringido · roles: administrador, técnico, consulta</p>
       </form>

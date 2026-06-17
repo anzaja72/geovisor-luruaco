@@ -1,11 +1,4 @@
-const TABS = [
-  'Acerca de',
-  'Escala nacional',
-  'Escala departamental',
-  'Escala estación',
-  'Reporte de meta',
-  'Descarga de datos',
-]
+const TABS = ['Geovisor', 'Acerca de', 'Descarga de datos']
 
 interface Props {
   active?: string
@@ -13,9 +6,9 @@ interface Props {
 }
 
 /** Barra de navegación principal (la pestaña activa se resalta como pill). */
-export default function NavTabs({ active = 'Escala departamental', onChange }: Props) {
+export default function NavTabs({ active = 'Geovisor', onChange }: Props) {
   return (
-    <nav className="nav-tabs" aria-label="Escalas del visor">
+    <nav className="nav-tabs" aria-label="Secciones de la plataforma">
       {TABS.map((t) => (
         <button
           key={t}

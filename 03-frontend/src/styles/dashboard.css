@@ -33,6 +33,14 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
+.brand-logo-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #fff;
+  flex-shrink: 0;
+}
 .brand-titles h1 {
   font-size: 18px;
   font-weight: 700;
@@ -133,6 +141,127 @@
   margin-bottom: 6px;
 }
 .login-logo { font-size: 40px; }
+.login-logo-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: var(--shadow-md);
+}
+.login-cra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+.login-cra img {
+  height: 40px;
+  flex-shrink: 0;
+}
+.login-cra span {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* ---------- Acerca de ---------- */
+.acerca {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+}
+.acerca-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+.acerca-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+}
+.acerca-hero h2 {
+  color: var(--navy-800);
+  font-size: 22px;
+}
+.acerca-hero p {
+  color: var(--muted);
+}
+.acerca-intro {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.acerca-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.acerca-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+.acerca-card h3 {
+  color: var(--navy-700);
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.acerca-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  font-size: 13px;
+}
+.acerca-card dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.acerca-card ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.acerca-entidad {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+}
+.acerca-entidad img {
+  height: 70px;
+}
+.acerca-entidad strong {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.acerca-entidad span {
+  font-size: 15px;
+  color: var(--navy-800);
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .acerca-grid { grid-template-columns: 1fr; }
+}
 .login-brand h1 {
   font-size: 18px;
   color: var(--navy-800);
@@ -957,10 +1086,31 @@
 /* ---------- Footer ---------- */
 .dash-footer {
   display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 10px;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
   background: var(--navy-900);
+}
+.footer-credito {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+}
+.footer-credito strong {
+  color: #fff;
+}
+.footer-cra {
+  height: 34px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 3px;
+}
+.footer-actions {
+  display: flex;
+  gap: 10px;
 }
 .footer-btn {
   display: inline-flex;

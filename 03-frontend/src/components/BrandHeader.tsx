@@ -11,10 +11,10 @@ export default function BrandHeader({ usuario, onLogout }: Props) {
   return (
     <header className="brand-header">
       <div className="brand-left">
-        <div className="brand-logo" aria-hidden>🌿</div>
+        <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" className="brand-logo-img" />
         <div className="brand-titles">
           <h1>Geovisor de Restauración Ecológica</h1>
-          <p>Índice de Calidad — Ciénaga de Luruaco, Atlántico</p>
+          <p>Ciénaga de Luruaco, Atlántico</p>
         </div>
       </div>
 

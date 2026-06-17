@@ -3,26 +3,29 @@ interface Props {
   onMonitoreo?: () => void
 }
 
-/** Barra inferior con accesos al geoservicio, protocolo y acciones por rol. */
+/** Barra inferior: créditos institucionales y acciones por rol. */
 export default function Footer({ onImport, onMonitoreo }: Props) {
   return (
     <footer className="dash-footer">
-      <a className="footer-btn" href="#" onClick={(e) => e.preventDefault()}>
-        <span aria-hidden>📍</span> Geoservicio WFS del indicador
-      </a>
-      <a className="footer-btn" href="#" onClick={(e) => e.preventDefault()}>
-        <span aria-hidden>🔗</span> Protocolo del indicador de calidad
-      </a>
-      {onMonitoreo && (
-        <button className="footer-btn footer-btn-admin" onClick={onMonitoreo}>
-          <span aria-hidden>📝</span> Registrar monitoreo
-        </button>
-      )}
-      {onImport && (
-        <button className="footer-btn footer-btn-admin" onClick={onImport}>
-          <span aria-hidden>📥</span> Importar datos
-        </button>
-      )}
+      <div className="footer-credito">
+        <img src="/logo-cra.jpeg" alt="C.R.A." className="footer-cra" />
+        <span>
+          Proyecto financiado por la <strong>Corporación Autónoma Regional del Atlántico (C.R.A.)</strong>
+          {' · '}Contrato 324 de 2025
+        </span>
+      </div>
+      <div className="footer-actions">
+        {onMonitoreo && (
+          <button className="footer-btn footer-btn-admin" onClick={onMonitoreo}>
+            <span aria-hidden>📝</span> Registrar monitoreo
+          </button>
+        )}
+        {onImport && (
+          <button className="footer-btn footer-btn-admin" onClick={onImport}>
+            <span aria-hidden>📥</span> Importar datos
+          </button>
+        )}
+      </div>
     </footer>
   )
 }
