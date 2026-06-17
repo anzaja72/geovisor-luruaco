@@ -13,11 +13,14 @@ import {
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { colorDe } from '../lib/quality'
+import { BASEMAPS } from '../lib/basemaps'
 import type { GeoFeature } from '../lib/types'
 import type { Tematicas } from '../hooks/useGeoData'
 import FeaturePopup from './FeaturePopup'
 import MeasureTool from './MeasureTool'
 import TematicasOverlays from './TematicasOverlays'
+import IgacOverlays from './IgacOverlays'
+import { CoordsControl, MapToolbar } from './MapTools'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 
@@ -206,6 +209,22 @@ export default function MapView({
   const all = useMemo(() => [...zonas, ...lotes, ...puntos], [zonas, lotes, puntos])
   const [medir, setMedir] = useState<'off' | 'distancia' | 'area'>('off')
 
+  const descargarGeoJSON = () => {
+    const features = [
+      ...zonas, ...lotes, ...puntos, ...coberturas, ...capas,
+      ...tematicas.estratos, ...tematicas.malezas, ...tematicas.tecnicas, ...tematicas.validacion,
+    ]
+    const blob = new Blob([JSON.stringify({ type: 'FeatureCollection', features })], {
+      type: 'application/geo+json',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `geovisor_luruaco_${new Date().toISOString().slice(0, 10)}.geojson`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // Agrupar capas importadas por nombre de capa.
   const capasGroups = useMemo(() => {
     const m = new Map<string, GeoFeature[]>()
@@ -220,27 +239,16 @@ export default function MapView({
     <MapContainer center={LURUACO_CENTER} zoom={13} className="map">
       <SearchControl />
       <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Satélite (Esri)">
-          <TileLayer
-            attribution="&copy; Esri, Maxar, Earthstar Geographics"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={19}
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Océano (Esri)">
-          <TileLayer
-            attribution="&copy; Esri, GEBCO, NOAA"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={13}
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Calles (OSM)">
-          <TileLayer
-            attribution="&copy; OpenStreetMap"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={19}
-          />
-        </LayersControl.BaseLayer>
+        {BASEMAPS.map((b, i) => (
+          <LayersControl.BaseLayer key={b.id} checked={i === 0} name={b.nombre}>
+            <TileLayer
+              url={b.url}
+              attribution={b.attribution}
+              maxZoom={b.maxZoom}
+              {...(b.subdomains ? { subdomains: b.subdomains } : {})}
+            />
+          </LayersControl.BaseLayer>
+        ))}
 
         {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod) */}
         <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
@@ -375,9 +383,13 @@ export default function MapView({
             </LayersControl.Overlay>
           )
         })}
+        {/* Capas de referencia oficiales del IGAC (WMS) */}
+        <IgacOverlays />
       </LayersControl>
 
       <MeasureTool modo={medir} onModo={setMedir} />
+      <CoordsControl />
+      <MapToolbar onDownload={descargarGeoJSON} />
       <FitController selected={selected} all={all} />
     </MapContainer>
   )

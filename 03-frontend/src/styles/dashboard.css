@@ -730,6 +730,72 @@
   line-height: 1;
 }
 
+/* ---------- Herramientas del mapa (UX) ---------- */
+.map-tools {
+  position: absolute;
+  bottom: 12px;
+  left: 10px;
+  z-index: 1000;
+  display: flex;
+  gap: 6px;
+}
+.map-tools button {
+  border: 0;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy-800);
+  cursor: pointer;
+}
+.map-tools button:hover {
+  background: var(--navy-700);
+  color: #fff;
+}
+.coords-ctl {
+  position: absolute;
+  bottom: 12px;
+  right: 10px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: var(--mono, monospace);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+/* Impresión: dejar solo el mapa */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .map-wrap,
+  .map-wrap * {
+    visibility: visible;
+  }
+  .map-wrap {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  .map-tabs,
+  .map-tools,
+  .measure-ctl,
+  .map-search,
+  .coords-ctl,
+  .leaflet-control-layers,
+  .leaflet-control-zoom {
+    display: none !important;
+  }
+}
+
 /* ---------- Comparación temporal ---------- */
 .compare-wrap {
   flex: 1;

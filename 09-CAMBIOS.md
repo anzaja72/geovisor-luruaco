@@ -93,3 +93,13 @@ Refactorización, rediseño del visor (estilo ICAM), datos del proyecto y puesta
 - Endpoint `GET /api/coberturas` (geometría simplificada ~1 m) y overlay
   "🌿 Coberturas (Corine)" en el visor con paleta de 12 clases y popup ha/%.
 - El reporte de coberturas (CSV/Excel/PDF) ahora contiene datos reales.
+
+## Geovisor: capas temáticas + UX + IGAC (jun-2026, inspirado en Colombia en Mapas)
+- **Capas temáticas de restauración** (mig. 07): estratos, malezas, técnicas y
+  sitios de validación (con % de cumplimiento valor/meta); homologación temática
+  provisional de coberturas Corine. Datos de muestra marcados.
+- **Quick wins UX:** 7 mapas base (satelital, topográfico, terreno, océano,
+  calles, lona negra, lona clara), compartir vista por enlace (#z/lat/lon),
+  imprimir/exportar mapa (PDF/imagen), descargar capas en GeoJSON, coordenada en vivo.
+- **Capas oficiales IGAC vía WMS:** catastro predial, pendientes (30 m) y
+  agrología nacional (consumidas del geoservicio, sin almacenar datos).
