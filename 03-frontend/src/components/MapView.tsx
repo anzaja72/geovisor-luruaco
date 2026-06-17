@@ -14,8 +14,10 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { colorDe } from '../lib/quality'
 import type { GeoFeature } from '../lib/types'
+import type { Tematicas } from '../hooks/useGeoData'
 import FeaturePopup from './FeaturePopup'
 import MeasureTool from './MeasureTool'
+import TematicasOverlays from './TematicasOverlays'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 
@@ -37,6 +39,7 @@ interface Props {
   puntos: GeoFeature[]
   capas: GeoFeature[]
   coberturas: GeoFeature[]
+  tematicas: Tematicas
   selected: GeoFeature | null
   onSelect: (f: GeoFeature) => void
 }
@@ -196,6 +199,7 @@ export default function MapView({
   puntos,
   capas,
   coberturas,
+  tematicas,
   selected,
   onSelect,
 }: Props) {
@@ -328,6 +332,9 @@ export default function MapView({
             />
           </LayersControl.Overlay>
         )}
+
+        {/* Capas temáticas de restauración (estratos, malezas, técnicas, validación) */}
+        <TematicasOverlays tematicas={tematicas} />
 
         {/* Capas importadas (GeoJSON/CSV/Shapefile) */}
         {capasGroups.map(([nombre, feats], i) => {

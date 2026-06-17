@@ -112,6 +112,13 @@ func main() {
 	api.Get("/capas/geojson", lectura, getCapasGeoJSON)
 	api.Get("/coberturas", lectura, getCoberturas)
 
+	// Capas temáticas de restauración
+	api.Get("/estratos", lectura, getEstratos)
+	api.Get("/malezas", lectura, getMalezas)
+	api.Get("/tecnicas", lectura, getTecnicas)
+	api.Get("/validacion", lectura, getValidacion)
+	api.Get("/fotografias", lectura, getFotografias)
+
 	// --- Escritura/carga: administrador y técnico ---
 	edicion := requireAuth("administrador", "tecnico")
 	api.Post("/import/geojson", edicion, importGeoJSON)
@@ -607,6 +614,7 @@ func getCoberturas(c *fiber.Ctx) error {
 	rows, err := db.QueryContext(c.UserContext(), `
 		SELECT codigo_corine, COALESCE(descripcion,''), COALESCE(area_hectareas,0),
 		       COALESCE(porcentaje,0), COALESCE(periodo,''), COALESCE(fuente,''),
+		       COALESCE(clase_tematica,''), COALESCE(estado,''),
 		       ST_AsGeoJSON(ST_SimplifyPreserveTopology(geom, 0.00001))
 		FROM eco_restauracion.coberturas_vegetales
 		ORDER BY area_hectareas DESC`)
@@ -618,10 +626,10 @@ func getCoberturas(c *fiber.Ctx) error {
 	features := []Feature{}
 	for rows.Next() {
 		var (
-			codigo, desc, periodo, fuente, geojson string
-			ha, pct                                 float64
+			codigo, desc, periodo, fuente, tematica, estado, geojson string
+			ha, pct                                                   float64
 		)
-		if err := rows.Scan(&codigo, &desc, &ha, &pct, &periodo, &fuente, &geojson); err != nil {
+		if err := rows.Scan(&codigo, &desc, &ha, &pct, &periodo, &fuente, &tematica, &estado, &geojson); err != nil {
 			continue
 		}
 		features = append(features, newFeature(geojson, map[string]interface{}{
@@ -631,6 +639,8 @@ func getCoberturas(c *fiber.Ctx) error {
 			"porcentaje":     pct,
 			"periodo":        periodo,
 			"fuente":         fuente,
+			"clase_tematica": tematica,
+			"estado":         estado,
 		}))
 	}
 	return c.JSON(FeatureCollection{Type: "FeatureCollection", Features: features})

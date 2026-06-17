@@ -2,13 +2,24 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   fetchCapas,
   fetchCoberturas,
+  fetchEstratos,
   fetchLotes,
+  fetchMalezas,
   fetchPuntos,
   fetchResumen,
+  fetchTecnicas,
+  fetchValidacion,
   fetchZonas,
 } from '../lib/api'
 import { periodosDe, resumenLocal } from '../lib/aggregate'
 import type { FeatureCollection, GeoFeature, Resumen } from '../lib/types'
+
+export interface Tematicas {
+  estratos: GeoFeature[]
+  malezas: GeoFeature[]
+  tecnicas: GeoFeature[]
+  validacion: GeoFeature[]
+}
 
 interface GeoData {
   loading: boolean
@@ -18,12 +29,11 @@ interface GeoData {
   puntos: GeoFeature[]
   capas: GeoFeature[]
   coberturas: GeoFeature[]
+  tematicas: Tematicas
   features: GeoFeature[]
   periodos: string[]
   reload: () => void
 }
-
-const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 /** Carga zonas y lotes en paralelo, tolerando que una de las dos falle. */
 export function useGeoData(): GeoData {
@@ -32,12 +42,20 @@ export function useGeoData(): GeoData {
   const [puntos, setPuntos] = useState<GeoFeature[]>([])
   const [capas, setCapas] = useState<GeoFeature[]>([])
   const [coberturas, setCoberturas] = useState<GeoFeature[]>([])
+  const [tematicas, setTematicas] = useState<Tematicas>({
+    estratos: [],
+    malezas: [],
+    tecnicas: [],
+    validacion: [],
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     const ac = new AbortController()
+    const feats = (r: PromiseSettledResult<FeatureCollection>) =>
+      r.status === 'fulfilled' ? (r.value.features ?? []) : []
 
     Promise.allSettled([
       fetchZonas(ac.signal),
@@ -45,19 +63,24 @@ export function useGeoData(): GeoData {
       fetchPuntos(ac.signal),
       fetchCapas(ac.signal),
       fetchCoberturas(ac.signal),
+      fetchEstratos(ac.signal),
+      fetchMalezas(ac.signal),
+      fetchTecnicas(ac.signal),
+      fetchValidacion(ac.signal),
     ])
-      .then(([z, l, p, ca, co]) => {
+      .then(([z, l, p, ca, co, es, ma, te, va]) => {
         if (ac.signal.aborted) return
-        const okZ = z.status === 'fulfilled' ? z.value : EMPTY
-        const okL = l.status === 'fulfilled' ? l.value : EMPTY
-        const okP = p.status === 'fulfilled' ? p.value : EMPTY
-        const okC = ca.status === 'fulfilled' ? ca.value : EMPTY
-        const okCo = co.status === 'fulfilled' ? co.value : EMPTY
-        setZonas(okZ.features ?? [])
-        setLotes(okL.features ?? [])
-        setPuntos(okP.features ?? [])
-        setCapas(okC.features ?? [])
-        setCoberturas(okCo.features ?? [])
+        setZonas(feats(z))
+        setLotes(feats(l))
+        setPuntos(feats(p))
+        setCapas(feats(ca))
+        setCoberturas(feats(co))
+        setTematicas({
+          estratos: feats(es),
+          malezas: feats(ma),
+          tecnicas: feats(te),
+          validacion: feats(va),
+        })
 
         if (z.status === 'rejected' && l.status === 'rejected') {
           setError(
@@ -86,6 +109,7 @@ export function useGeoData(): GeoData {
     puntos,
     capas,
     coberturas,
+    tematicas,
     features,
     periodos,
     reload: () => setTick((t) => t + 1),

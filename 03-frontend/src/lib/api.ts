@@ -58,6 +58,19 @@ export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection
   return getJSON<FeatureCollection>('/api/coberturas', signal)
 }
 
+export function fetchEstratos(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/estratos', signal)
+}
+export function fetchMalezas(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/malezas', signal)
+}
+export function fetchTecnicas(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/tecnicas', signal)
+}
+export function fetchValidacion(signal?: AbortSignal): Promise<FeatureCollection> {
+  return getJSON<FeatureCollection>('/api/validacion', signal)
+}
+
 export interface NuevoMonitoreo {
   estacion_id?: number
   fecha: string

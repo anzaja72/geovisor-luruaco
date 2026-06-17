@@ -49,6 +49,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
     puntos,
     capas,
     coberturas,
+    tematicas,
     features,
     periodos,
     reload,
@@ -183,6 +184,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
                     puntos={puntos}
                     capas={capas}
                     coberturas={coberturas}
+                    tematicas={tematicas}
                     selected={selected}
                     onSelect={setSelected}
                   />
