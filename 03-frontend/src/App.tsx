@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './styles/dashboard.css'
 import BrandHeader from './components/BrandHeader'
 import NavTabs from './components/NavTabs'
@@ -16,7 +16,6 @@ import Footer from './components/Footer'
 import ImportModal from './components/ImportModal'
 import MonitoreoModal from './components/MonitoreoModal'
 import LoginPage from './components/LoginPage'
-import LandingPage from './components/LandingPage'
 import { useGeoData, useResumen } from './hooks/useGeoData'
 import { resumenLocal } from './lib/aggregate'
 import { ESCALA } from './lib/quality'
@@ -27,14 +26,16 @@ const PERIODO_DEFAULT = '2024-2'
 
 export default function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(getUsuario())
-  const [entrar, setEntrar] = useState(false)
+  const quiereEntrar =
+    new URLSearchParams(window.location.search).get('entrar') === '1'
+
+  // Sin sesión y sin venir desde la landing → mostrar la landing institucional.
+  useEffect(() => {
+    if (!usuario && !quiereEntrar) window.location.replace('/landing-cra.html')
+  }, [usuario, quiereEntrar])
 
   if (!usuario) {
-    return entrar ? (
-      <LoginPage onLogin={setUsuario} />
-    ) : (
-      <LandingPage onEnter={() => setEntrar(true)} />
-    )
+    return quiereEntrar ? <LoginPage onLogin={setUsuario} /> : null
   }
   return (
     <Dashboard
@@ -251,6 +252,7 @@ function Dashboard({ usuario, onLogout }: { usuario: Usuario; onLogout: () => vo
         open={monitoreoOpen}
         onClose={() => setMonitoreoOpen(false)}
         estaciones={puntos}
+        onSaved={reload}
       />
     </div>
   )

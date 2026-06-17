@@ -225,11 +225,13 @@ export default function MapView({
     URL.revokeObjectURL(url)
   }
 
-  // Agrupar capas importadas por nombre de capa.
+  // Agrupar capas importadas por nombre de capa (se omiten las curvas de nivel,
+  // que saturan visualmente el mapa).
   const capasGroups = useMemo(() => {
     const m = new Map<string, GeoFeature[]>()
     for (const f of capas) {
       const k = f.properties.capa ?? 'capa'
+      if (k === 'curvas_nivel') continue
       if (!m.has(k)) m.set(k, [])
       m.get(k)!.push(f)
     }

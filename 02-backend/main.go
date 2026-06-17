@@ -124,6 +124,9 @@ func main() {
 	api.Post("/import/geojson", edicion, importGeoJSON)
 	api.Post("/import/csv", edicion, importCSV)
 
+	// --- Puntos de observación (crear por coordenadas GPS) ---
+	api.Post("/puntos", edicion, crearPunto)
+
 	// --- Monitoreos (CRUD §3/§8) ---
 	api.Get("/monitoreos", lectura, listarMonitoreos)
 	api.Post("/monitoreos", edicion, crearMonitoreo)

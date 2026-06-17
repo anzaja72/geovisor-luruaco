@@ -81,6 +81,26 @@ export interface NuevoMonitoreo {
   observaciones?: string
 }
 
+export interface NuevoPunto {
+  nombre_punto?: string
+  tipo_monitoreo?: string
+  descripcion?: string
+  longitud: number
+  latitud: number
+}
+
+/** Crea un punto/observación por coordenadas GPS (roles administrador/técnico). */
+export async function crearPunto(p: NuevoPunto): Promise<{ id: number; codigo_punto: string }> {
+  const res = await fetch(`${API_URL}/api/puntos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(p),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+  return data as { id: number; codigo_punto: string }
+}
+
 /** Registra una medición de monitoreo (roles administrador/técnico). */
 export async function crearMonitoreo(m: NuevoMonitoreo): Promise<{ id: number }> {
   const res = await fetch(`${API_URL}/api/monitoreos`, {

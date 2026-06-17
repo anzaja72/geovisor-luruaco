@@ -6,6 +6,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -13,6 +14,50 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// crearPunto registra un punto/estación de observación por coordenadas GPS.
+// POST /api/puntos  (administrador y técnico)
+func crearPunto(c *fiber.Ctx) error {
+	var b struct {
+		Codigo      string  `json:"codigo_punto"`
+		Nombre      string  `json:"nombre_punto"`
+		Tipo        string  `json:"tipo_monitoreo"`
+		Descripcion string  `json:"descripcion"`
+		Longitud    float64 `json:"longitud"`
+		Latitud     float64 `json:"latitud"`
+	}
+	if err := c.BodyParser(&b); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Cuerpo inválido"})
+	}
+	if b.Latitud < -90 || b.Latitud > 90 || b.Longitud < -180 || b.Longitud > 180 ||
+		(b.Latitud == 0 && b.Longitud == 0) {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Coordenadas inválidas"})
+	}
+	if strings.TrimSpace(b.Tipo) == "" {
+		b.Tipo = "observacion"
+	}
+	if strings.TrimSpace(b.Codigo) == "" {
+		b.Codigo = fmt.Sprintf("OBS-%d", time.Now().Unix())
+	}
+	resp := ""
+	if u, ok := c.Locals("user").(*Claims); ok {
+		resp = u.Nombre
+	}
+	var id int64
+	err := db.QueryRowContext(c.UserContext(), `
+		INSERT INTO eco_restauracion.puntos_monitoreo
+		    (codigo_punto, nombre_punto, descripcion, tipo_monitoreo, estado_punto,
+		     longitud, latitud, geom, tecnico_responsable)
+		VALUES ($1,$2,$3,$4,'activo',$5::float8,$6::float8,
+		        ST_SetSRID(ST_MakePoint($5::float8,$6::float8),4326), $7)
+		RETURNING id`,
+		b.Codigo, nullIfEmpty(b.Nombre), nullIfEmpty(b.Descripcion), b.Tipo,
+		b.Longitud, b.Latitud, nullIfEmpty(resp)).Scan(&id)
+	if err != nil {
+		return serverError(c, "Error al crear el punto", err)
+	}
+	return c.Status(http.StatusCreated).JSON(fiber.Map{"id": id, "codigo_punto": b.Codigo})
+}
 
 type monitoreoBody struct {
 	EstacionID    *int64   `json:"estacion_id"`

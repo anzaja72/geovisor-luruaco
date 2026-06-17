@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "03-frontend"],
       "port": 5173
+    },
+    {
+      "name": "mc-labs-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/angelzambrano/Downloads/viejas descargas/CARPETAS/CARPETAS/MC toolsbox"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

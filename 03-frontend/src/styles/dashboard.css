@@ -1202,6 +1202,39 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.seg-control {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg-control button {
+  flex: 1;
+  border: 0;
+  background: #fff;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.seg-control button.active {
+  background: var(--navy-700);
+  color: #fff;
+}
+.geo-btn {
+  border: 1px solid var(--blue-accent);
+  background: #eef5fc;
+  color: var(--navy-700);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.geo-btn:disabled {
+  opacity: 0.6;
+}
 .modal-hint {
   font-size: 12px;
   color: var(--muted);
