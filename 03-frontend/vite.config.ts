@@ -4,14 +4,14 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { mockApiMiddleware } from './src/mock/mockApi'
 
-// Plugin de desarrollo: sirve /api/* con datos de demostración cuando no se
-// define VITE_API_URL, para poder trabajar el front sin levantar el backend.
+// Plugin de desarrollo: sirve /api/* con datos de demostración SOLO si se pide
+// con USE_MOCK=1. Por defecto, /api se redirige al backend Go (server.proxy).
 function mockApi(): Plugin {
   return {
     name: 'mock-api-dev',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use(mockApiMiddleware)
+      if (process.env.USE_MOCK === '1') server.middlewares.use(mockApiMiddleware)
     },
   }
 }
@@ -43,4 +43,12 @@ function serveTiles(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), mockApi(), serveTiles()],
+  server: {
+    // Permite servir bajo dominios de túnel (cloudflared/ngrok) para demos en línea.
+    allowedHosts: true,
+    // Mismo origen: /api se redirige al backend Go (cuando VITE_API_URL queda vacío).
+    proxy: {
+      '/api': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+  },
 })
