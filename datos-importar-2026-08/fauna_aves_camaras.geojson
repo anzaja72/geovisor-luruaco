@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "monitoreo_aves_y_camaras",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.2","tessellate":-1,"extrude":0,"visibility":-1,"id2":2.0,"Tipo1":"Aves","COD":"A2"},"geometry":{"type":"Point","coordinates":[-75.166726765108393,10.605081649116,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.3","tessellate":-1,"extrude":0,"visibility":-1,"id2":3.0,"Tipo1":"Aves","COD":"A3"},"geometry":{"type":"Point","coordinates":[-75.170447296010295,10.6056131308942,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.4","tessellate":-1,"extrude":0,"visibility":-1,"id2":4.0,"Tipo1":"Aves","COD":"A4"},"geometry":{"type":"Point","coordinates":[-75.168208279836705,10.607541401365699,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.1","tessellate":-1,"extrude":0,"visibility":-1,"id2":1.0,"Tipo1":"Aves","COD":"A1"},"geometry":{"type":"Point","coordinates":[-75.170263802455494,10.603168879438799,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.5","tessellate":-1,"extrude":0,"visibility":-1,"id2":5.0,"Tipo1":"Aves","COD":"A5"},"geometry":{"type":"Point","coordinates":[-75.170517226924204,10.6075440439391,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.6","tessellate":-1,"extrude":0,"visibility":-1,"id2":6.0,"Tipo1":"Aves","COD":"A6"},"geometry":{"type":"Point","coordinates":[-75.166071183025295,10.608101713084,0.0]}},
+{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.7","tessellate":-1,"extrude":0,"visibility":-1,"id2":7.0,"Tipo1":"Aves","COD":"A7"},"geometry":{"type":"Point","coordinates":[-75.167078294786904,10.610065178732601,0.0]}}
+]
+}

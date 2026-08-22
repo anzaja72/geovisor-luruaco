@@ -55,3 +55,7 @@ graphify-out/
 logs/
 npm-debug.log*
 info pendiente/
+
+# Rásters pesados (ortofotos) — se tilean, no se versionan
+*.tif
+*.tiff
