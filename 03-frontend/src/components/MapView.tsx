@@ -64,18 +64,24 @@ const CAPAS_POR_COMPONENTE: Record<ComponenteGeovisor, string[]> = {
   restauracion: ['aislamiento_interno'],
   maleza: ['maleza_acuatica'],
   ficorremediacion: [],
-  fauna: [],
+  fauna: ['herpetos', 'fauna_aves_camaras'],
 }
 
 const CAPA_LABEL: Record<string, string> = {
   aislamiento_interno: '🚧 Aislamiento interno (cercas)',
   maleza_acuatica: '🟢 Polígonos de limpieza de maleza',
+  herpetos: '🐸 Herpetofauna',
+  fauna_aves_camaras: '🐦 Aves y cámaras',
 }
 
 // Paleta para capas importadas (distinta de la escala de calidad).
 const CAPA_COLORS = ['#0ea5e9', '#f97316', '#a855f7', '#14b8a6', '#eab308', '#ec4899']
 // Color fijo por capa (sobre el color rotativo por índice) — aislamiento interno en rojo.
-const CAPA_COLOR_FIJO: Record<string, string> = { aislamiento_interno: '#dc2626' }
+const CAPA_COLOR_FIJO: Record<string, string> = {
+  aislamiento_interno: '#dc2626',
+  herpetos: '#16a34a',
+  fauna_aves_camaras: '#2563eb',
+}
 
 // Clave estable de clase Corine (compartida con los chips de filtro del front).
 export function claseCobertura(s: string): string {
