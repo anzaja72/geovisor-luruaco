@@ -18,44 +18,64 @@ const FECHAS: [string, string][] = [
 export default function RestauracionView(map: MapProps) {
   const [info, setInfo] = useState<{ t: string; v: string; b: string } | null>(null)
   const [fecha, setFecha] = useState('Linea base')
-  const [ind, setInd] = useState<IndicadoresRestauracion | null>(null)
+  const [indBase, setIndBase] = useState<IndicadoresRestauracion | null>(null) // por fecha (predio completo)
+  const [indCob, setIndCob] = useState<IndicadoresRestauracion | null>(null)   // censo filtrado por cobertura
   const [live, setLive] = useState(false)
   // Cobertura seleccionada en el mapa: 'todas' o la clave de una clase Corine.
   const [cobSel, setCobSel] = useState('todas')
+  const filtrando = cobSel !== 'todas'
 
-  // Indicadores reales desde el backend para la fecha seleccionada; si falla, data.ts (solo Línea base).
+  // Indicadores por FECHA (coberturas, totales y KPIs cuando es 'todas'); si falla, data.ts.
   useEffect(() => {
     const ac = new AbortController()
     setLive(false)
-    fetchIndicadoresRestauracion(fecha, ac.signal)
-      .then((d) => { if (!ac.signal.aborted && !d.sin_datos) { setInd(d); setLive(true) } })
-      .catch(() => { if (!ac.signal.aborted && fecha !== 'Linea base') setInd(null) })
+    fetchIndicadoresRestauracion(fecha, undefined, ac.signal)
+      .then((data) => { if (!ac.signal.aborted) { setIndBase(data.sin_datos ? null : data); setLive(!data.sin_datos) } })
+      .catch(() => { if (!ac.signal.aborted) setIndBase(null) })
     return () => ac.abort()
   }, [fecha])
 
-  // Datos de presentación: del backend si hay, si no (solo Línea base) del módulo estático.
+  // Censo filtrado por COBERTURA (solo cuando hay una seleccionada) — usa arboles_monitoreo.cobertura.
+  useEffect(() => {
+    if (cobSel === 'todas') { setIndCob(null); return }
+    const ac = new AbortController()
+    fetchIndicadoresRestauracion(fecha, cobSel, ac.signal)
+      .then((data) => { if (!ac.signal.aborted) setIndCob(data) })
+      .catch(() => { if (!ac.signal.aborted) setIndCob(null) })
+    return () => ac.abort()
+  }, [fecha, cobSel])
+
+  // Base por fecha (predio completo) y fuente del censo (filtrada si hay cobertura seleccionada).
+  const baseFecha = indBase && indBase.fecha === fecha ? indBase : (fecha === 'Linea base' ? null : indBase)
+  const censo = filtrando
+    ? (indCob && !indCob.sin_datos && indCob.fecha === fecha ? indCob : null)
+    : baseFecha
+
+  // Datos de presentación. Sin filtro: backend por fecha o data.ts (predio completo). Con filtro
+  // de cobertura: los KPIs de censo se recalculan por cobertura (0 si esa cobertura no tiene
+  // censo). El área activa/pasiva, la tabla de coberturas y el total son siempre del predio.
   const d = useMemo(() => {
-    const usar = ind && ind.fecha === fecha ? ind : (fecha === 'Linea base' ? null : ind)
+    const fb = !filtrando // fallback a data.ts solo para el predio completo
     return {
-      riqueza: usar?.riqueza ?? R.riqueza,
-      densidad: usar?.densidad_ha ?? R.densidad,
-      areaBasal: usar?.area_basal_ha ?? R.areaBasal,
-      activa: usar?.activa_ha ?? R.activaHa,
-      pasiva: usar?.pasiva_ha ?? R.pasivaHa,
-      individuos: usar?.individuos ?? R.individuos,
-      fustes: usar?.fustes ?? R.fustes,
-      altura: usar?.altura_media ?? R.alturaMedia,
-      shannon: usar?.shannon ?? R.shannon,
-      parcelas: usar ? usar.parcelas.map((p) => [p.codigo, p.densidad_ha] as [string, number]) : R.parcelas,
-      abundancia: usar
-        ? usar.abundancia.map((a, i) => [a.nombre, a.pct, ABUND_COLORS[i % ABUND_COLORS.length]] as [string, number, string])
-        : R.abundancia,
-      coberturas: usar
-        ? usar.coberturas.map((c) => [c.clase, claseCobertura(c.clase), c.ha, c.pct] as [string, string, number, number])
+      riqueza: censo?.riqueza ?? (fb ? R.riqueza : 0),
+      densidad: censo?.densidad_ha ?? (fb ? R.densidad : 0),
+      areaBasal: censo?.area_basal_ha ?? (fb ? R.areaBasal : 0),
+      activa: baseFecha?.activa_ha ?? R.activaHa,
+      pasiva: baseFecha?.pasiva_ha ?? R.pasivaHa,
+      individuos: censo?.individuos ?? (fb ? R.individuos : 0),
+      fustes: censo?.fustes ?? (fb ? R.fustes : 0),
+      altura: censo?.altura_media ?? (fb ? R.alturaMedia : 0),
+      shannon: censo?.shannon ?? (fb ? R.shannon : 0),
+      parcelas: censo ? censo.parcelas.map((p) => [p.codigo, p.densidad_ha] as [string, number]) : (fb ? R.parcelas : []),
+      abundancia: censo
+        ? censo.abundancia.map((a, i) => [a.nombre, a.pct, ABUND_COLORS[i % ABUND_COLORS.length]] as [string, number, string])
+        : (fb ? R.abundancia : []),
+      coberturas: baseFecha
+        ? baseFecha.coberturas.map((c) => [c.clase, claseCobertura(c.clase), c.ha, c.pct] as [string, string, number, number])
         : R.coberturas.map(([n, , ha, pct]) => [n, claseCobertura(n), ha, pct] as [string, string, number, number]),
-      totalHa: usar?.area_total_ha ?? 48.01,
+      totalHa: baseFecha?.area_total_ha ?? 48.01,
     }
-  }, [ind, fecha])
+  }, [censo, baseFecha, filtrando])
 
   // Opciones del selector: una entrada por clase Corine disponible (sin duplicar clave).
   const opcionesCob = useMemo(() => {
@@ -74,9 +94,9 @@ export default function RestauracionView(map: MapProps) {
   // El mapa recibe undefined = todas visibles, o un set de una sola clase.
   const activasEfectivas = cobSelValida === 'todas' ? undefined : new Set([cobSelValida])
 
-  const sinMediciones = fecha !== 'Linea base' && d.individuos === 0
+  const sinMediciones = d.individuos === 0 && (fecha !== 'Linea base' || filtrando)
   const maxD = Math.max(...d.parcelas.map((p) => p[1]), 1)
-  const topRiq = ind && ind.fecha === fecha ? [...ind.parcelas].sort((a, b) => b.riqueza - a.riqueza).slice(0, 2) : null
+  const topRiq = censo && censo.parcelas.length >= 2 ? [...censo.parcelas].sort((a, b) => b.riqueza - a.riqueza).slice(0, 2) : null
 
   return (
     <>
@@ -96,7 +116,7 @@ export default function RestauracionView(map: MapProps) {
             ))}
           </select></div>
         {live && !sinMediciones && <span className="badge-soft" style={{ background: '#e3f5e6', color: '#1b6d24', borderColor: '#bfe6c6' }}>● Datos en vivo (backend)</span>}
-        {sinMediciones && <span className="badge-soft">Sin mediciones registradas para esta fecha</span>}
+        {sinMediciones && <span className="badge-soft">Sin mediciones registradas para esta {filtrando ? 'cobertura' : 'fecha'}</span>}
       </div>
 
       {/* KPIs (izquierda) + tabla resumen de coberturas (derecha), al mismo nivel */}

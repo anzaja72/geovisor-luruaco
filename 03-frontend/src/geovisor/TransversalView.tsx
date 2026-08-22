@@ -12,7 +12,7 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
 
   useEffect(() => {
     const ac = new AbortController()
-    fetchIndicadoresRestauracion('Linea base', ac.signal)
+    fetchIndicadoresRestauracion('Linea base', undefined, ac.signal)
       .then((d) => { if (!ac.signal.aborted && !d.sin_datos) setInd(d) })
       .catch(() => { /* fallback a constantes */ })
     return () => ac.abort()

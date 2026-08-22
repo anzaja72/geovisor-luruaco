@@ -55,13 +55,17 @@ export interface IndicadoresRestauracion {
   sin_datos?: boolean
 }
 
-/** Indicadores del componente de Restauración calculados por el backend (censo + coberturas). */
+/** Indicadores del componente de Restauración calculados por el backend (censo + coberturas).
+ *  `cobertura` (clave de clase: denso/secundaria/galeria/mosaico/desnuda) filtra el censo por
+ *  cobertura vía arboles_monitoreo.cobertura; vacío o 'todas' = predio completo. */
 export function fetchIndicadoresRestauracion(
   fecha = 'Linea base',
+  cobertura?: string,
   signal?: AbortSignal,
 ): Promise<IndicadoresRestauracion> {
+  const cob = cobertura && cobertura !== 'todas' ? `&cobertura=${encodeURIComponent(cobertura)}` : ''
   return getJSON<IndicadoresRestauracion>(
-    `/api/restauracion/indicadores?fecha=${encodeURIComponent(fecha)}`,
+    `/api/restauracion/indicadores?fecha=${encodeURIComponent(fecha)}${cob}`,
     signal,
   )
 }
