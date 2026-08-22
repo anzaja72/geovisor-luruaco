@@ -9,6 +9,7 @@ import TransversalView from './TransversalView'
 import ReportesView from './ReportesView'
 import { useGeoData } from '../hooks/useGeoData'
 import MonitoreoModal from '../components/MonitoreoModal'
+import ImportModal from '../components/ImportModal'
 import { puedeEditar, type Usuario } from '../lib/auth'
 import type { GeoFeature } from '../lib/types'
 import type { CompId } from './data'
@@ -16,6 +17,7 @@ import type { CompId } from './data'
 export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void }) {
   const [active, setActive] = useState<CompId>('restauracion')
   const [monitoreoOpen, setMonitoreoOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
   // Nota: "lotes" (lotes_bioaumentacion) nunca se pasa al geovisor — es data de muestra
   // con el nombre restringido ("Planta de Bioaumentación") y no debe mostrarse en ningún componente.
@@ -34,6 +36,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         active={active}
         onNav={setActive}
         onMonitoreo={canEdit ? () => setMonitoreoOpen(true) : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
       >
         {active === 'restauracion' && <RestauracionView {...mapProps} />}
         {active === 'maleza' && <MalezaView {...mapProps} />}
@@ -49,6 +52,12 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         onClose={() => setMonitoreoOpen(false)}
         estaciones={puntos}
         onSaved={reload}
+      />
+
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={reload}
       />
     </>
   )

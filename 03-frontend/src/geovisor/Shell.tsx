@@ -67,8 +67,8 @@ function TopBar({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void 
 }
 
 function Sidebar({
-  active, onNav, onMonitoreo,
-}: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void }) {
+  active, onNav, onMonitoreo, onImport,
+}: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void; onImport?: () => void }) {
   return (
     <aside className="side">
       <div className="sh"><b>Gestión Ambiental</b><span>Ciénaga de Luruaco</span></div>
@@ -92,6 +92,10 @@ function Sidebar({
         <button className="btn-primary" onClick={onMonitoreo} disabled={!onMonitoreo}>
           <Icon id="plus" /> Registrar Monitoreo</button>
         <div style={{ height: 8 }} />
+        {onImport && (
+          <a className="nav-mini" href="#" onClick={(e) => { e.preventDefault(); onImport() }}>
+            <Icon id="download" style={{ width: 18, height: 18 }} /> Importar datos</a>
+        )}
         <a className="nav-mini" href="#" onClick={(e) => e.preventDefault()}>
           <Icon id="settings" style={{ width: 18, height: 18 }} /> Ajustes</a>
         <a className="nav-mini" href="#" onClick={(e) => e.preventDefault()}>
@@ -102,13 +106,14 @@ function Sidebar({
 }
 
 export default function Shell({
-  usuario, onLogout, active, onNav, onMonitoreo, children,
+  usuario, onLogout, active, onNav, onMonitoreo, onImport, children,
 }: {
   usuario: Usuario
   onLogout: () => void
   active: CompId
   onNav: (c: CompId) => void
   onMonitoreo?: () => void
+  onImport?: () => void
   children: ReactNode
 }) {
   return (
@@ -116,7 +121,7 @@ export default function Shell({
       <Sprite />
       <TopBar usuario={usuario} onLogout={onLogout} />
       <div className="shell">
-        <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} />
+        <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport} />
         <main className="main">{children}</main>
       </div>
     </>
