@@ -20,7 +20,8 @@ export default function RestauracionView(map: MapProps) {
   const [fecha, setFecha] = useState('Linea base')
   const [ind, setInd] = useState<IndicadoresRestauracion | null>(null)
   const [live, setLive] = useState(false)
-  const [cobActivas, setCobActivas] = useState<Set<string> | null>(null)
+  // Cobertura seleccionada en el mapa: 'todas' o la clave de una clase Corine.
+  const [cobSel, setCobSel] = useState('todas')
 
   // Indicadores reales desde el backend para la fecha seleccionada; si falla, data.ts (solo Línea base).
   useEffect(() => {
@@ -56,44 +57,87 @@ export default function RestauracionView(map: MapProps) {
     }
   }, [ind, fecha])
 
-  // Por defecto todas las coberturas activas; se recalcula si cambia el set de clases disponibles.
-  const clasesDisponibles = useMemo(() => new Set(d.coberturas.map((c) => c[1])), [d.coberturas])
-  const activasEfectivas = cobActivas ?? clasesDisponibles
+  // Opciones del selector: una entrada por clase Corine disponible (sin duplicar clave).
+  const opcionesCob = useMemo(() => {
+    const seen = new Set<string>()
+    const out: [string, string][] = []
+    for (const [n, clave] of d.coberturas) {
+      if (seen.has(clave)) continue
+      seen.add(clave)
+      out.push([clave, sinPrefijo(n)])
+    }
+    return out
+  }, [d.coberturas])
+
+  // Si al cambiar de fecha la clase elegida ya no existe, se vuelve a "todas".
+  const cobSelValida = cobSel === 'todas' || opcionesCob.some(([c]) => c === cobSel) ? cobSel : 'todas'
+  // El mapa recibe undefined = todas visibles, o un set de una sola clase.
+  const activasEfectivas = cobSelValida === 'todas' ? undefined : new Set([cobSelValida])
 
   const sinMediciones = fecha !== 'Linea base' && d.individuos === 0
   const maxD = Math.max(...d.parcelas.map((p) => p[1]), 1)
   const topRiq = ind && ind.fecha === fecha ? [...ind.parcelas].sort((a, b) => b.riqueza - a.riqueza).slice(0, 2) : null
 
-  const toggleCobertura = (clave: string) => {
-    setCobActivas((prev) => {
-      const base = new Set(prev ?? clasesDisponibles)
-      if (base.has(clave)) base.delete(clave)
-      else base.add(clave)
-      return base
-    })
-  }
-
   return (
     <>
+      {/* Selectores: línea de tiempo + cobertura en el mapa */}
       <div className="filters">
         <div className="fl"><Icon id="calendar" style={{ width: 17, height: 17, stroke: 'var(--muted)' }} />
           <span className="lab">Línea de tiempo</span>
           <select value={fecha} onChange={(e) => setFecha(e.target.value)}>
             {FECHAS.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
           </select></div>
+        <div className="fl"><Icon id="layers" style={{ width: 17, height: 17, stroke: 'var(--muted)' }} />
+          <span className="lab">Cobertura en el mapa</span>
+          <select value={cobSelValida} onChange={(e) => setCobSel(e.target.value)}>
+            <option value="todas">Todas las coberturas</option>
+            {opcionesCob.map(([clave, label]) => (
+              <option key={clave} value={clave}>{label}</option>
+            ))}
+          </select></div>
         {live && !sinMediciones && <span className="badge-soft" style={{ background: '#e3f5e6', color: '#1b6d24', borderColor: '#bfe6c6' }}>● Datos en vivo (backend)</span>}
         {sinMediciones && <span className="badge-soft">Sin mediciones registradas para esta fecha</span>}
       </div>
 
-      <div className="kpis k6">
-        <div className="kpi"><div className="top"><span className="chip"><Icon id="leaf" /></span><span className="lab">Riqueza de especies</span></div><div className="val num">{d.riqueza}</div></div>
-        <div className="kpi"><div className="top"><span className="chip"><Icon id="tree" /></span><span className="lab">Densidad / ha</span></div><div className="val num">{d.densidad}</div></div>
-        <div className="kpi alt"><div className="top"><span className="chip"><Icon id="target" /></span><span className="lab">Área basal / ha</span></div><div className="val num">{d.areaBasal.toLocaleString('es-CO', { minimumFractionDigits: 2 })} <small>m²</small></div></div>
-        <div className="kpi click" onClick={() => setInfo({ t: 'Restauración activa', v: `${fmt(d.activa)} ha`, b: ACTIVA_TXT })}>
-          <div className="top"><span className="chip"><Icon id="sprout" /></span><span className="lab">Restauración activa</span></div><div className="val num">{fmt(d.activa)} <small>ha</small></div></div>
-        <div className="kpi click alt" onClick={() => setInfo({ t: 'Restauración pasiva', v: `${fmt(d.pasiva)} ha`, b: PASIVA_TXT })}>
-          <div className="top"><span className="chip"><Icon id="shield" /></span><span className="lab">Restauración pasiva</span></div><div className="val num">{fmt(d.pasiva)} <small>ha</small></div></div>
-        <div className="kpi" title="No incluido en el censo"><div className="top"><span className="chip"><Icon id="users" /></span><span className="lab">Individuos sembrados</span></div><div className="val">s/d<sup style={{ color: 'var(--secondary)' }}>*</sup></div></div>
+      {/* KPIs (izquierda) + tabla resumen de coberturas (derecha), al mismo nivel */}
+      <div className="rest-top">
+        <div className="kpis k6">
+          <div className="kpi"><div className="top"><span className="chip"><Icon id="leaf" /></span><span className="lab">Riqueza de especies</span></div><div className="val num">{d.riqueza}</div></div>
+          <div className="kpi"><div className="top"><span className="chip"><Icon id="tree" /></span><span className="lab">Densidad / ha</span></div><div className="val num">{d.densidad}</div></div>
+          <div className="kpi alt"><div className="top"><span className="chip"><Icon id="target" /></span><span className="lab">Área basal / ha</span></div><div className="val num">{d.areaBasal.toLocaleString('es-CO', { minimumFractionDigits: 2 })} <small>m²</small></div></div>
+          <div className="kpi click" onClick={() => setInfo({ t: 'Restauración activa', v: `${fmt(d.activa)} ha`, b: ACTIVA_TXT })}>
+            <div className="top"><span className="chip"><Icon id="sprout" /></span><span className="lab">Restauración activa</span></div><div className="val num">{fmt(d.activa)} <small>ha</small></div></div>
+          <div className="kpi click alt" onClick={() => setInfo({ t: 'Restauración pasiva', v: `${fmt(d.pasiva)} ha`, b: PASIVA_TXT })}>
+            <div className="top"><span className="chip"><Icon id="shield" /></span><span className="lab">Restauración pasiva</span></div><div className="val num">{fmt(d.pasiva)} <small>ha</small></div></div>
+          <div className="kpi" title="No incluido en el censo"><div className="top"><span className="chip"><Icon id="users" /></span><span className="lab">Individuos sembrados</span></div><div className="val">s/d<sup style={{ color: 'var(--secondary)' }}>*</sup></div></div>
+        </div>
+
+        <div className="cob-table-wrap">
+          <div className="cob-table-title"><b>Resumen total de coberturas</b></div>
+          <table className="cob-table">
+            <thead>
+              <tr><th>Cobertura</th><th className="num">Área (ha)</th><th className="num">%</th></tr>
+            </thead>
+            <tbody>
+              {d.coberturas.map(([n, clave, ha, pct]) => (
+                <tr
+                  key={n}
+                  className={cobSelValida !== 'todas' && cobSelValida !== clave ? 'dim' : ''}
+                  onClick={() => setCobSel(cobSelValida === clave ? 'todas' : clave)}
+                >
+                  <td><span className="dot" style={{ background: CLASE_COLOR[clave] }} />{sinPrefijo(n)}</td>
+                  <td className="num">{ha.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+                  <td className="num">{pct.toLocaleString('es-CO', { minimumFractionDigits: 2 })}%</td>
+                </tr>
+              ))}
+              <tr className="total">
+                <td>Total monitoreado</td>
+                <td className="num">{d.totalHa.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+                <td className="num">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="substat">
@@ -101,22 +145,6 @@ export default function RestauracionView(map: MapProps) {
         <span><Icon id="ruler" style={{ width: 15, height: 15, stroke: 'var(--muted)' }} /> altura media <b>{d.altura} m</b></span>
         <span><Icon id="activity" style={{ width: 15, height: 15, stroke: 'var(--muted)' }} /> Shannon H′ <b>{d.shannon}</b></span>
         <span><Icon id="leaf" style={{ width: 15, height: 15, stroke: 'var(--muted)' }} /> <b>{d.fustes}</b> fustes medidos</span>
-      </div>
-
-      {/* Tarjetas de cobertura: filtro + leyenda + dato — clic activa/desactiva la clase en el mapa */}
-      <div className="cob-cards">
-        {d.coberturas.map(([n, clave, ha, pct]) => {
-          const activa = activasEfectivas.has(clave)
-          return (
-            <div key={n} className={`cob-card ${activa ? '' : 'off'}`} onClick={() => toggleCobertura(clave)}>
-              <span className="dot" style={{ background: CLASE_COLOR[clave] }} />
-              <span className="tx"><b>{sinPrefijo(n)}</b><span>{ha.toLocaleString('es-CO', { minimumFractionDigits: 2 })} ha · {pct.toLocaleString('es-CO', { minimumFractionDigits: 2 })}%</span></span>
-            </div>
-          )
-        })}
-        <div className="cob-card total">
-          <span className="tx"><b>Total monitoreado</b><span>{d.totalHa.toLocaleString('es-CO', { minimumFractionDigits: 2 })} ha · 100%</span></span>
-        </div>
       </div>
 
       <div className="panel map-full">

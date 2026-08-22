@@ -57,6 +57,28 @@ function zonas() {
   return { type: 'FeatureCollection', features }
 }
 
+// Coberturas Corine de muestra (datos demo) con TODOS los atributos, para probar en
+// desarrollo el popup completo y el filtrado por el selector sin backend.
+function coberturas() {
+  const base = [
+    { codigo_corine: '3.1.1', descripcion: 'Bosque denso bajo', clase_tematica: 'Vegetación densa', area_hectareas: 4.83, porcentaje: 10.06 },
+    { codigo_corine: '3.2.3', descripcion: 'Vegetación secundaria baja', clase_tematica: 'Vegetación arbustiva', area_hectareas: 7.81, porcentaje: 16.27 },
+    { codigo_corine: '3.1.4', descripcion: 'Bosque de galería', clase_tematica: 'Vegetación densa', area_hectareas: 1.46, porcentaje: 3.04 },
+    { codigo_corine: '2.4.1', descripcion: 'Mosaico de cultivos', clase_tematica: 'Áreas agrícolas', area_hectareas: 4.32, porcentaje: 9.00 },
+    { codigo_corine: '3.3.3', descripcion: 'Tierras desnudas', clase_tematica: 'Suelo desnudo', area_hectareas: 29.59, porcentaje: 61.63 },
+  ]
+  const features = base.map((b, i) => {
+    const lon = -75.172 + (i - 2) * 0.006
+    const lat = 10.606 + (i % 2 === 0 ? 0.004 : -0.004)
+    return {
+      type: 'Feature',
+      geometry: cuadro(lon, lat, 0.0035),
+      properties: { ...b, periodo: 'Línea base', fuente: 'Vuelo dron 2026-05 (datos demo)', estado: 'publicado' },
+    }
+  })
+  return { type: 'FeatureCollection', features }
+}
+
 function lotes() {
   // Lote real de bioaumentación (LUR-BIO-001), categoría adecuada → completa 6.
   return {
@@ -137,8 +159,8 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   else if (url === '/api/puntos') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas/geojson') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas') body = { capas: [] }
+  else if (url === '/api/coberturas') body = coberturas()
   else if (
-    url === '/api/coberturas' ||
     url === '/api/estratos' ||
     url === '/api/malezas' ||
     url === '/api/tecnicas' ||

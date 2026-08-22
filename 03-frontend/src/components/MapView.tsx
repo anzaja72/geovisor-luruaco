@@ -323,6 +323,7 @@ export default function MapView({
               url={b.url}
               attribution={b.attribution}
               maxZoom={b.maxZoom}
+              {...(b.maxNativeZoom ? { maxNativeZoom: b.maxNativeZoom } : {})}
               {...(b.subdomains ? { subdomains: b.subdomains } : {})}
             />
           </LayersControl.BaseLayer>
@@ -392,7 +393,7 @@ export default function MapView({
 
         {/* Coberturas vegetales (Corine) del levantamiento dron — solo Restauración */}
         {coberturasRel.length > 0 && (
-          <LayersControl.Overlay name="🌿 Coberturas (Corine)">
+          <LayersControl.Overlay checked name="🌿 Coberturas (Corine)">
             <GeoJSON
               key={`cob-${coberturasRel.length}-${coberturasActivas ? [...coberturasActivas].sort().join(',') : 'all'}`}
               data={
@@ -411,16 +412,38 @@ export default function MapView({
               }}
               onEachFeature={(f, layer) => {
                 const p = (f.properties || {}) as Record<string, unknown>
+                // Popup con TODOS los atributos de la cobertura (solo los que tengan valor).
+                const val = (v: unknown) => (v == null || v === '' ? '' : String(v))
+                const pares: [string, string][] = [
+                  ['Código Corine', val(p.codigo_corine)],
+                  ['Área', p.area_hectareas != null ? `${Number(p.area_hectareas).toFixed(2)} ha` : ''],
+                  ['% del total', p.porcentaje != null ? `${Number(p.porcentaje).toFixed(2)} %` : ''],
+                  ['Clase temática', val(p.clase_tematica)],
+                  ['Periodo', val(p.periodo)],
+                  ['Fuente', val(p.fuente)],
+                  ['Estado', val(p.estado)],
+                ]
                 const el = document.createElement('div')
                 el.className = 'popup'
-                el.innerHTML = ''
-                const t = document.createElement('strong')
-                t.textContent = String(p.codigo_corine ?? 'Cobertura')
-                const d = document.createElement('div')
-                d.textContent = `${Number(p.area_hectareas ?? 0).toFixed(2)} ha · ${Number(
-                  p.porcentaje ?? 0,
-                ).toFixed(1)}% · ${String(p.periodo ?? '')}`
-                el.append(t, d)
+                const h = document.createElement('h3')
+                h.className = 'popup-title'
+                h.textContent = String(p.descripcion || p.codigo_corine || 'Cobertura')
+                const chip = document.createElement('span')
+                chip.className = 'popup-chip'
+                chip.style.background = coberturaColor(p)
+                chip.style.color = '#fff'
+                chip.textContent = String(p.codigo_corine ?? 'Corine')
+                const dl = document.createElement('dl')
+                dl.className = 'popup-grid'
+                for (const [k, v] of pares) {
+                  if (!v) continue
+                  const dt = document.createElement('dt')
+                  dt.textContent = k
+                  const dd = document.createElement('dd')
+                  dd.textContent = v
+                  dl.append(dt, dd)
+                }
+                el.append(h, chip, dl)
                 layer.bindPopup(el)
               }}
             />
