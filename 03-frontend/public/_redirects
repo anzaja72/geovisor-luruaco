@@ -1,0 +1,27 @@
+# =============================================================
+# _redirects — Netlify declarative redirects
+# =============================================================
+# Netlify lee este archivo desde `publish/` (dist/) en cada
+# deploy. La forma declarativa es complementaria a netlify.toml
+# y se procesa después; sirve como respaldo y como documentación
+# legible de las rutas.
+#
+# Las reglas /api/* y /health se manejan vía netlify.toml con
+# `force = true` (proxy transparente). Aquí solo documentamos
+# el fallback SPA explícitamente.
+#
+# Backend: Hostinger (srv1668992.hstgr.cloud, IP 2.24.97.152).
+# =============================================================
+
+# 1. API → proxiada al backend (Hostinger)
+#    Documentada también en netlify.toml. Esta línea es fallback.
+/api/*   https://geodatabase.mcconsultorias.com.co/api/:splat   200
+
+# 2. Health check del backend
+/health  https://geodatabase.mcconsultorias.com.co/health       200
+
+# 3. Tiles de la ortofoto
+/tiles/* https://geodatabase.mcconsultorias.com.co/tiles/:splat  200
+
+# 4. SPA fallback: cualquier ruta no-API → index.html
+/*       /index.html                                              200

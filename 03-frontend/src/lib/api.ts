@@ -22,15 +22,48 @@ async function getJSON<T>(path: string, signal?: AbortSignal): Promise<T> {
     headers: authHeaders(),
   })
   if (res.status === 401) {
-    // Sesión expirada → limpiar y recargar al login.
-    localStorage.removeItem('gdb_token')
-    localStorage.removeItem('gdb_usuario')
-    window.location.reload()
+    // Solo si había sesión activa (token expirado) limpiamos y recargamos al login.
+    // Sin token, dejamos que el caller maneje el 401 (p. ej. fallback a datos locales).
+    if (localStorage.getItem('gdb_token')) {
+      localStorage.removeItem('gdb_token')
+      localStorage.removeItem('gdb_usuario')
+      window.location.reload()
+    }
+    throw new Error('No autorizado (401)')
   }
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} en ${path}`)
   }
   return (await res.json()) as T
+}
+
+export interface IndicadoresRestauracion {
+  fecha: string
+  riqueza: number
+  densidad_ha: number
+  area_basal_ha: number
+  individuos: number
+  fustes: number
+  altura_media: number
+  shannon: number
+  activa_ha: number
+  pasiva_ha: number
+  area_total_ha: number
+  parcelas: { codigo: string; individuos: number; riqueza: number; densidad_ha: number }[]
+  abundancia: { nombre: string; n: number; pct: number }[]
+  coberturas: { clase: string; ha: number; pct: number }[]
+  sin_datos?: boolean
+}
+
+/** Indicadores del componente de Restauración calculados por el backend (censo + coberturas). */
+export function fetchIndicadoresRestauracion(
+  fecha = 'Linea base',
+  signal?: AbortSignal,
+): Promise<IndicadoresRestauracion> {
+  return getJSON<IndicadoresRestauracion>(
+    `/api/restauracion/indicadores?fecha=${encodeURIComponent(fecha)}`,
+    signal,
+  )
 }
 
 export function fetchZonas(signal?: AbortSignal): Promise<FeatureCollection> {

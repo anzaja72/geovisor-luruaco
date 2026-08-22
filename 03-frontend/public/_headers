@@ -1,0 +1,21 @@
+# =============================================================
+# _headers — Netlify security & cache headers
+# =============================================================
+# Netlify lee este archivo desde `publish/` (dist/) en cada
+# deploy. Complementa los headers definidos en netlify.toml.
+# =============================================================
+
+# Cabeceras globales de seguridad
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# Caché inmutable para los assets con hash (vite genera /assets/* con hash)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Sin caché para los HTML (siempre queremos la última versión)
+*.html
+  Cache-Control: public, max-age=0, must-revalidate

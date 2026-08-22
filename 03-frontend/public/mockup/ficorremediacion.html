@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ficorremediación · Geovisor Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+</head>
+<body data-page="ficorremediacion">
+<script src="shell.js"></script>
+<main class="main">
+  <div class="page-title">
+    <h2><svg class="i"><use href="#flask"/></svg> Ficorremediación</h2>
+    <span class="badge-soft">Estructura lista · datos en captura</span>
+  </div>
+
+  <div class="kpis k4" style="margin-bottom:18px">
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#pin"/></svg></span><span class="lab">Puntos de inoculación</span></div>
+      <div class="val num">1</div><div class="trend up">con evidencia fotográfica</div></div>
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#droplet"/></svg></span><span class="lab">Muestreo de agua</span></div>
+      <div class="val pend">s/d</div></div>
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#flask"/></svg></span><span class="lab">Muestreo de sedimentos</span></div>
+      <div class="val pend">s/d</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#target"/></svg></span><span class="lab">Reducción de contaminantes</span></div>
+      <div class="val pend">s/d</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#layers"/></svg> Geovisor de la Laguna</h3>
+        <div class="tools"><svg class="i"><use href="#search"/></svg><svg class="i"><use href="#layers"/></svg></div></div>
+      <div class="map tall">
+        <svg class="geo" viewBox="0 0 560 420" preserveAspectRatio="xMidYMid slice">
+          <rect width="560" height="420" fill="#eef4f5"/>
+          <path d="M120 50 C300 20 470 70 490 190 C500 320 360 380 220 378 C90 376 50 270 70 170 C82 100 95 60 120 50 Z" fill="#bfe0ea"/>
+          <path d="M120 50 C300 20 470 70 490 190 C500 320 360 380 220 378 C90 376 50 270 70 170 C82 100 95 60 120 50 Z" fill="none" stroke="#9bc6d6" stroke-width="2"/>
+          <!-- frontera de influencia -->
+          <circle cx="250" cy="200" r="70" fill="#1565c0" fill-opacity=".10" stroke="#1565c0" stroke-dasharray="5 5" stroke-width="1.5"/>
+          <!-- punto de inoculación real -->
+          <circle cx="250" cy="200" r="9" fill="#1565c0" stroke="#fff" stroke-width="2"/>
+          <!-- puntos de muestreo (planeados) -->
+          <g fill="#00585f" stroke="#fff" stroke-width="1.5"><circle cx="180" cy="150" r="6"/><circle cx="330" cy="170" r="6"/><circle cx="300" cy="280" r="6"/><circle cx="160" cy="250" r="6"/></g>
+        </svg>
+        <div class="ptcard">
+          <h4>Punto IN-01</h4><div class="st">Estación de inoculación · <span class="chip-state">con evidencia</span></div>
+          <div class="row"><span>Tipo de consorcio</span><b>s/d*</b></div>
+          <div class="row"><span>Fecha inoculación</span><b>s/d*</b></div>
+          <div class="row"><span>Dosis aplicada</span><b>s/d*</b></div>
+          <div class="row"><span>Evidencia</span><b>11 fotos</b></div>
+        </div>
+        <div class="legend"><h5>Leyenda</h5>
+          <div><span class="dot" style="background:#1565c0"></span> Punto de inoculación</div>
+          <div><span class="dot" style="background:#00585f"></span> Muestreo agua / sedimentos</div>
+          <div><span class="dot" style="background:#9cc3e6"></span> Frontera de influencia</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#droplet"/></svg> Calidad del agua</h3><span class="badge-soft">En captura</span></div>
+      <div class="wq">
+        <div class="cell"><div class="l">Oxígeno disuelto</div><div class="v pend num">— <small>mg/L</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+        <div class="cell"><div class="l">pH</div><div class="v pend num">— <small>pH</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+        <div class="cell"><div class="l">Fósforo total</div><div class="v pend num">— <small>mg/L</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+        <div class="cell"><div class="l">Nitrógeno</div><div class="v pend num">— <small>mg/L</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+        <div class="cell"><div class="l">Conductividad</div><div class="v pend num">— <small>µS/cm</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+        <div class="cell"><div class="l">Turbidez</div><div class="v pend num">— <small>NTU</small></div><div class="status" style="color:var(--muted)"><span class="d" style="background:#cfd6dd"></span> Sin dato</div></div>
+      </div>
+      <div class="empty" style="border-top:1px solid var(--line)">
+        <svg class="i"><use href="#activity"/></svg>
+        <b>Reducción de contaminantes</b>
+        <p>Se graficará la variación temporal de los parámetros fisicoquímicos y el % de reducción una vez se carguen las campañas de monitoreo.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>Componente innovador del proyecto.</b> La estructura (puntos de inoculación, muestreo de agua/sedimentos, frontera de influencia y calidad del agua) queda lista para poblarse con cada campaña.
+    Hoy se cuenta con <b>1 punto de bioremediación con 11 fotografías de evidencia</b>; los parámetros fisicoquímicos y los consorcios microalgales se cargan a medida que avanza la ejecución.
+    <b>*</b> Datos por capturar en campo / laboratorio.</div>
+
+  <div class="foot-bar">
+    <div class="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
+    <div class="links"><a href="#">Importar datos</a><a href="#">Exportar GeoJSON</a><a href="#">Contacto</a></div>
+  </div>
+</main>
+</body>
+</html>

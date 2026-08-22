@@ -35,12 +35,20 @@ datos-dron/
 backups/
 tiles/
 
-# ===== Editores / SO =====
+# ===== Editores / SO / herramientas =====
 .DS_Store
 .idea/
 .vscode/
+.opencode/
 *.swp
 *~
+
+# ===== Artefactos regenerables =====
+# Build de .NET del generador de informes
+scripts/build-informe/bin/
+scripts/build-informe/obj/
+# Caché generada por graphify (grafo de conocimiento)
+graphify-out/
 
 # ===== Logs =====
 *.log

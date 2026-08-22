@@ -36,9 +36,12 @@ const controlIcon = L.divIcon({
   iconAnchor: [11, 11],
 })
 
-interface Props {
+export type ComponenteGeovisor = 'restauracion' | 'maleza' | 'ficorremediacion' | 'fauna'
+
+/** Props de datos comunes a los 4 geovisores (todas las vistas reciben el mismo paquete;
+ *  MapView decide internamente qué es pertinente según `componente`). */
+export interface GeovisorMapProps {
   zonas: GeoFeature[]
-  lotes: GeoFeature[]
   puntos: GeoFeature[]
   capas: GeoFeature[]
   coberturas: GeoFeature[]
@@ -47,14 +50,53 @@ interface Props {
   onSelect: (f: GeoFeature) => void
 }
 
+interface Props extends GeovisorMapProps {
+  /** Qué componente está mostrando este mapa — determina qué capas de datos son pertinentes. */
+  componente: ComponenteGeovisor
+  /** Claves de cobertura visibles (ver claseCobertura). undefined = todas visibles. */
+  coberturasActivas?: Set<string>
+  className?: string
+}
+
+// Capas importadas (capas_geograficas) pertinentes por componente. curvas_nivel se omite
+// siempre (satura el mapa). "aislamiento_interno" es de Restauración; "maleza_acuatica" de Maleza.
+const CAPAS_POR_COMPONENTE: Record<ComponenteGeovisor, string[]> = {
+  restauracion: ['aislamiento_interno'],
+  maleza: ['maleza_acuatica'],
+  ficorremediacion: [],
+  fauna: [],
+}
+
+const CAPA_LABEL: Record<string, string> = {
+  aislamiento_interno: '🚧 Aislamiento interno (cercas)',
+  maleza_acuatica: '🟢 Polígonos de limpieza de maleza',
+}
+
 // Paleta para capas importadas (distinta de la escala de calidad).
 const CAPA_COLORS = ['#0ea5e9', '#f97316', '#a855f7', '#14b8a6', '#eab308', '#ec4899']
+// Color fijo por capa (sobre el color rotativo por índice) — aislamiento interno en rojo.
+const CAPA_COLOR_FIJO: Record<string, string> = { aislamiento_interno: '#dc2626' }
 
-// Paleta para las 12 clases de cobertura (tonos tipo Corine: verdes/tierras/agua).
-const CORINE_COLORS: Record<string, string> = {
-  clase_1: '#1a9850', clase_2: '#66bd63', clase_3: '#a6d96a', clase_4: '#d9ef8b',
-  clase_5: '#fee08b', clase_6: '#fdae61', clase_7: '#f46d43', clase_8: '#d73027',
-  clase_9: '#9e0142', clase_10: '#c2a5cf', clase_11: '#7b3294', clase_12: '#2b83ba',
+// Clave estable de clase Corine (compartida con los chips de filtro del front).
+export function claseCobertura(s: string): string {
+  const x = s.toLowerCase()
+  if (x.includes('mosaico') || x.includes('cultivo')) return 'mosaico'
+  if (x.includes('denso')) return 'denso'
+  if (x.includes('galer') || x.includes('ripario')) return 'galeria'
+  if (x.includes('secundaria')) return 'secundaria'
+  if (x.includes('desnud') || x.includes('degrad')) return 'desnuda'
+  return 'otro'
+}
+
+export const CLASE_COLOR: Record<string, string> = {
+  mosaico: '#e7c878', denso: '#2f7d3a', galeria: '#7cc47f',
+  secundaria: '#c0e39a', desnuda: '#bcbcbc', otro: '#94a3b8',
+}
+
+// Color de cobertura por clase Corine real (descripcion / clase_tematica / código CLC).
+function coberturaColor(p: Record<string, unknown>): string {
+  const s = `${p?.descripcion ?? ''} ${p?.clase_tematica ?? ''} ${p?.codigo_corine ?? ''}`
+  return CLASE_COLOR[claseCobertura(s)]
 }
 
 /** Centro seguro de cualquier geometría (no asume Polygon). */
@@ -141,11 +183,17 @@ function FitController({
     if (all.length > 0) {
       try {
         const b = fc(all).getBounds()
-        if (b.isValid()) map.fitBounds(b, { padding: [40, 40] })
+        if (b.isValid()) {
+          map.fitBounds(b, { padding: [40, 40], animate: false })
+          return
+        }
       } catch {
         /* noop */
       }
     }
+    // Sin datos pertinentes (p. ej. Ficorremediación/Fauna sin geometría aún): vista
+    // por defecto del proyecto, nunca la vista heredada de otro componente (hash/share).
+    map.setView(LURUACO_CENTER, 13)
   }, [selected, all, map])
   return null
 }
@@ -197,22 +245,62 @@ function SearchControl() {
 }
 
 export default function MapView({
+  componente,
   zonas,
-  lotes,
   puntos,
   capas,
   coberturas,
   tematicas,
   selected,
   onSelect,
+  coberturasActivas,
+  className = 'map',
 }: Props) {
-  const all = useMemo(() => [...zonas, ...lotes, ...puntos], [zonas, lotes, puntos])
+  // Solo Restauración tiene aislamiento/predio (zonas) y coberturas Corine.
+  const zonasRel = componente === 'restauracion' ? zonas : []
+  // Restauración muestra todas sus parcelas; Ficorremediación solo sus propios puntos
+  // georreferenciados (tipo_monitoreo='ficorremediacion').
+  const puntosRel =
+    componente === 'restauracion'
+      ? puntos
+      : componente === 'ficorremediacion'
+        ? puntos.filter((p) => p.properties?.tipo_monitoreo === 'ficorremediacion')
+        : []
+  const coberturasRel = componente === 'restauracion' ? coberturas : []
+  // Estratos/malezas son datos de muestra (origen='muestra') — nunca se muestran.
+  // Técnicas/validación son reales y pertinentes solo a Restauración.
+  const tematicasRel: Tematicas =
+    componente === 'restauracion'
+      ? { estratos: [], malezas: [], tecnicas: tematicas.tecnicas, validacion: tematicas.validacion }
+      : { estratos: [], malezas: [], tecnicas: [], validacion: [] }
+
   const [medir, setMedir] = useState<'off' | 'distancia' | 'area'>('off')
 
+  // Agrupar capas importadas pertinentes a este componente (se omiten siempre las curvas
+  // de nivel, que saturan visualmente el mapa).
+  const capasGroups = useMemo(() => {
+    const permitidas = new Set(CAPAS_POR_COMPONENTE[componente])
+    const m = new Map<string, GeoFeature[]>()
+    for (const f of capas) {
+      const k = f.properties.capa ?? 'capa'
+      if (!permitidas.has(k)) continue
+      if (!m.has(k)) m.set(k, [])
+      m.get(k)!.push(f)
+    }
+    return Array.from(m.entries())
+  }, [capas, componente])
+
+  // Todo lo que este geovisor muestra realmente — usado para encuadrar la vista inicial.
+  const all = useMemo(
+    () => [...zonasRel, ...puntosRel, ...coberturasRel, ...capasGroups.flatMap(([, feats]) => feats)],
+    [zonasRel, puntosRel, coberturasRel, capasGroups],
+  )
+
   const descargarGeoJSON = () => {
+    const capasFeats = capasGroups.flatMap(([, feats]) => feats)
     const features = [
-      ...zonas, ...lotes, ...puntos, ...coberturas, ...capas,
-      ...tematicas.estratos, ...tematicas.malezas, ...tematicas.tecnicas, ...tematicas.validacion,
+      ...zonasRel, ...puntosRel, ...coberturasRel, ...capasFeats,
+      ...tematicasRel.tecnicas, ...tematicasRel.validacion,
     ]
     const blob = new Blob([JSON.stringify({ type: 'FeatureCollection', features })], {
       type: 'application/geo+json',
@@ -220,25 +308,13 @@ export default function MapView({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `geovisor_luruaco_${new Date().toISOString().slice(0, 10)}.geojson`
+    a.download = `geovisor_${componente}_${new Date().toISOString().slice(0, 10)}.geojson`
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  // Agrupar capas importadas por nombre de capa (se omiten las curvas de nivel,
-  // que saturan visualmente el mapa).
-  const capasGroups = useMemo(() => {
-    const m = new Map<string, GeoFeature[]>()
-    for (const f of capas) {
-      const k = f.properties.capa ?? 'capa'
-      if (k === 'curvas_nivel') continue
-      if (!m.has(k)) m.set(k, [])
-      m.get(k)!.push(f)
-    }
-    return Array.from(m.entries())
-  }, [capas])
   return (
-    <MapContainer center={LURUACO_CENTER} zoom={13} className="map">
+    <MapContainer key={componente} center={LURUACO_CENTER} zoom={13} className={className}>
       <SearchControl />
       <LayersControl position="topright">
         {BASEMAPS.map((b, i) => (
@@ -253,77 +329,85 @@ export default function MapView({
         ))}
 
         {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod) */}
-        <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
+        <LayersControl.Overlay name="🛩 Ortofoto dron (predio)">
           <TileLayer
             url="/tiles/ortofoto/{z}/{x}/{y}.png"
             minNativeZoom={13}
             maxNativeZoom={20}
             maxZoom={22}
             bounds={[
-              [10.5965959, -75.1810361],
-              [10.6128232, -75.1648012],
+              [10.596738552237106, -75.18083778075173],
+              [10.612784062684298, -75.16481760326494],
             ]}
             attribution="Ortofoto © dronticom — Entregables predio 50 Ha"
           />
         </LayersControl.Overlay>
 
-        <LayersControl.Overlay checked name="Zonas de restauración">
-          <FeatureLayer features={zonas} selected={selected} onSelect={onSelect} />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Lotes de bioaumentación">
-          <FeatureLayer features={lotes} selected={selected} onSelect={onSelect} />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Puntos de control">
-          <LayerGroup>
-            {puntos.map((pt) => {
-              const coords = pt.geometry.coordinates as [number, number] | undefined
-              if (!coords || coords.length < 2) return null
-              const p = pt.properties
-              return (
-                <Marker key={`ctrl-${p.id}`} position={[coords[1], coords[0]]} icon={controlIcon}>
-                  <Popup>
-                    <div className="popup">
-                      <h3 className="popup-title">{p.codigo_punto ?? 'Punto'}</h3>
-                      <span className="popup-chip" style={{ background: '#7c3aed', color: '#fff' }}>
-                        PUNTO DE CONTROL
-                      </span>
-                      <dl className="popup-grid">
-                        {p.nombre_punto && (
-                          <>
-                            <dt>Nombre</dt>
-                            <dd>{p.nombre_punto}</dd>
-                          </>
-                        )}
-                        <dt>Coordenadas</dt>
-                        <dd>{coords[1].toFixed(5)}, {coords[0].toFixed(5)}</dd>
-                        {p.elevacion != null && (
-                          <>
-                            <dt>Elevación</dt>
-                            <dd>{p.elevacion} m</dd>
-                          </>
-                        )}
-                      </dl>
-                      {p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            })}
-          </LayerGroup>
-        </LayersControl.Overlay>
+        {zonasRel.length > 0 && (
+          <LayersControl.Overlay checked name="Predio / Aislamiento">
+            <FeatureLayer features={zonasRel} selected={selected} onSelect={onSelect} />
+          </LayersControl.Overlay>
+        )}
+        {puntosRel.length > 0 && (
+          <LayersControl.Overlay checked name="Parcelas de monitoreo">
+            <LayerGroup>
+              {puntosRel.map((pt) => {
+                const coords = pt.geometry.coordinates as [number, number] | undefined
+                if (!coords || coords.length < 2) return null
+                const p = pt.properties
+                const esFicor = p.tipo_monitoreo === 'ficorremediacion'
+                return (
+                  <Marker key={`ctrl-${p.id}`} position={[coords[1], coords[0]]} icon={controlIcon}>
+                    <Popup>
+                      <div className="popup">
+                        <h3 className="popup-title">{p.nombre_punto ?? p.codigo_punto ?? 'Punto'}</h3>
+                        <span className="popup-chip" style={{ background: esFicor ? '#00838f' : '#7c3aed', color: '#fff' }}>
+                          {esFicor ? 'PUNTO DE FICORREMEDIACIÓN' : 'PARCELA DE MONITOREO'}
+                        </span>
+                        <dl className="popup-grid">
+                          {p.nombre_punto && (
+                            <>
+                              <dt>Nombre</dt>
+                              <dd>{p.nombre_punto}</dd>
+                            </>
+                          )}
+                          <dt>Coordenadas</dt>
+                          <dd>{coords[1].toFixed(5)}, {coords[0].toFixed(5)}</dd>
+                          {p.elevacion != null && (
+                            <>
+                              <dt>Elevación</dt>
+                              <dd>{p.elevacion} m</dd>
+                            </>
+                          )}
+                        </dl>
+                        {p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
+                      </div>
+                    </Popup>
+                  </Marker>
+                )
+              })}
+            </LayerGroup>
+          </LayersControl.Overlay>
+        )}
 
-        {/* Coberturas vegetales (Corine) del levantamiento dron */}
-        {coberturas.length > 0 && (
+        {/* Coberturas vegetales (Corine) del levantamiento dron — solo Restauración */}
+        {coberturasRel.length > 0 && (
           <LayersControl.Overlay name="🌿 Coberturas (Corine)">
             <GeoJSON
-              key={`cob-${coberturas.length}`}
+              key={`cob-${coberturasRel.length}-${coberturasActivas ? [...coberturasActivas].sort().join(',') : 'all'}`}
               data={
-                { type: 'FeatureCollection', features: coberturas } as unknown as GeoJSON.GeoJsonObject
+                { type: 'FeatureCollection', features: coberturasRel } as unknown as GeoJSON.GeoJsonObject
               }
               style={(f) => {
-                const cod = (f?.properties as Record<string, string>)?.codigo_corine ?? ''
-                const color = CORINE_COLORS[cod] ?? '#94a3b8'
-                return { color: '#ffffff', weight: 0.6, fillColor: color, fillOpacity: 0.6 }
+                const p = (f?.properties ?? {}) as Record<string, unknown>
+                const key = claseCobertura(`${p?.descripcion ?? ''} ${p?.clase_tematica ?? ''} ${p?.codigo_corine ?? ''}`)
+                const activa = !coberturasActivas || coberturasActivas.has(key)
+                return {
+                  color: '#ffffff',
+                  weight: 0.6,
+                  fillColor: coberturaColor(p),
+                  fillOpacity: activa ? 0.65 : 0.05,
+                }
               }}
               onEachFeature={(f, layer) => {
                 const p = (f.properties || {}) as Record<string, unknown>
@@ -344,13 +428,14 @@ export default function MapView({
         )}
 
         {/* Capas temáticas de restauración (estratos, malezas, técnicas, validación) */}
-        <TematicasOverlays tematicas={tematicas} />
+        <TematicasOverlays tematicas={tematicasRel} />
 
-        {/* Capas importadas (GeoJSON/CSV/Shapefile) */}
+        {/* Capas importadas pertinentes a este componente (ver CAPAS_POR_COMPONENTE) */}
         {capasGroups.map(([nombre, feats], i) => {
-          const color = CAPA_COLORS[i % CAPA_COLORS.length]
+          const color = CAPA_COLOR_FIJO[nombre] ?? CAPA_COLORS[i % CAPA_COLORS.length]
+          const etiqueta = CAPA_LABEL[nombre] ?? nombre
           return (
-            <LayersControl.Overlay key={`capa-${nombre}`} checked name={`📥 ${nombre}`}>
+            <LayersControl.Overlay key={`capa-${nombre}`} checked name={etiqueta}>
               <GeoJSON
                 key={`capa-data-${nombre}-${feats.length}`}
                 data={

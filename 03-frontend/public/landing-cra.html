@@ -4,157 +4,211 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Geovisor de Restauración Ecológica — Ciénaga de Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#0b2d4d; --navy2:#16507f; --green:#1a9850; --green-d:#16803f;
-    --water:#2b83ba; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f4f7fb;
+    --navy:#003178; --navy2:#0d47a1; --green:#1b6d24; --green-d:#155c1d;
+    --teal:#00585f; --ink:#191c1d; --muted:#5b6470; --line:#e5e7eb; --bg:#f6f8fa;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased}
+  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   img{display:block;max-width:100%}
-  a{text-decoration:none}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  a{text-decoration:none;color:inherit}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
 
   /* Nav */
-  .nav{position:sticky;top:0;z-index:20;background:rgba(11,45,77,.97);backdrop-filter:blur(6px)}
-  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
-  .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:15px}
-  .brand img{width:38px;height:38px;border-radius:8px;object-fit:cover;background:#fff}
-  .brand small{display:block;font-weight:400;font-size:11px;opacity:.8}
+  .nav{position:fixed;top:0;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
+  .nav.on-hero{background:transparent;border-color:transparent}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:64px;flex-wrap:nowrap}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;min-width:0}
+  .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .brand img{width:32px;height:32px;border-radius:8px;object-fit:cover;background:#fff;flex:none}
+  .brand small{display:none}
+  .nav .btn{padding:9px 16px;font-size:12.5px;white-space:nowrap;flex:none}
+  .navlinks{display:none;align-items:center;gap:28px;font-size:13.5px;font-weight:600}
+  .navlinks a{opacity:.85}
+  .navlinks a:hover{opacity:1}
   .btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-weight:700;
     border-radius:9999px;padding:11px 22px;font-size:14px;background:var(--green);color:#fff;transition:.2s}
   .btn:hover{background:var(--green-d);transform:translateY(-1px)}
   .btn-lg{padding:14px 28px;font-size:16px}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff}
-  .nav .btn{padding:9px 18px}
+  .btn-ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(4px)}
+  .btn-ghost:hover{background:rgba(255,255,255,.2)}
 
-  /* Hero */
-  .hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 55%,var(--water) 100%);color:#fff}
-  .hero .wrap{display:grid;grid-template-columns:1fr;gap:28px;padding-top:48px;padding-bottom:56px;align-items:center}
-  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:9999px;margin-bottom:16px}
-  .hero h1{font-size:clamp(28px,7vw,46px);line-height:1.08;font-weight:800;letter-spacing:-.5px}
-  .hero .sub{font-size:clamp(15px,4vw,19px);font-weight:600;color:#bfe3f5;margin:8px 0 14px}
-  .hero p.lead{font-size:15px;opacity:.95;max-width:560px}
-  .cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px;align-items:center}
-  .hero-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;
-    padding:22px;display:flex;flex-direction:column;gap:12px}
-  .hero-logo{width:108px;height:108px;border-radius:18px;object-fit:cover;box-shadow:0 16px 40px rgba(0,0,0,.35);margin-bottom:6px}
-  .hero-video{width:100%;border-radius:14px;display:block;box-shadow:0 16px 40px rgba(0,0,0,.35);background:#0b2d4d}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{font-size:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
-    border-radius:9999px;padding:6px 12px}
+  /* Hero — video de fondo a pantalla completa */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;color:#fff}
+  .hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .hero .overlay{position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg,rgba(0,15,40,.78) 0%,rgba(0,30,70,.55) 45%,rgba(0,10,25,.85) 100%)}
+  .hero .wrap{position:relative;z-index:2;padding:120px 24px 80px}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);padding:7px 14px;border-radius:9999px;margin-bottom:22px}
+  .tag .dot{width:7px;height:7px;border-radius:50%;background:#5fd97a;display:inline-block;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:clamp(32px,6.5vw,64px);line-height:1.06;font-weight:800;letter-spacing:-1px;max-width:780px;text-shadow:0 4px 24px rgba(0,0,0,.25)}
+  .hero .sub{font-size:clamp(16px,3vw,21px);font-weight:600;color:#bfe0fb;margin:14px 0 16px}
+  .hero p.lead{font-size:15.5px;opacity:.92;max-width:560px}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .herochips{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+  .chip{font-size:12px;font-weight:600;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+    border-radius:9999px;padding:7px 14px}
+  .scrolldown{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;
+    color:rgba(255,255,255,.7);font-size:26px;animation:bounce 2s infinite}
+  @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
 
   /* Secciones */
-  section.block{padding:56px 0}
-  .block h2{text-align:center;font-size:clamp(22px,5vw,28px);color:var(--navy);margin-bottom:10px}
-  .block .intro{text-align:center;color:var(--muted);max-width:680px;margin:0 auto 30px;font-size:15px}
+  section.block{padding:64px 0}
+  .block h2{text-align:center;font-size:clamp(23px,4.5vw,30px);color:var(--navy);margin-bottom:12px;font-weight:800;letter-spacing:-.3px}
+  .block .intro{text-align:center;color:var(--muted);max-width:680px;margin:0 auto 36px;font-size:15.5px}
   .alt{background:var(--bg)}
 
+  /* Bento de funciones */
   .cards{display:grid;grid-template-columns:1fr;gap:16px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;transition:.15s}
-  .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(15,40,70,.10)}
-  .card .ico{font-size:28px}
-  .card h3{margin:10px 0 6px;color:var(--navy2);font-size:17px}
-  .card p{font-size:14px;color:var(--muted)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;transition:.2s}
+  .card:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,49,120,.10);border-color:#cfe0f2}
+  .card .ico{width:46px;height:46px;border-radius:12px;background:#e8f1fb;color:var(--navy);
+    display:grid;place-items:center;font-size:22px;margin-bottom:14px}
+  .card h3{margin:0 0 6px;color:var(--navy);font-size:16.5px;font-weight:700}
+  .card p{font-size:13.5px;color:var(--muted)}
+
+  /* Componentes (los 4 reales) */
+  .comp-grid{display:grid;grid-template-columns:1fr;gap:16px}
+  .comp{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;position:relative;overflow:hidden}
+  .comp .top{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .comp .ico{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;font-size:21px;flex:none}
+  .comp h3{font-size:16.5px;color:var(--navy);font-weight:700}
+  .comp p{font-size:13.5px;color:var(--muted);margin-bottom:14px}
+  .status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+  .status.live{background:#e3f5e6;color:var(--green-d)}
+  .status.partial{background:#fff4e0;color:#a86a00}
+  .status.pending{background:#eceff2;color:#5b6470}
+  .status .d{width:6px;height:6px;border-radius:50%;background:currentColor}
 
   .preg{display:grid;grid-template-columns:1fr;gap:14px}
-  .preg .q{display:flex;align-items:center;gap:14px;background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 4px 14px rgba(15,40,70,.06)}
+  .preg .q{display:flex;align-items:center;gap:14px;background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 4px 14px rgba(0,49,120,.06)}
   .preg .n{flex-shrink:0;width:38px;height:38px;display:grid;place-items:center;border-radius:50%;background:var(--green);color:#fff;font-weight:800}
   .preg .q p{font-weight:600;color:var(--navy)}
 
   .insumos{text-align:center}
-  .insumos .chips{justify-content:center;margin-bottom:26px}
-  .insumos .chip{background:#e8f1fb;color:var(--navy2);border:1px solid #cfe0f2;font-weight:600;font-size:14px}
+  .insumos .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:30px}
+  .insumos .chip{background:#e8f1fb;color:var(--navy2);border:1px solid #cfe0f2;font-weight:600;font-size:13.5px}
 
   /* Footer */
-  footer{background:var(--navy);color:rgba(255,255,255,.9)}
-  footer .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:center;text-align:center;padding:24px 20px}
-  footer img{height:54px;background:#fff;border-radius:8px;padding:4px}
-  footer strong{display:block;color:#fff;font-size:14px}
-  footer span{font-size:12px;opacity:.85}
+  footer{background:var(--navy);color:rgba(255,255,255,.88);padding-top:56px}
+  footer .cols{display:grid;grid-template-columns:1fr;gap:40px;padding-bottom:40px}
+  footer .brand-col{display:flex;flex-direction:column;gap:18px}
+  footer .brand-col h4{font-size:18px;font-weight:800;color:#fff}
+  footer .brand-col p{font-size:13.5px;opacity:.8;max-width:380px}
+  footer .partners{display:flex;gap:14px;align-items:center}
+  footer .partners img{height:46px;border-radius:8px;background:#fff;padding:4px;object-fit:cover}
+  footer h5{font-size:11px;text-transform:uppercase;letter-spacing:.8px;opacity:.65;margin-bottom:16px;font-weight:700}
+  footer ul{list-style:none}
+  footer li{margin-bottom:11px}
+  footer ul a{font-size:13.5px;opacity:.85}
+  footer ul a:hover{opacity:1;text-decoration:underline}
+  .footbar{border-top:1px solid rgba(255,255,255,.15);padding:20px 0;display:flex;flex-wrap:wrap;gap:8px;
+    justify-content:space-between;align-items:center;text-align:center;font-size:12px;opacity:.7}
 
-  /* Nav compacto en pantallas muy pequeñas */
-  @media(max-width:560px){
-    .brand small{display:none}
-    .brand span{font-size:14px}
-    .nav .btn{padding:8px 14px;font-size:13px}
-  }
-
-  /* Desktop */
-  @media(min-width:860px){
-    .hero .wrap{grid-template-columns:1.25fr .9fr;padding-top:64px;padding-bottom:72px}
+  @media(min-width:760px){
     .cards{grid-template-columns:repeat(3,1fr)}
+    .comp-grid{grid-template-columns:repeat(2,1fr)}
     .preg{grid-template-columns:repeat(2,1fr)}
+    .navlinks{display:flex}
+    footer .cols{grid-template-columns:1.4fr .8fr .8fr}
+    .brand{font-size:15px;gap:10px}
+    .brand img{width:38px;height:38px}
+    .brand small{display:block}
+    .nav .btn{padding:11px 22px;font-size:14px}
   }
 </style>
 </head>
 <body>
-  <nav class="nav">
+  <nav class="nav" id="nav">
     <div class="wrap">
       <a class="brand" href="#top">
         <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" />
         <span>Restauración Luruaco<small>Ciénaga de Luruaco · Atlántico</small></span>
       </a>
+      <div class="navlinks">
+        <a href="#componentes">Componentes</a>
+        <a href="#funciones">Plataforma</a>
+        <a href="#insumos">Insumos dron</a>
+      </div>
       <a class="btn" href="/?entrar=1">Ingresar a la plataforma</a>
     </div>
   </nav>
 
   <header class="hero" id="top">
+    <video autoplay loop muted playsinline preload="auto" poster="/hero-poster.jpg">
+      <source src="/demo.mp4" type="video/mp4" />
+    </video>
+    <div class="overlay"></div>
     <div class="wrap">
-      <div>
-        <span class="tag">● Sistema de Información Geográfica</span>
-        <h1>Geovisor de Restauración Ecológica</h1>
-        <p class="sub">Ciénaga de Luruaco · Departamento del Atlántico</p>
-        <p class="lead">Plataforma oficial para visualizar, monitorear y dar trazabilidad temporal a las intervenciones de restauración del humedal, con evidencia georreferenciada.</p>
-        <div class="cta">
-          <a class="btn btn-lg" href="/?entrar=1">Ingresar a la plataforma →</a>
-          <a class="btn btn-ghost btn-lg" href="#funciones">Conocer la plataforma ↓</a>
-        </div>
+      <span class="tag"><span class="dot"></span> Geodatabase y geovisor en producción</span>
+      <h1>Geovisor de Restauración Ecológica</h1>
+      <p class="sub">Ciénaga de Luruaco · Departamento del Atlántico</p>
+      <p class="lead">Plataforma oficial del Contrato 324 de 2025 para visualizar, monitorear y dar trazabilidad temporal a las intervenciones de restauración del humedal, organizada en cuatro componentes con evidencia georreferenciada.</p>
+      <div class="cta">
+        <a class="btn btn-lg" href="/?entrar=1">Ingresar a la plataforma →</a>
+        <a class="btn btn-ghost btn-lg" href="#componentes">Conocer la plataforma ↓</a>
       </div>
-      <div class="hero-card">
-        <video class="hero-video" autoplay loop muted playsinline preload="metadata" poster="/logo-proyecto.jpeg">
-          <source src="/demo.mp4" type="video/mp4" />
-        </video>
-        <div class="chips">
-          <span class="chip">Datos georreferenciados</span>
-          <span class="chip">Trazabilidad temporal</span>
-          <span class="chip">Capas oficiales del IGAC</span>
-        </div>
+      <div class="herochips">
+        <span class="chip">Datos georreferenciados</span>
+        <span class="chip">Trazabilidad temporal</span>
+        <span class="chip">Capas oficiales del IGAC</span>
       </div>
     </div>
+    <span class="scrolldown">⌄</span>
   </header>
 
   <section class="block">
     <div class="wrap">
       <h2>¿Qué es?</h2>
-      <p class="intro">Una geodatabase ambiental y un geovisor web que centralizan la información del proyecto: dónde se intervino, qué técnica se aplicó, cómo evoluciona y qué evidencias demuestran la restauración.</p>
+      <p class="intro">Una geodatabase ambiental y un geovisor web que centralizan la información del proyecto: dónde se intervino, qué técnica se aplicó, cómo evoluciona el ecosistema y qué evidencias demuestran la restauración — organizados por componente, con un geovisor propio para cada uno.</p>
     </div>
   </section>
 
-  <section class="block alt" id="funciones">
+  <section class="block alt" id="componentes">
     <div class="wrap">
-      <h2>¿Qué ofrece la plataforma?</h2>
-      <div class="cards">
-        <div class="card"><span class="ico">🗺️</span><h3>Geovisor interactivo</h3><p>Ortofoto del dron, capas conmutables y consulta espacial sobre el predio.</p></div>
-        <div class="card"><span class="ico">🌱</span><h3>Capas temáticas</h3><p>Coberturas, estratos, técnicas de restauración y presencia de malezas.</p></div>
-        <div class="card"><span class="ico">🕒</span><h3>Comparación temporal</h3><p>Vista antes/después con mapas sincronizados por periodo.</p></div>
-        <div class="card"><span class="ico">📊</span><h3>Monitoreo y validación</h3><p>Indicadores con meta y porcentaje de cumplimiento por sitio.</p></div>
-        <div class="card"><span class="ico">📄</span><h3>Reportes descargables</h3><p>Exportación de la información en PDF, Excel y CSV.</p></div>
-        <div class="card"><span class="ico">🏛️</span><h3>Capas oficiales IGAC</h3><p>Catastro, pendientes y agrología vía geoservicios del IGAC.</p></div>
+      <h2>Cuatro componentes, un solo geovisor</h2>
+      <p class="intro">Cada componente del proyecto tiene su propio geovisor, indicadores y capas — mostrando únicamente los datos que le son pertinentes.</p>
+      <div class="comp-grid">
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#e3f5e6;color:var(--green-d)">🌱</span><h3>Restauración Ecológica</h3></div>
+          <p>Coberturas vegetales (Corine), parcelas de monitoreo, técnicas de restauración y aislamiento del predio.</p>
+          <span class="status live"><span class="d"></span>Datos reales en vivo</span>
+        </div>
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#dbe7fb;color:var(--navy)">🌊</span><h3>Maleza Acuática</h3></div>
+          <p>Polígonos de limpieza en el borde de la ciénaga y avance mensual de hectáreas removidas.</p>
+          <span class="status live"><span class="d"></span>Datos reales en vivo</span>
+        </div>
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#e0f3f4;color:var(--teal)">🧪</span><h3>Ficorremediación</h3></div>
+          <p>Puntos de inoculación, muestreo de agua y sedimentos, y calidad fisicoquímica del recurso hídrico.</p>
+          <span class="status partial"><span class="d"></span>Estructura lista · datos en captura</span>
+        </div>
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#eceff2;color:var(--muted)">🦜</span><h3>Monitoreo de Fauna</h3></div>
+          <p>Avistamientos, cámaras trampa y grupos taxonómicos monitoreados en el ecosistema.</p>
+          <span class="status pending"><span class="d"></span>En definición</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="block">
+  <section class="block" id="funciones">
     <div class="wrap">
-      <h2>Responde cuatro preguntas clave</h2>
-      <div class="preg">
-        <div class="q"><span class="n">1</span><p>¿Dónde se intervino?</p></div>
-        <div class="q"><span class="n">2</span><p>¿Qué técnica se aplicó?</p></div>
-        <div class="q"><span class="n">3</span><p>¿Cómo estaba antes y cómo está ahora?</p></div>
-        <div class="q"><span class="n">4</span><p>¿Qué evidencias demuestran que funciona?</p></div>
+      <h2>¿Qué ofrece la plataforma?</h2>
+      <div class="cards">
+        <div class="card"><span class="ico">🗺️</span><h3>Geovisor interactivo</h3><p>Un geovisor por componente, con ortofoto del dron, capas conmutables y consulta espacial sobre el predio.</p></div>
+        <div class="card"><span class="ico">🌿</span><h3>Capas temáticas</h3><p>Coberturas, parcelas, técnicas de restauración y polígonos de limpieza, cada uno en su componente.</p></div>
+        <div class="card"><span class="ico">🕒</span><h3>Comparación temporal</h3><p>Línea de tiempo por monitoreo y visor comparativo antes/después de la intervención.</p></div>
+        <div class="card"><span class="ico">📊</span><h3>Monitoreo y validación</h3><p>Registro de observaciones en campo, por estación existente o nueva ubicación GPS.</p></div>
+        <div class="card"><span class="ico">📄</span><h3>Reportes descargables</h3><p>Exportación de la información en PDF, Excel, CSV y GeoJSON.</p></div>
+        <div class="card"><span class="ico">🏛️</span><h3>Capas oficiales IGAC</h3><p>Catastro, pendientes y agrología vía geoservicios oficiales del IGAC.</p></div>
       </div>
     </div>
   </section>
@@ -175,12 +229,54 @@
 
   <footer>
     <div class="wrap">
-      <img src="/logo-cra.jpeg" alt="C.R.A." />
-      <div>
-        <strong>Proyecto financiado por la Corporación Autónoma Regional del Atlántico (C.R.A.)</strong>
-        <span>Contrato 324 de 2025 · Responsable técnico: Ángel Zambrano Jaraba</span>
+      <div class="cols">
+        <div class="brand-col">
+          <h4>Geovisor Luruaco</h4>
+          <p>Herramienta técnica de monitoreo y trazabilidad para la restauración ecológica de la Ciénaga de Luruaco, departamento del Atlántico — Contrato 324 de 2025.</p>
+          <div class="partners">
+            <img src="/logo-cra.jpeg" alt="C.R.A." />
+            <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" />
+          </div>
+        </div>
+        <div>
+          <h5>Navegación</h5>
+          <ul>
+            <li><a href="#componentes">Componentes</a></li>
+            <li><a href="#funciones">Plataforma</a></li>
+            <li><a href="#insumos">Insumos del dron</a></li>
+            <li><a href="/?entrar=1">Ingresar</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Proyecto</h5>
+          <ul>
+            <li>Contrato 324 de 2025</li>
+            <li>C.R.A. · Atlántico</li>
+            <li>Responsable técnico: Ángel Zambrano Jaraba</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footbar">
+        <span>© 2026 Financiado por la Corporación Autónoma Regional del Atlántico (C.R.A.)</span>
+        <span>Geodatabase y geovisor de restauración ecológica</span>
       </div>
     </div>
   </footer>
+
+  <script>
+    // El nav se vuelve sólido al salir del hero.
+    const nav = document.getElementById('nav');
+    const hero = document.getElementById('top');
+    nav.classList.add('on-hero');
+    const onScroll = () => {
+      const past = window.scrollY > hero.offsetHeight - 80;
+      nav.classList.toggle('on-hero', !past);
+      nav.style.color = past ? 'var(--ink)' : '#fff';
+      nav.querySelectorAll('.navlinks a, .brand').forEach(el => { el.style.color = past ? 'var(--ink)' : '#fff' });
+      const navBtn = nav.querySelector('.btn:not(.btn-ghost)');
+    };
+    window.addEventListener('scroll', onScroll);
+    onScroll();
+  </script>
 </body>
 </html>

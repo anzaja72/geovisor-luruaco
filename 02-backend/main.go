@@ -111,6 +111,7 @@ func main() {
 	api.Get("/capas", lectura, getCapas)
 	api.Get("/capas/geojson", lectura, getCapasGeoJSON)
 	api.Get("/coberturas", lectura, getCoberturas)
+	api.Get("/restauracion/indicadores", lectura, getIndicadoresRestauracion)
 
 	// Capas temáticas de restauración
 	api.Get("/estratos", lectura, getEstratos)

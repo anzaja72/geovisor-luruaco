@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Monitoreo de Fauna · Geovisor Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+</head>
+<body data-page="fauna">
+<script src="shell.js"></script>
+<main class="main">
+  <div class="page-title">
+    <h2><svg class="i"><use href="#paw"/></svg> Monitoreo de Fauna</h2>
+    <span class="badge-soft">Estructura preliminar · variables a definir con Darío</span>
+  </div>
+
+  <div class="kpis k4" style="margin-bottom:18px">
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#bird"/></svg></span><span class="lab">Especies de fauna</span></div><div class="val pend">s/d</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#pin"/></svg></span><span class="lab">Avistamientos</span></div><div class="val pend">s/d</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#camera"/></svg></span><span class="lab">Cámaras trampa</span></div><div class="val pend">s/d</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#grid"/></svg></span><span class="lab">Grupos monitoreados</span></div><div class="val pend">s/d</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#layers"/></svg> Geovisor de Fauna</h3>
+        <div class="tools"><svg class="i"><use href="#search"/></svg><svg class="i"><use href="#layers"/></svg></div></div>
+      <div class="map tall">
+        <svg class="geo" viewBox="0 0 560 420" preserveAspectRatio="xMidYMid slice">
+          <rect width="560" height="420" fill="#eef4f0"/>
+          <path d="M120 50 C300 20 470 70 490 190 C500 320 360 380 220 378 C90 376 50 270 70 170 C82 100 95 60 120 50 Z" fill="#bfe0ea"/>
+          <path d="M60 250 C160 230 260 250 360 235 C440 225 500 240 540 250 L540 420 L40 420 Z" fill="#cfe3cf" opacity=".6"/>
+          <g fill="#9aa6b0" stroke="#fff" stroke-width="1.4" opacity=".7">
+            <circle cx="200" cy="150" r="6"/><circle cx="320" cy="180" r="6"/><circle cx="260" cy="300" r="6"/><circle cx="160" cy="260" r="6"/></g>
+        </svg>
+        <div class="legend"><h5>Puntos (planeados)</h5>
+          <div><span class="dot" style="background:#9aa6b0"></span> Estación / cámara trampa</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:4px">Capas pendientes de definición</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#camera"/></svg> Registros de fauna</h3></div>
+      <div class="empty" style="padding:50px 24px">
+        <svg class="i"><use href="#paw"/></svg>
+        <b>Componente en definición</b>
+        <p>El tablero de fauna se configurará con las variables que defina Darío (especies objetivo, grupos taxonómicos, esfuerzo de muestreo, índices). La estructura del visor, KPIs y registros queda lista para poblarse.</p>
+      </div>
+      <div class="obs-grid" style="opacity:.55">
+        <div class="obs"><div class="ph-img"><svg class="i"><use href="#bird"/></svg></div><div class="meta"><b>Avifauna</b><span>—</span><span class="tag-group" style="background:#dbe7fb;color:var(--primary)">Grupo</span></div></div>
+        <div class="obs"><div class="ph-img"><svg class="i"><use href="#paw"/></svg></div><div class="meta"><b>Mamíferos</b><span>—</span><span class="tag-group" style="background:var(--sec-c);color:var(--on-sec-c)">Grupo</span></div></div>
+        <div class="obs"><div class="ph-img"><svg class="i"><use href="#droplet"/></svg></div><div class="meta"><b>Herpetofauna</b><span>—</span><span class="tag-group" style="background:var(--tert-c);color:var(--tertiary)">Grupo</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>Estructura preliminar.</b> Este componente se cerrará en la reunión con Darío para acordar las variables del tablero (igual que se hizo con Restauración).
+    El sistema ya soporta puntos georreferenciados, fotografías de evidencia y formularios de captura para alimentarlo.</div>
+
+  <div class="foot-bar">
+    <div class="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
+    <div class="links"><a href="#">Importar datos</a><a href="#">Exportar GeoJSON</a><a href="#">Contacto</a></div>
+  </div>
+</main>
+</body>
+</html>

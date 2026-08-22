@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Restauración Ecológica · Geovisor Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+</head>
+<body data-page="restauracion">
+<script src="shell.js"></script>
+<main class="main">
+  <div class="filters">
+    <div class="fl"><svg class="i" style="width:17px;height:17px;stroke:var(--muted)"><use href="#calendar"/></svg>
+      <span class="lab">Línea de tiempo</span>
+      <select><option>Línea base (2024)</option><option>Monitoreo 1</option><option>Monitoreo 2</option><option>Monitoreo 3</option><option>Monitoreo 4</option></select></div>
+    <div class="fl"><span class="lab">Coberturas</span>
+      <div class="cob-chips">
+        <span class="cchip"><i style="background:var(--c-mosaico)"></i>Mosaico de cultivos</span>
+        <span class="cchip"><i style="background:var(--c-bdenso)"></i>Bosque denso</span>
+        <span class="cchip"><i style="background:var(--c-galeria)"></i>Galería</span>
+        <span class="cchip"><i style="background:var(--c-vsec)"></i>Veg. secundaria</span>
+        <span class="cchip"><i style="background:var(--c-desnuda)"></i>Tierras desnudas</span>
+      </div></div>
+  </div>
+
+  <div class="kpis k6">
+    <div class="kpi" title="S = nº de especies distintas">
+      <div class="top"><span class="chip"><svg class="i"><use href="#leaf"/></svg></span><span class="lab">Riqueza de especies</span></div><div class="val num">12</div></div>
+    <div class="kpi" title="D = N ÷ área muestreada (75 ÷ 1,5 ha)">
+      <div class="top"><span class="chip"><svg class="i"><use href="#tree"/></svg></span><span class="lab">Densidad / ha</span></div><div class="val num">50</div></div>
+    <div class="kpi alt" title="G = Σ[π·(DAP/200)²] ÷ área muestreada">
+      <div class="top"><span class="chip"><svg class="i"><use href="#target"/></svg></span><span class="lab">Área basal / ha</span></div><div class="val num">0,30 <small>m²</small></div></div>
+    <div class="kpi click" data-it="Restauración activa" data-ih="41,72 ha"
+      data-ib="En total se realizó análisis de coberturas para un área total de 48 ha; sin embargo, para la implementación de las técnicas de restauración activa se priorizaron las coberturas de mosaico de cultivos, vegetación secundaria baja y tierras desnudas y degradadas, que corresponden principalmente a áreas transformadas o con predominio de vegetación secundaria y usos antrópicos, especialmente para agricultura, que corresponden a 41,72 ha.">
+      <div class="top"><span class="chip"><svg class="i"><use href="#sprout"/></svg></span><span class="lab">Restauración activa</span></div><div class="val num">41,72 <small>ha</small></div></div>
+    <div class="kpi click alt" data-it="Restauración pasiva" data-ih="6,28 ha"
+      data-ib="En total se realizó análisis de coberturas para un área total de 48 ha. De estas, el bosque denso bajo de tierra firme y el bosque de galería y ripario representan cerca del 3 % (6,28 ha); son importantes reservorios de biodiversidad, fuentes potenciales de semillas y núcleos para la recuperación de la cobertura vegetal. Se destinaron a preservación y conservación mediante restauración pasiva, por medio de eliminación de tensionantes (tala, quemas, cultivos) y aislamiento con cerca de púas y cerca viva.">
+      <div class="top"><span class="chip"><svg class="i"><use href="#shield"/></svg></span><span class="lab">Restauración pasiva</span></div><div class="val num">6,28 <small>ha</small></div></div>
+    <div class="kpi" title="No incluido en el censo">
+      <div class="top"><span class="chip"><svg class="i"><use href="#users"/></svg></span><span class="lab">Individuos sembrados</span></div><div class="val">s/d<sup style="color:var(--secondary)">*</sup></div></div>
+  </div>
+
+  <div class="substat">
+    <span><svg class="i" style="width:15px;height:15px;stroke:var(--muted)"><use href="#tree"/></svg> <b>75</b> individuos censados</span>
+    <span><svg class="i" style="width:15px;height:15px;stroke:var(--muted)"><use href="#ruler"/></svg> altura media <b>5,5 m</b></span>
+    <span><svg class="i" style="width:15px;height:15px;stroke:var(--muted)"><use href="#activity"/></svg> Shannon H′ <b>1,81</b></span>
+    <span><svg class="i" style="width:15px;height:15px;stroke:var(--muted)"><use href="#leaf"/></svg> <b>136</b> fustes medidos</span>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#layers"/></svg> Geovisor del Predio</h3>
+        <div class="tools"><svg class="i"><use href="#search"/></svg><svg class="i"><use href="#layers"/></svg></div></div>
+      <div class="map">
+        <svg class="geo" viewBox="0 0 560 360" preserveAspectRatio="xMidYMid slice">
+          <rect width="560" height="360" fill="#dfeef0"/>
+          <path d="M430 0 Q400 90 440 180 Q400 280 430 360 L560 360 L560 0 Z" fill="var(--water)"/>
+          <path d="M80 50 L330 38 L420 86 L440 180 L400 300 L200 336 L95 286 L60 160 Z" fill="#cdd6ce" stroke="#c0392b" stroke-width="3"/>
+          <path d="M95 66 L200 58 L212 120 L120 138 Z" fill="var(--c-bdenso)" opacity=".85"/>
+          <path d="M330 50 L415 88 L398 150 L320 140 Z" fill="var(--c-galeria)" opacity=".82"/>
+          <path d="M125 252 L235 312 L160 326 L98 288 Z" fill="var(--c-vsec)" opacity=".82"/>
+          <path d="M210 188 L278 188 L272 248 L218 240 Z" fill="var(--c-mosaico)" opacity=".9"/>
+          <g font-size="9" font-weight="700" fill="#243" text-anchor="middle">
+            <g fill="#f5c518" stroke="#7a5c00" stroke-width="1.2">
+              <circle cx="150" cy="100" r="6"/><circle cx="360" cy="110" r="6"/><circle cx="200" cy="150" r="6"/><circle cx="270" cy="138" r="6"/>
+              <circle cx="320" cy="175" r="6"/><circle cx="240" cy="205" r="6"/><circle cx="175" cy="190" r="6"/><circle cx="295" cy="232" r="6"/>
+              <circle cx="215" cy="258" r="6"/><circle cx="160" cy="270" r="6"/><circle cx="265" cy="285" r="6"/><circle cx="335" cy="255" r="6"/>
+              <circle cx="135" cy="218" r="6"/><circle cx="375" cy="205" r="6"/><circle cx="200" cy="312" r="6"/>
+            </g>
+            <text x="150" y="90">BD1</text><text x="360" y="100">BR1</text><text x="200" y="140">DD3</text><text x="270" y="128">DD4</text>
+            <text x="320" y="165">DD7</text><text x="240" y="195">DD2</text><text x="175" y="180">VS2</text><text x="295" y="222">CU1</text>
+            <text x="215" y="248">VS3</text><text x="160" y="260">DD1</text><text x="265" y="275">CU2</text><text x="335" y="245">DD6</text>
+            <text x="135" y="208">VS1</text><text x="375" y="195">DD5</text><text x="200" y="302">CU3</text>
+          </g>
+        </svg>
+        <div class="mapctl">
+          <button><svg class="i" style="width:18px;height:18px"><use href="#plus"/></svg></button>
+          <button><svg class="i" style="width:18px;height:18px"><use href="#minus"/></svg></button>
+          <button><svg class="i" style="width:18px;height:18px"><use href="#layers"/></svg></button></div>
+        <div class="capas"><h5>Capas activas</h5>
+          <label><input type="checkbox" checked> Ortofoto (dron)</label>
+          <label><input type="checkbox" checked> Coberturas CLC</label>
+          <label><input type="checkbox" checked> Parcelas de monitoreo</label>
+          <label><input type="checkbox"> Predio ampliado</label>
+          <label><input type="checkbox"> Cercas vivas / aislamiento</label>
+          <label><input type="checkbox"> Técnicas de restauración</label></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3><svg class="i"><use href="#leaf"/></svg> Detalle de cobertura</h3></div>
+      <table class="cob">
+        <thead><tr><th>Cobertura</th><th style="text-align:right">Área (ha)</th><th style="text-align:right">%</th></tr></thead>
+        <tbody>
+          <tr><td><i class="sw" style="background:var(--c-mosaico)"></i>Mosaico de cultivos</td><td class="n">4,32</td><td class="n">9,00</td></tr>
+          <tr><td><i class="sw" style="background:var(--c-bdenso)"></i>Bosque denso bajo</td><td class="n">4,83</td><td class="n">10,06</td></tr>
+          <tr><td><i class="sw" style="background:var(--c-galeria)"></i>Bosque de galería</td><td class="n">1,46</td><td class="n">3,04</td></tr>
+          <tr><td><i class="sw" style="background:var(--c-vsec)"></i>Veg. secundaria baja</td><td class="n">7,81</td><td class="n">16,27</td></tr>
+          <tr><td><i class="sw" style="background:var(--c-desnuda)"></i>Tierras desnudas</td><td class="n">29,59</td><td class="n">61,63</td></tr>
+          <tr class="tot"><td>Total monitoreado</td><td class="n">48,01</td><td class="n">100</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="panel chart-b"><div class="ph" style="padding:0 0 8px;border:0"><h3><svg class="i"><use href="#tree"/></svg> Densidad por parcela (ind/ha)</h3></div>
+      <div class="bars" id="bars"></div></div>
+    <div class="panel chart-b"><div class="ph" style="padding:0 0 8px;border:0"><h3><svg class="i"><use href="#leaf"/></svg> Riqueza por parcela</h3></div>
+      <svg viewBox="0 0 320 150" style="width:100%;height:150px">
+        <polyline fill="none" stroke="#1b6d24" stroke-width="2.2" points="12,28 32,55 52,138 72,138 92,138 112,138 132,138 152,138 172,138 192,138 212,138 232,138 252,138 272,138 292,138"/>
+        <g fill="#1b6d24"><circle cx="12" cy="28" r="3.2"/><circle cx="32" cy="55" r="3.2"/></g>
+        <text x="12" y="20" font-size="8" fill="#5b6470">BD1: 8</text><text x="34" y="48" font-size="8" fill="#5b6470">BR1: 6</text>
+        <text x="150" y="150" font-size="8" fill="#5b6470" text-anchor="middle">CU·DD·VS: 0–1 sp.</text></svg></div>
+    <div class="panel chart-b"><div class="ph" style="padding:0 0 8px;border:0"><h3><svg class="i"><use href="#grid"/></svg> Abundancia por especies</h3></div>
+      <div class="treemap">
+        <div class="tm" style="grid-column:span 3;grid-row:span 2;background:#1b6d24">Olleto<small>37%</small></div>
+        <div class="tm" style="grid-column:span 3;grid-row:span 2;background:#2f8a45">Guácimo<small>28%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#4f9e63">Tiribuche<small>9%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#00585f">Espina<small>5%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#1565c0">Uvito<small>5%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#6f9e3a">Guayacán<small>4%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#8a9e7a">Guacamayo<small>3%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#7a8a93">Manca perro<small>3%</small></div>
+        <div class="tm" style="grid-column:span 2;background:#aab2bb">Otras (4)<small>5%</small></div>
+      </div></div>
+  </div>
+
+  <div class="note"><b>Datos reales</b> del censo <i>arboles_resumen.xlsx</i> — Línea base: 75 árboles, 136 fustes, 12 especies, 15 parcelas.
+    <b>Fórmulas:</b> Densidad = N ÷ área muestreada · Área basal = Σ[π·(DAP/200)²] ÷ área muestreada · Riqueza = especies distintas · Shannon H′ = −Σ(pᵢ·ln pᵢ).
+    <b>Supuesto:</b> parcela = 0,1 ha (→ 1,5 ha); confirmar con Yurani. <b>*</b> «Individuos sembrados» no está en el censo. Monitoreos 1–4 aún sin datos.</div>
+
+  <div class="foot-bar">
+    <div class="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
+    <div class="links"><a href="#">Importar datos</a><a href="#">Exportar GeoJSON</a><a href="#">Contacto</a></div>
+  </div>
+</main>
+<script>
+  const P=[['BD1',430],['BR1',320],['CU1',0],['CU2',0],['CU3',0],['DD1',0],['DD2',0],['DD3',0],['DD4',0],['DD5',0],['DD6',0],['DD7',0],['VS1',0],['VS2',0],['VS3',0]];
+  const mx=Math.max(...P.map(p=>p[1]));
+  document.getElementById('bars').innerHTML=P.map(([n,v])=>
+    `<div class="b ${v?'':'zero'}" style="height:${v?Math.max(8,v/mx*100):2}%" title="${n}: ${v} ind/ha"><span>${n}</span></div>`).join('');
+</script>
+</body>
+</html>

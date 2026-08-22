@@ -1,0 +1,104 @@
+# =============================================================
+# netlify.toml — Geodatabase Luruaco · Frontend
+# Dominio objetivo: https://geodatabase.mcconsultorias.com.co
+# =============================================================
+#
+# Este archivo configura Netlify para:
+#   1. Compilar la SPA (Vite/React) con Node 22.
+#   2. Servir el build estático desde `dist/`.
+#   3. Redirigir el tráfico del backend (Go/Fiber) al VPS de
+#      Hostinger (el backend NO va a Netlify).
+#
+# IMPORTANTE:
+#   - El backend (Go) y la base de datos PostGIS viven en
+#     Hostinger (host srv1668992.hstgr.cloud, IP 2.24.97.152).
+#   - Solo el frontend (HTML/CSS/JS estático) se mueve a Netlify.
+#   - VITE_API_URL se fija en build-time apuntando al dominio
+#     público del backend en Hostinger.
+# =============================================================
+
+[build]
+  base    = "03-frontend"
+  publish = "dist"
+  command = "npm ci && npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Backend en Hostinger (mismo dominio raíz, publicable vía proxy).
+  VITE_API_URL = "https://geodatabase.mcconsultorias.com.co"
+
+# ---------------------------------------------------------------
+# Redirects: SPA fallback + proxy /api/* al backend (Hostinger)
+# ---------------------------------------------------------------
+# Reglas:
+#   1. /api/*  → proxy al backend Go/Fiber en Hostinger
+#                (srv1668992.hstgr.cloud:8080, expuesto en 443 vía Nginx/Traefik).
+#   2. /health → proxy al endpoint de health check del backend.
+#   3. /tiles/* → proxy a los tiles de la ortofoto servidos por Nginx
+#                en Hostinger (volumen persistente del VPS).
+#   4. /*      → fallback a index.html (SPA routing del cliente).
+#
+# En Netlify los redirects se procesan en orden; el primero que
+# coincide gana. Por eso /api/* va antes que /*.
+# ---------------------------------------------------------------
+
+# --- API → Hostinger (backend) ---
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://geodatabase.mcconsultorias.com.co/api/:splat"
+  status = 200
+  force  = true
+
+# --- Health check del backend ---
+[[redirects]]
+  from   = "/health"
+  to     = "https://geodatabase.mcconsultorias.com.co/health"
+  status = 200
+  force  = true
+
+# --- Tiles de la ortofoto (volumen Docker en Hostinger) ---
+[[redirects]]
+  from   = "/tiles/*"
+  to     = "https://geodatabase.mcconsultorias.com.co/tiles/:splat"
+  status = 200
+  force  = true
+
+# --- SPA fallback: cualquier ruta no capturada → index.html ---
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# ---------------------------------------------------------------
+# Headers de seguridad y caché
+# ---------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options          = "SAMEORIGIN"
+    X-Content-Type-Options   = "nosniff"
+    Referrer-Policy          = "strict-origin-when-cross-origin"
+    Permissions-Policy       = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ---------------------------------------------------------------
+# Build & deploy
+# ---------------------------------------------------------------
+[build.processing]
+  skip_processing = false
+  css_minify      = true
+  js_minify       = true
+  html_minify     = true
+  image_minify    = true
+
+[deploy]
+  publish = "dist"

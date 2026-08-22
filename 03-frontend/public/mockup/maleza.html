@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maleza Acuática · Geovisor Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+</head>
+<body data-page="maleza">
+<script src="shell.js"></script>
+<main class="main">
+  <div class="page-title">
+    <h2><svg class="i"><use href="#waves"/></svg> Maleza Acuática</h2>
+    <span class="sub">Remoción de maleza en el borde de la Ciénaga · comparación temporal por monitoreo</span>
+  </div>
+
+  <div class="filters">
+    <span class="fl" style="border:0;background:none;padding-left:0"><span class="lab">Monitoreo</span></span>
+    <div class="tl">
+      <button>Línea base</button><button>Marzo</button><button>Abril</button><button class="on">Mayo</button>
+    </div>
+  </div>
+
+  <div class="kpis k4" style="margin-bottom:18px">
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#trash"/></svg></span><span class="lab">Maleza removida (acum.)</span></div>
+      <div class="val num">19,0 <small>ha</small></div><div class="trend up">+3,29 ha vs. abril</div></div>
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#droplet"/></svg></span><span class="lab">Borde de laguna intervenido</span></div>
+      <div class="val num">~3,1 <small>km</small></div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#layers"/></svg></span><span class="lab">Polígonos de limpieza</span></div>
+      <div class="val num">5</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#scale"/></svg></span><span class="lab">Biomasa retirada</span></div>
+      <div class="val pend">s/d<sup style="color:var(--secondary)">*</sup></div></div>
+  </div>
+
+  <!-- Visor comparativo -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><h3><svg class="i"><use href="#layers"/></svg> Visor comparativo — evolución de la vegetación en el borde</h3>
+      <div class="tools"><svg class="i"><use href="#search"/></svg><svg class="i"><use href="#layers"/></svg></div></div>
+    <div class="compare">
+      <div class="cv"><span class="tag">Antes · Línea base</span>
+        <svg viewBox="0 0 480 330" preserveAspectRatio="xMidYMid slice">
+          <rect width="480" height="330" fill="#e7eef0"/>
+          <path id="lag" d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z" fill="#bfe0ea"/>
+          <path d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z"
+            fill="none" stroke="#7ab648" stroke-width="22" stroke-opacity=".85"/>
+        </svg></div>
+      <div class="cv"><span class="tag">Después · Mayo (19 ha removidas)</span>
+        <svg viewBox="0 0 480 330" preserveAspectRatio="xMidYMid slice">
+          <rect width="480" height="330" fill="#e7eef0"/>
+          <path d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z" fill="#bfe0ea"/>
+          <path d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z"
+            fill="none" stroke="#7ab648" stroke-width="5" stroke-opacity=".75" stroke-dasharray="14 30"/>
+        </svg></div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="bigstat">
+      <div class="lab">Maleza acuática removida</div>
+      <div class="v num">19,0 <small>ha</small></div>
+      <div class="sub">Acumulado a mayo de 2026 · línea base = 0 ha</div>
+    </div>
+    <div class="panel chart-b">
+      <div class="ph" style="padding:0 0 8px;border:0"><h3><svg class="i"><use href="#trend"/></svg> Hectáreas removidas (acumulado)</h3></div>
+      <div class="bars" id="bars" style="height:150px"></div>
+    </div>
+    <div class="panel chart-b">
+      <div class="ph" style="padding:0 0 8px;border:0"><h3><svg class="i"><use href="#layers"/></svg> Capas</h3></div>
+      <div style="padding:4px 2px">
+        <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:13px"><input type="checkbox" checked style="accent-color:var(--secondary)"> Imagen satelital del monitoreo</label>
+        <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:13px"><input type="checkbox" checked style="accent-color:var(--secondary)"> Polígonos de limpieza (5)</label>
+        <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:13px"><input type="checkbox" checked style="accent-color:var(--secondary)"> Borde de la laguna</label>
+        <label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:13px"><input type="checkbox"> Maleza presente (residual)</label>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink)">
+          <div style="display:flex;align-items:center;gap:8px;padding:2px 0"><span style="width:11px;height:11px;border-radius:50%;background:#7ab648;display:inline-block"></span> Maleza acuática</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:2px 0"><span style="width:11px;height:11px;border-radius:50%;background:#bfe0ea;display:inline-block"></span> Espejo de agua</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>Datos reales</b> de los registros de limpieza: <b>Marzo 6,06 ha · Abril 15,71 ha · Mayo 19,0 ha</b> (acumulado).
+    La actividad consiste en la remoción de maleza acuática en el borde de la laguna; el visor compara la imagen satelital de la línea base contra cada monitoreo.
+    <b>*</b> Volumen de biomasa retirada pendiente de reporte. Imágenes satelitales por fecha pendientes de cargar (línea base + monitoreos).</div>
+
+  <div class="foot-bar">
+    <div class="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
+    <div class="links"><a href="#">Importar datos</a><a href="#">Exportar GeoJSON</a><a href="#">Contacto</a></div>
+  </div>
+</main>
+<script>
+  const M=[['Mar',6.06],['Abr',15.71],['May',19.0]];
+  const mx=19;
+  document.getElementById('bars').innerHTML=M.map(([n,v])=>
+    `<div class="b blue" style="height:${Math.max(10,v/mx*100)}%" title="${n}: ${v} ha"><em>${v.toString().replace('.',',')}</em><span>${n}</span></div>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard Transversal · Geovisor Luruaco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+</head>
+<body data-page="transversal">
+<script src="shell.js"></script>
+<main class="main">
+  <div class="page-title">
+    <h2><svg class="i"><use href="#grid"/></svg> Dashboard Transversal</h2>
+    <span class="sub">Indicadores consolidados del proyecto · Contrato 324 de 2025</span>
+  </div>
+
+  <div class="kpis k6" style="margin-bottom:18px">
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#leaf"/></svg></span><span class="lab">Área analizada</span></div><div class="val num">48 <small>ha</small></div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#sprout"/></svg></span><span class="lab">Restauración activa</span></div><div class="val num">41,72 <small>ha</small></div></div>
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#trash"/></svg></span><span class="lab">Maleza removida</span></div><div class="val num">19 <small>ha</small></div></div>
+    <div class="kpi alt"><div class="top"><span class="chip"><svg class="i"><use href="#pin"/></svg></span><span class="lab">Puntos de monitoreo</span></div><div class="val num">15</div></div>
+    <div class="kpi"><div class="top"><span class="chip"><svg class="i"><use href="#tree"/></svg></span><span class="lab">Especies registradas</span></div><div class="val num">12</div></div>
+    <div class="kpi blue"><div class="top"><span class="chip"><svg class="i"><use href="#users"/></svg></span><span class="lab">Participantes</span></div><div class="val pend">s/d</div></div>
+  </div>
+
+  <div class="comp-cards">
+    <a class="comp-card" href="restauracion.html" style="text-decoration:none">
+      <div class="h"><span class="ic"><svg class="i"><use href="#sprout"/></svg></span><div><b>Restauración Ecológica</b><span>Coberturas · parcelas · técnicas</span></div></div>
+      <div class="mini"><span><b>48 ha</b>analizadas</span><span><b>15</b>parcelas</span><span><b>12</b>especies</span></div>
+      <div class="progress"><i style="width:70%"></i></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Línea base completa · monitoreos 1–4 pendientes</div>
+    </a>
+    <a class="comp-card" href="maleza.html" style="text-decoration:none">
+      <div class="h"><span class="ic" style="background:#dbe7fb;color:var(--primary)"><svg class="i"><use href="#waves"/></svg></span><div><b>Maleza Acuática</b><span>Remoción en el borde de la laguna</span></div></div>
+      <div class="mini"><span><b>19 ha</b>removidas</span><span><b>5</b>polígonos</span><span><b>3</b>monitoreos</span></div>
+      <div class="progress"><i style="width:55%;background:var(--primary)"></i></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Mar 6,06 → Abr 15,71 → May 19 ha</div>
+    </a>
+    <a class="comp-card" href="ficorremediacion.html" style="text-decoration:none">
+      <div class="h"><span class="ic" style="background:var(--tert-c);color:var(--tertiary)"><svg class="i"><use href="#flask"/></svg></span><div><b>Ficorremediación</b><span>Inoculación · calidad del agua</span></div></div>
+      <div class="mini"><span><b>1</b>punto</span><span><b>11</b>fotos</span><span><b>s/d</b>parámetros</span></div>
+      <div class="progress"><i style="width:18%;background:var(--tertiary)"></i></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Estructura lista · datos en captura</div>
+    </a>
+    <a class="comp-card" href="fauna.html" style="text-decoration:none">
+      <div class="h"><span class="ic" style="background:#eceff2;color:var(--muted)"><svg class="i"><use href="#paw"/></svg></span><div><b>Monitoreo de Fauna</b><span>Avistamientos · cámaras trampa</span></div></div>
+      <div class="mini"><span><b>s/d</b>especies</span><span><b>s/d</b>cámaras</span></div>
+      <div class="progress"><i style="width:8%;background:#9aa6b0"></i></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">En definición con Darío</div>
+    </a>
+  </div>
+
+  <div class="note" style="margin-top:14px"><b>Vista transversal de gobernanza:</b> consolida el avance de los componentes para validar los indicadores contractuales.
+    Los valores reales provienen del censo forestal y de los registros de limpieza; los componentes de Ficorremediación y Fauna muestran su estructura y se poblarán conforme avance la ejecución.</div>
+
+  <div class="foot-bar">
+    <div class="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
+    <div class="links"><a href="#">Importar datos</a><a href="#">Exportar GeoJSON</a><a href="#">Contacto</a></div>
+  </div>
+</main>
+</body>
+</html>
