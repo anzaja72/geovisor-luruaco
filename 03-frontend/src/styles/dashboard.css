@@ -974,6 +974,16 @@
 @media (max-width: 900px) {
   .compare-wrap { grid-template-columns: 1fr; }
 }
+/* Comparador de ortofotos: altura fija (el panel no impone altura) + aviso "sin imagen". */
+.compare-map { min-height: 360px; }
+.compare-empty {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #fafbfc;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
 
 /* ---------- Reportes ---------- */
 .reports {

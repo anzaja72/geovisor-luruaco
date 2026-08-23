@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
+import OrtoComparador from '../components/OrtoComparador'
 import { MALEZA as M } from './data'
 
 export default function MalezaView(map: GeovisorMapProps) {
@@ -41,24 +42,15 @@ export default function MalezaView(map: GeovisorMapProps) {
           <div className="val pend">s/d<sup style={{ color: 'var(--secondary)' }}>*</sup></div></div>
       </div>
 
-      <div className="grid2b">
-        <div className="panel">
-          <div className="ph"><h3><Icon id="layers" /> Geovisor de Vegetación Acuática</h3>
-            <div className="tools"><Icon id="search" /><Icon id="layers" /></div></div>
-          <MapView {...map} componente="maleza" />
-        </div>
-        <div className="panel">
-          <div className="ph"><h3><Icon id="trend" /> Visor comparativo (imágenes por fecha)</h3></div>
-          <div className="compare" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="cv"><span className="tag">Pendiente · imágenes satelitales por monitoreo</span>
-              <svg viewBox="0 0 480 330" preserveAspectRatio="xMidYMid slice">
-                <rect width="480" height="330" fill="#e7eef0" />
-                <path d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z" fill="#bfe0ea" />
-                <path d="M120 40 C260 20 400 60 420 150 C430 240 320 300 200 300 C90 300 40 220 60 140 C75 80 90 48 120 40 Z" fill="none" stroke="#7ab648" strokeWidth="14" strokeOpacity=".7" strokeDasharray="10 18" />
-              </svg></div>
-          </div>
-          <div className="note" style={{ margin: 12 }}>El comparativo antes/después se activará cuando se carguen las imágenes satelitales de la línea base y cada monitoreo.</div>
-        </div>
+      <div className="panel">
+        <div className="ph"><h3><Icon id="layers" /> Geovisor de Vegetación Acuática</h3>
+          <div className="tools"><Icon id="search" /><Icon id="layers" /></div></div>
+        <MapView {...map} componente="maleza" />
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="trend" /> Visor comparativo antes / después (ortofotos del dron)</h3></div>
+        <OrtoComparador poligonos={polys} />
       </div>
 
       <div className="grid3">
