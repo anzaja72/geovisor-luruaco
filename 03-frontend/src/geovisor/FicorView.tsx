@@ -1,5 +1,6 @@
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
+import OrtoFoto from '../components/OrtoFoto'
 import { FICOR_AGUA, FICOR_SEDIMENTOS, FICOR_BIOTA } from './data'
 
 export default function FicorView(map: GeovisorMapProps) {
@@ -62,6 +63,18 @@ export default function FicorView(map: GeovisorMapProps) {
               <div className="val pend">s/d</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="camera" /> Ortofoto — Laboratorio de Microalgas y Planta de Bioaumentación</h3>
+          <span className="badge-soft">Vuelo dron</span></div>
+        <div style={{ padding: 8 }}>
+          <OrtoFoto
+            src="/ortofotos/bioaumentacion.jpg"
+            bounds={[[10.519574, -75.097038], [10.522299, -75.093825]]}
+            height={440}
+          />
         </div>
       </div>
 
