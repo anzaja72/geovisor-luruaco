@@ -24,6 +24,11 @@ import { CoordsControl, MapToolbar } from './MapTools'
 import limpiezaLaguna from '../geovisor/limpiezaLaguna.json'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
+// Límites de la ortofoto del predio (dron): vista por defecto de todos los mapas.
+const PREDIO_BOUNDS: [[number, number], [number, number]] = [
+  [10.596738552237106, -75.18083778075173],
+  [10.612784062684298, -75.16481760326494],
+]
 
 // Símbolo de punto de control topográfico (crosshair morado).
 const controlIcon = L.divIcon({
@@ -198,9 +203,12 @@ function FitController({
         /* noop */
       }
     }
-    // Sin datos pertinentes (p. ej. Ficorremediación/Fauna sin geometría aún): vista
-    // por defecto del proyecto, nunca la vista heredada de otro componente (hash/share).
-    map.setView(LURUACO_CENTER, 13)
+    // Sin datos pertinentes: encuadrar la ortofoto del predio (nunca heredar otra vista).
+    try {
+      map.fitBounds(PREDIO_BOUNDS, { padding: [20, 20], animate: false })
+    } catch {
+      map.setView(LURUACO_CENTER, 13)
+    }
   }, [selected, all, map])
   return null
 }
