@@ -52,6 +52,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         onClose={() => setMonitoreoOpen(false)}
         estaciones={puntos}
         onSaved={reload}
+        componenteActivo={active}
       />
 
       <ImportModal

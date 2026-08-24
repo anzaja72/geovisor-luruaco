@@ -134,6 +134,13 @@ func main() {
 	api.Put("/monitoreos/:id", edicion, actualizarMonitoreo)
 	api.Delete("/monitoreos/:id", requireAuth("administrador"), eliminarMonitoreo)
 
+	// --- Formulario "Registrar Monitoreo" por componente ---
+	api.Post("/restauracion/arbol", edicion, crearArbol)
+	api.Post("/fauna/grupo", edicion, crearFaunaGrupo)
+	api.Post("/ficor/medicion", edicion, crearFicorMedicion)
+	api.Post("/gobernanza/actividad", edicion, crearGobernanza)
+	api.Post("/maleza/limpieza", edicion, crearMalezaLimpieza)
+
 	// --- Reportes (CSV/Excel/PDF): cualquier usuario autenticado ---
 	api.Get("/reportes/:tipo", lectura, getReporte)
 

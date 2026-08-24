@@ -199,6 +199,14 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   else if (url === '/api/puntos') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas/geojson') body = { type: 'FeatureCollection', features: [] }
   else if (url === '/api/capas') body = { capas: [] }
+  else if (
+    url === '/api/restauracion/arbol' || url === '/api/fauna/grupo' ||
+    url === '/api/ficor/medicion' || url === '/api/gobernanza/actividad' ||
+    url === '/api/maleza/limpieza'
+  ) {
+    res.statusCode = 201
+    body = { id: Math.floor(Math.random() * 1000) + 1 }
+  }
   else if (url === '/api/coberturas') body = coberturas()
   else if (url === '/api/restauracion/indicadores') {
     const q = new URLSearchParams((req.url || '').split('?')[1] || '')

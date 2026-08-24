@@ -150,6 +150,18 @@ export async function crearMonitoreo(m: NuevoMonitoreo): Promise<{ id: number }>
   return data as { id: number }
 }
 
+/** POST genérico autenticado (formulario "Registrar Monitoreo" por componente). */
+export async function postForm(path: string, body: unknown): Promise<{ id?: number }> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error((data as { error?: string })?.error || `HTTP ${res.status}`)
+  return data as { id?: number }
+}
+
 export interface ImportResult {
   capa: string
   insertados: number

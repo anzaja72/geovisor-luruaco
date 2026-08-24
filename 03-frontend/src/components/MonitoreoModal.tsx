@@ -1,217 +1,266 @@
-import { useState } from 'react'
-import { crearMonitoreo, crearPunto } from '../lib/api'
-import { getUsuario } from '../lib/auth'
+import { useEffect, useState } from 'react'
+import { postForm } from '../lib/api'
 import type { GeoFeature } from '../lib/types'
 
 interface Props {
   open: boolean
   onClose: () => void
   estaciones: GeoFeature[]
-  onSaved: () => void // recarga el mapa al guardar
+  onSaved: () => void
+  componenteActivo?: string // pestaña inicial según el componente abierto
 }
 
-const INDICADORES_SUGERIDOS = [
-  'pH', 'oxigeno_disuelto', 'temperatura_agua', 'conductividad', 'turbiedad',
-  'cobertura_vegetal', 'altura_promedio_vegetacion', 'riqueza_especies',
-  'supervivencia_plantulas', 'observacion',
+type Tab = 'restauracion' | 'maleza' | 'fauna' | 'ficorremediacion' | 'gobernanza'
+
+const TABS: [Tab, string][] = [
+  ['restauracion', 'Restauración'],
+  ['maleza', 'Veg. Acuática'],
+  ['fauna', 'Fauna'],
+  ['ficorremediacion', 'Ficorremediación'],
+  ['gobernanza', 'Gobernanza'],
 ]
 
-/** Registro de monitoreos/observaciones en estación existente o nueva ubicación GPS. */
-export default function MonitoreoModal({ open, onClose, estaciones, onSaved }: Props) {
-  const hoy = new Date().toISOString().slice(0, 10)
-  const [modo, setModo] = useState<'existente' | 'nueva'>('existente')
-  const [estacion, setEstacion] = useState('')
-  const [nombreUbic, setNombreUbic] = useState('')
-  const [lat, setLat] = useState('')
-  const [lon, setLon] = useState('')
-  const [fecha, setFecha] = useState(hoy)
-  const [indicador, setIndicador] = useState('')
-  const [valor, setValor] = useState('')
-  const [unidad, setUnidad] = useState('')
-  const [observaciones, setObservaciones] = useState('')
+const FECHAS_REST = ['Linea base', 'Monitoreo 1', 'Monitoreo 2', 'Monitoreo 3', 'Monitoreo 4']
+const FECHAS_MALEZA = ['Línea base', 'Marzo', 'Abril', 'Mayo']
+const GRUPOS_FAUNA = ['aves', 'anfibios', 'mamiferos', 'reptiles']
+const CAT_ARBOL = ['Brinzal', 'Latizal', 'Fustal']
+const BIOTA = ['fitoplancton', 'zooplancton', 'ictioplancton', 'macroinvertebrados_bentonicos', 'perifiton', 'ictiofauna']
+const hoy = new Date().toISOString().slice(0, 10)
+
+const num = (v: string) => (v.trim() === '' ? undefined : Number(v))
+const int = (v: string) => (v.trim() === '' ? undefined : parseInt(v, 10))
+
+/** Formulario "Registrar Monitoreo" con una pestaña por componente. */
+export default function MonitoreoModal({ open, onClose, estaciones, onSaved, componenteActivo }: Props) {
+  const inicial = (TABS.some(([t]) => t === componenteActivo) ? componenteActivo : 'restauracion') as Tab
+  const [tab, setTab] = useState<Tab>(inicial)
+  const [f, setF] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
-  const [geoBusy, setGeoBusy] = useState(false)
   const [ok, setOk] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Al abrir, arranca en la pestaña del componente activo y limpia el formulario.
+  useEffect(() => {
+    if (open) {
+      setTab(inicial)
+      setF({})
+      setOk(null)
+      setError(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
   if (!open) return null
 
-  const usarMiUbicacion = () => {
-    if (!navigator.geolocation) {
-      setError('El navegador no permite geolocalización')
-      return
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setF((s) => ({ ...s, [k]: e.target.value }))
+  const cambiarTab = (t: Tab) => { setTab(t); setF({}); setOk(null); setError(null) }
+
+  // Construye {path, body} según la pestaña.
+  function preparar(): { path: string; body: Record<string, unknown> } {
+    switch (tab) {
+      case 'restauracion':
+        return {
+          path: '/api/restauracion/arbol',
+          body: {
+            fecha: f.fecha || 'Linea base', id_parcela: f.parcela, cobertura: f.cobertura,
+            especie: f.especie, nombre_comun: f.nombre_comun, altura_max: num(f.altura || ''),
+            n_fustes: int(f.fustes || ''), dap_eq: num(f.dap || ''), categoria_arbol: f.categoria,
+          },
+        }
+      case 'maleza':
+        return {
+          path: '/api/maleza/limpieza',
+          body: {
+            fecha: f.fecha || 'Mayo', area_ha: num(f.area || ''),
+            borde_km: num(f.borde || ''), observaciones: f.obs,
+          },
+        }
+      case 'fauna':
+        return {
+          path: '/api/fauna/grupo',
+          body: {
+            fecha: f.fecha || 'Línea base', grupo: f.grupo || 'aves',
+            abundancia: int(f.abundancia || ''), riqueza: int(f.riqueza || ''),
+          },
+        }
+      case 'ficorremediacion':
+        return {
+          path: '/api/ficor/medicion',
+          body: {
+            tipo: f.tipo || 'agua', fecha: f.fecha || hoy, variable: f.variable,
+            categoria: f.categoria, grupo: f.grupo, valor: num(f.valor || ''),
+            unidad: f.unidad, abundancia: int(f.abundancia || ''), riqueza: int(f.riqueza || ''),
+          },
+        }
+      case 'gobernanza':
+        return {
+          path: '/api/gobernanza/actividad',
+          body: {
+            actividad: f.actividad, cantidad: int(f.cantidad || '') ?? 0,
+            participantes: int(f.participantes || '') ?? 0, ubicacion: f.ubicacion, fecha: f.fecha,
+          },
+        }
     }
-    setGeoBusy(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude.toFixed(6))
-        setLon(pos.coords.longitude.toFixed(6))
-        setGeoBusy(false)
-      },
-      () => {
-        setError('No se pudo obtener tu ubicación')
-        setGeoBusy(false)
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
   }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setBusy(true)
-    setError(null)
-    setOk(null)
+    setBusy(true); setError(null); setOk(null)
     try {
-      let estacionId: number | undefined
-      if (modo === 'nueva') {
-        const la = parseFloat(lat)
-        const lo = parseFloat(lon)
-        if (Number.isNaN(la) || Number.isNaN(lo)) throw new Error('Ingresa latitud y longitud válidas')
-        const p = await crearPunto({
-          nombre_punto: nombreUbic.trim() || 'Observación',
-          tipo_monitoreo: 'observacion',
-          descripcion: observaciones.trim() || undefined,
-          latitud: la,
-          longitud: lo,
-        })
-        estacionId = p.id
-      } else {
-        if (!estacion) throw new Error('Selecciona una estación')
-        estacionId = parseInt(estacion)
-      }
-
-      const r = await crearMonitoreo({
-        estacion_id: estacionId,
-        fecha,
-        indicador: indicador.trim() || 'observacion',
-        valor: valor.trim() === '' ? undefined : parseFloat(valor),
-        unidad: unidad.trim() || undefined,
-        responsable: getUsuario()?.nombre,
-        observaciones: observaciones.trim() || undefined,
-      })
-      setOk(
-        modo === 'nueva'
-          ? `Ubicación y monitoreo #${r.id} registrados. Ya aparece en el mapa.`
-          : `Monitoreo #${r.id} registrado.`,
-      )
+      const { path, body } = preparar()
+      await postForm(path, body)
+      setOk('✅ Registro guardado')
+      setF({})
       onSaved()
-      setIndicador('')
-      setValor('')
-      setObservaciones('')
-      if (modo === 'nueva') {
-        setLat('')
-        setLon('')
-        setNombreUbic('')
-      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error registrando')
+      setError(err instanceof Error ? err.message : 'Error al guardar')
     } finally {
       setBusy(false)
     }
   }
 
+  const tipoFicor = f.tipo || 'agua'
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>Registrar monitoreo / observación</h3>
+          <h3>Registrar Monitoreo</h3>
           <button className="modal-x" onClick={onClose} aria-label="Cerrar">×</button>
         </div>
-        <form className="modal-body" onSubmit={submit}>
-          <div className="seg-control">
-            <button
-              type="button"
-              className={modo === 'existente' ? 'active' : ''}
-              onClick={() => setModo('existente')}
-            >
-              Estación existente
-            </button>
-            <button
-              type="button"
-              className={modo === 'nueva' ? 'active' : ''}
-              onClick={() => setModo('nueva')}
-            >
-              Nueva ubicación (GPS)
-            </button>
-          </div>
 
-          {modo === 'existente' ? (
-            <label>
-              Estación / punto
-              <select value={estacion} onChange={(e) => setEstacion(e.target.value)}>
-                <option value="">— Selecciona —</option>
-                {estaciones.map((p) => (
-                  <option key={p.properties.id} value={p.properties.id}>
-                    {p.properties.codigo_punto ?? `Punto ${p.properties.id}`}
-                    {p.properties.nombre_punto ? ` · ${p.properties.nombre_punto}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <>
-              <label>
-                Nombre de la ubicación
-                <input
-                  value={nombreUbic}
-                  onChange={(e) => setNombreUbic(e.target.value)}
-                  placeholder="p. ej. Punto de erosión sector norte"
-                />
-              </label>
-              <div className="modal-row">
-                <label>
-                  Latitud
-                  <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="10.607" required />
-                </label>
-                <label>
-                  Longitud
-                  <input value={lon} onChange={(e) => setLon(e.target.value)} placeholder="-75.150" required />
-                </label>
-              </div>
-              <button type="button" className="geo-btn" onClick={usarMiUbicacion} disabled={geoBusy}>
-                {geoBusy ? 'Obteniendo…' : '📍 Usar mi ubicación actual'}
-              </button>
-            </>
+        <div className="mon-tabs">
+          {TABS.map(([t, label]) => (
+            <button key={t} type="button" className={tab === t ? 'on' : ''} onClick={() => cambiarTab(t)}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <form className="modal-body" onSubmit={submit}>
+          {tab === 'restauracion' && (
+            <div className="form-grid">
+              <label>Monitoreo
+                <select value={f.fecha ?? 'Linea base'} onChange={set('fecha')}>
+                  {FECHAS_REST.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select></label>
+              <label>Parcela *
+                <input list="parcelas" value={f.parcela ?? ''} onChange={set('parcela')} placeholder="BD1, BR1…" required /></label>
+              <datalist id="parcelas">
+                {estaciones.map((e) => e.properties?.codigo_punto).filter(Boolean).map((c) => <option key={String(c)} value={String(c)} />)}
+              </datalist>
+              <label>Cobertura
+                <input value={f.cobertura ?? ''} onChange={set('cobertura')} placeholder="Bosque denso…" /></label>
+              <label>Especie
+                <input value={f.especie ?? ''} onChange={set('especie')} placeholder="nombre científico" /></label>
+              <label>Nombre común
+                <input value={f.nombre_comun ?? ''} onChange={set('nombre_comun')} /></label>
+              <label>Altura (m)
+                <input type="number" step="0.01" value={f.altura ?? ''} onChange={set('altura')} /></label>
+              <label>Nº fustes
+                <input type="number" value={f.fustes ?? ''} onChange={set('fustes')} /></label>
+              <label>DAP (cm)
+                <input type="number" step="0.001" value={f.dap ?? ''} onChange={set('dap')} /></label>
+              <label>Categoría
+                <select value={f.categoria ?? ''} onChange={set('categoria')}>
+                  <option value="">—</option>
+                  {CAT_ARBOL.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select></label>
+            </div>
           )}
 
-          <label>
-            Fecha
-            <input type="date" value={fecha} max={hoy} onChange={(e) => setFecha(e.target.value)} required />
-          </label>
-          <label>
-            Indicador / situación
-            <input
-              list="indicadores"
-              value={indicador}
-              onChange={(e) => setIndicador(e.target.value)}
-              placeholder="p. ej. cobertura_vegetal / presencia de malezas"
-              required
-            />
-            <datalist id="indicadores">
-              {INDICADORES_SUGERIDOS.map((i) => <option key={i} value={i} />)}
-            </datalist>
-          </label>
-          <div className="modal-row">
-            <label>
-              Valor
-              <input type="number" step="any" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="7.2" />
-            </label>
-            <label>
-              Unidad
-              <input value={unidad} onChange={(e) => setUnidad(e.target.value)} placeholder="mg/L, %, m…" />
-            </label>
-          </div>
-          <label>
-            Observaciones
-            <input value={observaciones} onChange={(e) => setObservaciones(e.target.value)} placeholder="opcional" />
-          </label>
+          {tab === 'maleza' && (
+            <div className="form-grid">
+              <label>Monitoreo
+                <select value={f.fecha ?? 'Mayo'} onChange={set('fecha')}>
+                  {FECHAS_MALEZA.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select></label>
+              <label>Área removida (ha)
+                <input type="number" step="0.01" value={f.area ?? ''} onChange={set('area')} /></label>
+              <label>Borde intervenido (km)
+                <input type="number" step="0.01" value={f.borde ?? ''} onChange={set('borde')} /></label>
+              <label className="col2">Observaciones
+                <input value={f.obs ?? ''} onChange={set('obs')} /></label>
+            </div>
+          )}
+
+          {tab === 'fauna' && (
+            <div className="form-grid">
+              <label>Monitoreo
+                <input value={f.fecha ?? 'Línea base'} onChange={set('fecha')} placeholder="Línea base, Monitoreo 1…" /></label>
+              <label>Grupo
+                <select value={f.grupo ?? 'aves'} onChange={set('grupo')}>
+                  {GRUPOS_FAUNA.map((v) => <option key={v} value={v}>{v}</option>)}
+                </select></label>
+              <label>Abundancia (individuos)
+                <input type="number" value={f.abundancia ?? ''} onChange={set('abundancia')} /></label>
+              <label>Riqueza (especies)
+                <input type="number" value={f.riqueza ?? ''} onChange={set('riqueza')} /></label>
+            </div>
+          )}
+
+          {tab === 'ficorremediacion' && (
+            <div className="form-grid">
+              <label>Tipo
+                <select value={tipoFicor} onChange={set('tipo')}>
+                  <option value="agua">Calidad de agua</option>
+                  <option value="sedimento">Calidad de sedimentos</option>
+                  <option value="biota">Biota</option>
+                </select></label>
+              <label>Fecha
+                <input type="date" value={f.fecha ?? hoy} onChange={set('fecha')} /></label>
+              {tipoFicor === 'sedimento' && (
+                <label>Categoría
+                  <select value={f.categoria ?? 'metal_pesado'} onChange={set('categoria')}>
+                    <option value="metal_pesado">Metal pesado</option>
+                    <option value="plaguicida">Plaguicida</option>
+                  </select></label>
+              )}
+              {tipoFicor === 'biota' ? (
+                <>
+                  <label>Grupo
+                    <select value={f.grupo ?? 'fitoplancton'} onChange={set('grupo')}>
+                      {BIOTA.map((v) => <option key={v} value={v}>{v.replace(/_/g, ' ')}</option>)}
+                    </select></label>
+                  <label>Abundancia
+                    <input type="number" value={f.abundancia ?? ''} onChange={set('abundancia')} /></label>
+                  <label>Riqueza
+                    <input type="number" value={f.riqueza ?? ''} onChange={set('riqueza')} /></label>
+                </>
+              ) : (
+                <>
+                  <label>Variable
+                    <input value={f.variable ?? ''} onChange={set('variable')} placeholder={tipoFicor === 'agua' ? 'pH, OD, DBO5…' : 'Hg, Pb, Clorpirifos…'} /></label>
+                  <label>Valor
+                    <input type="number" step="0.0001" value={f.valor ?? ''} onChange={set('valor')} /></label>
+                  <label>Unidad
+                    <input value={f.unidad ?? ''} onChange={set('unidad')} placeholder={tipoFicor === 'agua' ? 'mg/L' : 'mg/kg'} /></label>
+                </>
+              )}
+            </div>
+          )}
+
+          {tab === 'gobernanza' && (
+            <div className="form-grid">
+              <label className="col2">Actividad *
+                <input value={f.actividad ?? ''} onChange={set('actividad')} placeholder="Socialización, taller…" required /></label>
+              <label>Nº eventos
+                <input type="number" value={f.cantidad ?? ''} onChange={set('cantidad')} /></label>
+              <label>Participantes
+                <input type="number" value={f.participantes ?? ''} onChange={set('participantes')} /></label>
+              <label>Fecha/monitoreo
+                <input value={f.fecha ?? ''} onChange={set('fecha')} placeholder="Línea base, Monitoreo 1…" /></label>
+              <label>Ubicación
+                <input value={f.ubicacion ?? ''} onChange={set('ubicacion')} /></label>
+            </div>
+          )}
 
           {error && <p className="modal-err">⚠️ {error}</p>}
-          {ok && <p className="modal-ok">✅ {ok}</p>}
-
+          {ok && <p className="modal-ok">{ok}</p>}
           <div className="modal-actions">
             <button type="button" onClick={onClose}>Cerrar</button>
-            <button type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Guardar'}</button>
+            <button type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Guardar registro'}</button>
           </div>
         </form>
       </div>
