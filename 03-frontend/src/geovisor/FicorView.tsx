@@ -1,7 +1,13 @@
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoFoto from '../components/OrtoFoto'
+import GaleriaFotos from '../components/GaleriaFotos'
 import { FICOR_AGUA, FICOR_SEDIMENTOS, FICOR_BIOTA } from './data'
+
+const EVIDENCIA_FICOR = Array.from(
+  { length: 11 },
+  (_, i) => `/evidencia-ficor/foto-${String(i + 1).padStart(2, '0')}.jpg`,
+)
 
 export default function FicorView(map: GeovisorMapProps) {
   return (
@@ -71,11 +77,17 @@ export default function FicorView(map: GeovisorMapProps) {
           <span className="badge-soft">Vuelo dron</span></div>
         <div style={{ padding: 8 }}>
           <OrtoFoto
-            src="/ortofotos/bioaumentacion.jpg"
+            src="/ortofotos/bioaumentacion.png"
             bounds={[[10.519574, -75.097038], [10.522299, -75.093825]]}
             height={440}
           />
         </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="camera" /> Registro fotográfico — punto de bioremediación</h3>
+          <span className="badge-soft">{EVIDENCIA_FICOR.length} fotos</span></div>
+        <GaleriaFotos fotos={EVIDENCIA_FICOR} />
       </div>
 
       <div className="note"><b>Componente innovador del proyecto.</b> La estructura (puntos georreferenciados, calidad de agua/sedimentos y biota) queda lista para poblarse con cada campaña.
