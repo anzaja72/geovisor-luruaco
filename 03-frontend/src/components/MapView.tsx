@@ -22,6 +22,7 @@ import TematicasOverlays from './TematicasOverlays'
 import IgacOverlays from './IgacOverlays'
 import { CoordsControl, MapToolbar } from './MapTools'
 import limpiezaLaguna from '../geovisor/limpiezaLaguna.json'
+import limpiezaMensual from '../geovisor/limpiezaMensual.json'
 import faunaAves from '../geovisor/faunaAves.json'
 import faunaHerpetos from '../geovisor/faunaHerpetos.json'
 
@@ -468,6 +469,25 @@ export default function MapView({
         )}
 
         {/* Áreas de limpieza de la laguna (capa estática) — solo Vegetación Acuática */}
+        {componente === 'maleza' && (
+          <LayersControl.Overlay checked name="🟧 Polígonos de limpieza (mensual)">
+            <GeoJSON
+              data={limpiezaMensual as unknown as GeoJSON.GeoJsonObject}
+              style={{ color: '#ea580c', weight: 2.5, fillColor: '#fb923c', fillOpacity: 0.3 }}
+              onEachFeature={(f, layer) => {
+                const p = (f.properties || {}) as Record<string, unknown>
+                const el = document.createElement('div')
+                el.className = 'popup'
+                const t = document.createElement('strong')
+                t.textContent = `Limpieza — ${String(p.mes ?? '')}`
+                const d = document.createElement('div')
+                d.textContent = [p.area, p.perimetro].filter(Boolean).join(' · ')
+                el.append(t, d)
+                layer.bindPopup(el)
+              }}
+            />
+          </LayersControl.Overlay>
+        )}
         {componente === 'maleza' && (
           <LayersControl.Overlay checked name="🟩 Áreas de limpieza (laguna)">
             <GeoJSON
