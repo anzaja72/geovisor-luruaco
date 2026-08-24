@@ -77,7 +77,7 @@ export default function FicorView(map: GeovisorMapProps) {
           <span className="badge-soft">Vuelo dron</span></div>
         <div style={{ padding: 8 }}>
           <OrtoFoto
-            src="/ortofotos/bioaumentacion.png"
+            src="/ortofotos/bioaumentacion.webp"
             bounds={[[10.519574, -75.097038], [10.522299, -75.093825]]}
             height={440}
           />

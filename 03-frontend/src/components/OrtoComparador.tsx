@@ -15,17 +15,17 @@ interface OrtoMes {
 
 const ORTOS: Record<string, OrtoMes> = {
   Enero: {
-    antes: '/ortofotos/enero-antes.jpg',
+    antes: '/ortofotos/enero-antes.webp',
     antesBounds: [[10.607696, -75.151478], [10.612049, -75.146292]],
-    despues: '/ortofotos/enero-despues.jpg',
+    despues: '/ortofotos/enero-despues.webp',
     despuesBounds: [[10.607694, -75.151507], [10.612060, -75.146269]],
   },
   Febrero: {
-    antes: '/ortofotos/febrero-antes.jpg',
+    antes: '/ortofotos/febrero-antes.webp',
     antesBounds: [[10.604965, -75.152265], [10.608986, -75.144497]],
   },
   Mayo: {
-    antes: '/ortofotos/mayo-antes.jpg',
+    antes: '/ortofotos/mayo-antes.webp',
     antesBounds: [[10.602133, -75.151200], [10.606596, -75.144456]],
   },
 }

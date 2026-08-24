@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { postForm } from '../lib/api'
+import { encolar, esErrorDeRed, pendientes, sincronizar } from '../lib/offlineQueue'
 import type { GeoFeature } from '../lib/types'
 
 interface Props {
@@ -38,6 +39,7 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
   const [busy, setBusy] = useState(false)
   const [ok, setOk] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [pend, setPend] = useState(0)
 
   // Al abrir, arranca en la pestaña del componente activo y limpia el formulario.
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
       setF({})
       setOk(null)
       setError(null)
+      setPend(pendientes())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -107,17 +110,32 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true); setError(null); setOk(null)
+    const { path, body } = preparar()
     try {
-      const { path, body } = preparar()
       await postForm(path, body)
       setOk('✅ Registro guardado')
       setF({})
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar')
+      if (esErrorDeRed(err)) {
+        // Sin internet: se guarda en el navegador y se subirá al reconectar.
+        setPend(encolar(path, body))
+        setOk('📴 Sin conexión — guardado en el navegador. Se subirá solo al recuperar internet.')
+        setF({})
+      } else {
+        setError(err instanceof Error ? err.message : 'Error al guardar')
+      }
     } finally {
       setBusy(false)
     }
+  }
+
+  const sincronizarAhora = async () => {
+    setBusy(true)
+    const r = await sincronizar()
+    setPend(r.pendientes)
+    if (r.enviados > 0) { setOk(`✅ ${r.enviados} registro(s) subido(s)`); onSaved() }
+    setBusy(false)
   }
 
   const tipoFicor = f.tipo || 'agua'
@@ -258,6 +276,12 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
 
           {error && <p className="modal-err">⚠️ {error}</p>}
           {ok && <p className="modal-ok">{ok}</p>}
+          {pend > 0 && (
+            <div className="offline-pend">
+              <span>📴 {pend} registro(s) pendiente(s) de subir en este navegador.</span>
+              <button type="button" onClick={sincronizarAhora} disabled={busy}>Sincronizar ahora</button>
+            </div>
+          )}
           <div className="modal-actions">
             <button type="button" onClick={onClose}>Cerrar</button>
             <button type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Guardar registro'}</button>

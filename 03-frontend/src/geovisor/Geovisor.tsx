@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Shell from './Shell'
 import RestauracionView from './RestauracionView'
 import MalezaView from './MalezaView'
@@ -11,6 +11,7 @@ import { useGeoData } from '../hooks/useGeoData'
 import MonitoreoModal from '../components/MonitoreoModal'
 import ImportModal from '../components/ImportModal'
 import { puedeEditar, type Usuario } from '../lib/auth'
+import { iniciarAutoSync } from '../lib/offlineQueue'
 import type { GeoFeature } from '../lib/types'
 import type { CompId } from './data'
 
@@ -23,6 +24,9 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
   // con el nombre restringido ("Planta de Bioaumentación") y no debe mostrarse en ningún componente.
   const { zonas, puntos, capas, coberturas, tematicas, reload } = useGeoData()
   const canEdit = puedeEditar(usuario)
+
+  // Sube los registros guardados en el navegador (modo offline) al recuperar internet.
+  useEffect(() => iniciarAutoSync(reload), [reload])
 
   // Props base del mapa, comunes a los 4 geovisores. Cada vista decide qué es pertinente
   // pasando su propio `componente` a <MapView>; el filtrado real ocurre allí.
