@@ -95,6 +95,25 @@ export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection
   return getJSON<FeatureCollection>('/api/coberturas', signal)
 }
 
+export interface FaunaObservacion {
+  id: number
+  nombre_comun: string
+  nombre_cientifico: string
+  cobertura_vegetal: string
+  n_individuos: number
+  lugar_percha: string
+  habito: string
+  comportamiento: string
+  fecha: string
+  hora: string
+  observacion: string
+}
+
+/** Observaciones de fauna registradas por el formulario (Monitoreo de Fauna). */
+export function fetchFaunaObservaciones(signal?: AbortSignal): Promise<FaunaObservacion[]> {
+  return getJSON<FaunaObservacion[]>('/api/fauna/observaciones', signal)
+}
+
 export function fetchEstratos(signal?: AbortSignal): Promise<FeatureCollection> {
   return getJSON<FeatureCollection>('/api/estratos', signal)
 }

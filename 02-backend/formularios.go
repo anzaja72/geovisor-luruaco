@@ -193,6 +193,79 @@ func crearGobernanza(c *fiber.Ctx) error {
 }
 
 // ------------------------------------------------------------------
+// Fauna → eco_restauracion.fauna_observaciones (un avistamiento por registro)
+// ------------------------------------------------------------------
+type faunaObsBody struct {
+	NombreComun      string `json:"nombre_comun"`
+	NombreCientifico string `json:"nombre_cientifico"`
+	CoberturaVegetal string `json:"cobertura_vegetal"`
+	NIndividuos      *int   `json:"n_individuos"`
+	LugarPercha      string `json:"lugar_percha"`
+	Habito           string `json:"habito"`
+	Comportamiento   string `json:"comportamiento"`
+	Fecha            string `json:"fecha"`
+	Hora             string `json:"hora"`
+	Observacion      string `json:"observacion"`
+}
+
+func crearFaunaObservacion(c *fiber.Ctx) error {
+	var b faunaObsBody
+	if err := c.BodyParser(&b); err != nil {
+		return badReq(c, "Cuerpo inválido")
+	}
+	if strings.TrimSpace(b.NombreComun) == "" && strings.TrimSpace(b.NombreCientifico) == "" {
+		return badReq(c, "Indica al menos el nombre común o el científico")
+	}
+	var fecha interface{}
+	if strings.TrimSpace(b.Fecha) != "" {
+		fecha = b.Fecha
+	}
+	var id int64
+	err := db.QueryRowContext(c.UserContext(), `
+		INSERT INTO eco_restauracion.fauna_observaciones
+		  (nombre_comun, nombre_cientifico, cobertura_vegetal, n_individuos, lugar_percha,
+		   habito, comportamiento, fecha, hora, observacion)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::date,$9,$10) RETURNING id`,
+		nullIfEmpty(b.NombreComun), nullIfEmpty(b.NombreCientifico), nullIfEmpty(b.CoberturaVegetal),
+		b.NIndividuos, nullIfEmpty(b.LugarPercha), nullIfEmpty(b.Habito), nullIfEmpty(b.Comportamiento),
+		fecha, nullIfEmpty(b.Hora), nullIfEmpty(b.Observacion),
+	).Scan(&id)
+	if err != nil {
+		return serverError(c, "Error al registrar observación de fauna", err)
+	}
+	return c.Status(http.StatusCreated).JSON(fiber.Map{"id": id})
+}
+
+// GET /api/fauna/observaciones
+func listarFaunaObservaciones(c *fiber.Ctx) error {
+	rows, err := db.QueryContext(c.UserContext(), `
+		SELECT id, COALESCE(nombre_comun,''), COALESCE(nombre_cientifico,''),
+		       COALESCE(cobertura_vegetal,''), COALESCE(n_individuos,0),
+		       COALESCE(lugar_percha,''), COALESCE(habito,''), COALESCE(comportamiento,''),
+		       COALESCE(fecha::text,''), COALESCE(hora,''), COALESCE(observacion,'')
+		FROM eco_restauracion.fauna_observaciones
+		ORDER BY fecha DESC NULLS LAST, id DESC LIMIT 500`)
+	if err != nil {
+		return serverError(c, "Error al listar observaciones de fauna", err)
+	}
+	defer rows.Close()
+	out := []fiber.Map{}
+	for rows.Next() {
+		var id, n int64
+		var nc, ns, cv, lp, hb, cp, fe, ho, ob string
+		if rows.Scan(&id, &nc, &ns, &cv, &n, &lp, &hb, &cp, &fe, &ho, &ob) != nil {
+			continue
+		}
+		out = append(out, fiber.Map{
+			"id": id, "nombre_comun": nc, "nombre_cientifico": ns, "cobertura_vegetal": cv,
+			"n_individuos": n, "lugar_percha": lp, "habito": hb, "comportamiento": cp,
+			"fecha": fe, "hora": ho, "observacion": ob,
+		})
+	}
+	return c.JSON(out)
+}
+
+// ------------------------------------------------------------------
 // Vegetación Acuática → eco_restauracion.maleza_limpieza (migración 12)
 // ------------------------------------------------------------------
 type malezaBody struct {

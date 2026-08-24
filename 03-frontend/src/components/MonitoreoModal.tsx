@@ -23,7 +23,6 @@ const TABS: [Tab, string][] = [
 
 const FECHAS_REST = ['Linea base', 'Monitoreo 1', 'Monitoreo 2', 'Monitoreo 3', 'Monitoreo 4']
 const FECHAS_MALEZA = ['Línea base', 'Marzo', 'Abril', 'Mayo']
-const GRUPOS_FAUNA = ['aves', 'anfibios', 'mamiferos', 'reptiles']
 const CAT_ARBOL = ['Brinzal', 'Latizal', 'Fustal']
 const BIOTA = ['fitoplancton', 'zooplancton', 'ictioplancton', 'macroinvertebrados_bentonicos', 'perifiton', 'ictiofauna']
 const hoy = new Date().toISOString().slice(0, 10)
@@ -81,10 +80,12 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
         }
       case 'fauna':
         return {
-          path: '/api/fauna/grupo',
+          path: '/api/fauna/observacion',
           body: {
-            fecha: f.fecha || 'Línea base', grupo: f.grupo || 'aves',
-            abundancia: int(f.abundancia || ''), riqueza: int(f.riqueza || ''),
+            nombre_comun: f.nombre_comun, nombre_cientifico: f.nombre_cientifico,
+            cobertura_vegetal: f.cobertura, n_individuos: int(f.individuos || ''),
+            lugar_percha: f.percha, habito: f.habito, comportamiento: f.comportamiento,
+            fecha: f.fecha, hora: f.hora, observacion: f.observacion,
           },
         }
       case 'ficorremediacion':
@@ -205,16 +206,26 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
 
           {tab === 'fauna' && (
             <div className="form-grid">
-              <label>Monitoreo
-                <input value={f.fecha ?? 'Línea base'} onChange={set('fecha')} placeholder="Línea base, Monitoreo 1…" /></label>
-              <label>Grupo
-                <select value={f.grupo ?? 'aves'} onChange={set('grupo')}>
-                  {GRUPOS_FAUNA.map((v) => <option key={v} value={v}>{v}</option>)}
-                </select></label>
-              <label>Abundancia (individuos)
-                <input type="number" value={f.abundancia ?? ''} onChange={set('abundancia')} /></label>
-              <label>Riqueza (especies)
-                <input type="number" value={f.riqueza ?? ''} onChange={set('riqueza')} /></label>
+              <label>Nombre común
+                <input value={f.nombre_comun ?? ''} onChange={set('nombre_comun')} placeholder="p. ej. Garza" /></label>
+              <label>Nombre científico
+                <input value={f.nombre_cientifico ?? ''} onChange={set('nombre_cientifico')} placeholder="p. ej. Ardea alba" /></label>
+              <label>Cobertura vegetal
+                <input value={f.cobertura ?? ''} onChange={set('cobertura')} /></label>
+              <label>Nº de individuos
+                <input type="number" value={f.individuos ?? ''} onChange={set('individuos')} /></label>
+              <label>Lugar de percha
+                <input value={f.percha ?? ''} onChange={set('percha')} /></label>
+              <label>Hábito
+                <input value={f.habito ?? ''} onChange={set('habito')} placeholder="terrestre, arbóreo…" /></label>
+              <label className="col2">Comportamiento
+                <input value={f.comportamiento ?? ''} onChange={set('comportamiento')} /></label>
+              <label>Fecha
+                <input type="date" value={f.fecha ?? hoy} onChange={set('fecha')} /></label>
+              <label>Hora
+                <input type="time" value={f.hora ?? ''} onChange={set('hora')} /></label>
+              <label className="col2">Observación
+                <input value={f.observacion ?? ''} onChange={set('observacion')} /></label>
             </div>
           )}
 

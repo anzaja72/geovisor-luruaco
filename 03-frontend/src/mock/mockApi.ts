@@ -201,11 +201,18 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   else if (url === '/api/capas') body = { capas: [] }
   else if (
     url === '/api/restauracion/arbol' || url === '/api/fauna/grupo' ||
+    url === '/api/fauna/observacion' ||
     url === '/api/ficor/medicion' || url === '/api/gobernanza/actividad' ||
     url === '/api/maleza/limpieza'
   ) {
     res.statusCode = 201
     body = { id: Math.floor(Math.random() * 1000) + 1 }
+  }
+  else if (url === '/api/fauna/observaciones') {
+    body = [
+      { id: 1, nombre_comun: 'Garza real', nombre_cientifico: 'Ardea alba', cobertura_vegetal: 'Bosque de galería', n_individuos: 3, lugar_percha: 'Árbol ribereño', habito: 'acuático', comportamiento: 'forrajeo', fecha: '2026-05-09', hora: '06:40', observacion: 'Datos demo' },
+      { id: 2, nombre_comun: 'Iguana verde', nombre_cientifico: 'Iguana iguana', cobertura_vegetal: 'Vegetación secundaria', n_individuos: 1, lugar_percha: 'Rama alta', habito: 'arbóreo', comportamiento: 'asoleamiento', fecha: '2026-05-09', hora: '10:15', observacion: 'Datos demo' },
+    ]
   }
   else if (url === '/api/coberturas') body = coberturas()
   else if (url === '/api/restauracion/indicadores') {

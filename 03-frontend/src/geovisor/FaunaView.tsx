@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
+import { fetchFaunaObservaciones, type FaunaObservacion } from '../lib/api'
 
 const Q_COLOR: [string, string, string] = ['#e08a2c', '#2f6fb0', '#b0509c']
 
@@ -30,6 +32,15 @@ const GRUPOS_FAUNA: { id: 'aves' | 'anfibios' | 'mamiferos' | 'reptiles'; nombre
 ]
 
 export default function FaunaView(map: GeovisorMapProps) {
+  const [obs, setObs] = useState<FaunaObservacion[]>([])
+  useEffect(() => {
+    const ac = new AbortController()
+    fetchFaunaObservaciones(ac.signal).then((d) => { if (!ac.signal.aborted) setObs(d) }).catch(() => {})
+    return () => ac.abort()
+  }, [])
+  const totalInd = obs.reduce((s, o) => s + (o.n_individuos || 0), 0)
+  const especies = new Set(obs.map((o) => o.nombre_cientifico || o.nombre_comun).filter(Boolean)).size
+
   return (
     <>
       <div className="page-title">
@@ -53,8 +64,8 @@ export default function FaunaView(map: GeovisorMapProps) {
             <span className="lab">Total de especies</span>
           </div>
           <div className="sub">
-            <div><em>Abundancia</em><b className="pend">s/d</b></div>
-            <div><em>Riqueza</em><b className="pend">s/d</b></div>
+            <div><em>Abundancia</em><b className={totalInd ? '' : 'pend'}>{totalInd || 's/d'}</b></div>
+            <div><em>Riqueza</em><b className={especies ? '' : 'pend'}>{especies || 's/d'}</b></div>
           </div>
         </div>
       </div>
@@ -134,6 +145,35 @@ export default function FaunaView(map: GeovisorMapProps) {
             <span><i className="sh tri" /> 0</span>
             <span><i className="sh ci" /> 0</span>
           </div>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="bird" /> Registros de fauna (observaciones)</h3>
+          <span className="badge-soft">{obs.length} registro(s)</span></div>
+        <div className="chart-b" style={{ padding: 0, overflowX: 'auto' }}>
+          {obs.length === 0 ? (
+            <div className="empty" style={{ padding: 24 }}><Icon id="bird" /><b>Sin registros aún</b>
+              <p>Usa «Registrar Monitoreo» → pestaña Fauna para agregar avistamientos.</p></div>
+          ) : (
+            <table className="fauna-table">
+              <thead><tr>
+                <th>Nombre común</th><th>Científico</th><th>Ind.</th><th>Cobertura</th>
+                <th>Percha</th><th>Hábito</th><th>Comportamiento</th><th>Fecha</th><th>Hora</th><th>Observación</th>
+              </tr></thead>
+              <tbody>
+                {obs.map((o) => (
+                  <tr key={o.id}>
+                    <td>{o.nombre_comun || '—'}</td><td><i>{o.nombre_cientifico || '—'}</i></td>
+                    <td>{o.n_individuos || '—'}</td><td>{o.cobertura_vegetal || '—'}</td>
+                    <td>{o.lugar_percha || '—'}</td><td>{o.habito || '—'}</td>
+                    <td>{o.comportamiento || '—'}</td><td>{o.fecha || '—'}</td>
+                    <td>{o.hora || '—'}</td><td>{o.observacion || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

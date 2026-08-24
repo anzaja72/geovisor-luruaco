@@ -137,6 +137,8 @@ func main() {
 	// --- Formulario "Registrar Monitoreo" por componente ---
 	api.Post("/restauracion/arbol", edicion, crearArbol)
 	api.Post("/fauna/grupo", edicion, crearFaunaGrupo)
+	api.Post("/fauna/observacion", edicion, crearFaunaObservacion)
+	api.Get("/fauna/observaciones", lectura, listarFaunaObservaciones)
 	api.Post("/ficor/medicion", edicion, crearFicorMedicion)
 	api.Post("/gobernanza/actividad", edicion, crearGobernanza)
 	api.Post("/maleza/limpieza", edicion, crearMalezaLimpieza)
