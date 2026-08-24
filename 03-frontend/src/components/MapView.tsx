@@ -22,6 +22,8 @@ import TematicasOverlays from './TematicasOverlays'
 import IgacOverlays from './IgacOverlays'
 import { CoordsControl, MapToolbar } from './MapTools'
 import limpiezaLaguna from '../geovisor/limpiezaLaguna.json'
+import faunaAves from '../geovisor/faunaAves.json'
+import faunaHerpetos from '../geovisor/faunaHerpetos.json'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 // Límites de la ortofoto del predio (dron): vista por defecto de todos los mapas.
@@ -70,7 +72,7 @@ const CAPAS_POR_COMPONENTE: Record<ComponenteGeovisor, string[]> = {
   restauracion: ['aislamiento_interno'],
   maleza: ['maleza_acuatica'],
   ficorremediacion: [],
-  fauna: ['herpetos', 'fauna_aves_camaras'],
+  fauna: [], // los datos de fauna se sirven como capa estática (ver más abajo)
 }
 
 const CAPA_LABEL: Record<string, string> = {
@@ -345,7 +347,7 @@ export default function MapView({
         ))}
 
         {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod) */}
-        <LayersControl.Overlay name="🛩 Ortofoto dron (predio)">
+        <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
           <TileLayer
             url="/tiles/ortofoto/{z}/{x}/{y}.png"
             minNativeZoom={13}
@@ -484,6 +486,34 @@ export default function MapView({
               }}
             />
           </LayersControl.Overlay>
+        )}
+
+        {/* Fauna (capas estáticas): herpetofauna (líneas) + aves y cámaras (puntos) */}
+        {componente === 'fauna' && (
+          <>
+            <LayersControl.Overlay checked name="🐸 Herpetofauna">
+              <GeoJSON
+                data={faunaHerpetos as unknown as GeoJSON.GeoJsonObject}
+                style={{ color: '#16a34a', weight: 4 }}
+                onEachFeature={(f, layer) => {
+                  const p = (f.properties || {}) as Record<string, unknown>
+                  layer.bindPopup(`<div class="popup"><strong>Herpetofauna</strong><div>${String(p.codigo ?? '')}</div></div>`)
+                }}
+              />
+            </LayersControl.Overlay>
+            <LayersControl.Overlay checked name="🐦 Aves y cámaras">
+              <GeoJSON
+                data={faunaAves as unknown as GeoJSON.GeoJsonObject}
+                pointToLayer={(_f, latlng) =>
+                  L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1 })
+                }
+                onEachFeature={(f, layer) => {
+                  const p = (f.properties || {}) as Record<string, unknown>
+                  layer.bindPopup(`<div class="popup"><strong>${String(p.tipo ?? 'Aves')}</strong><div>${String(p.cod ?? '')}</div></div>`)
+                }}
+              />
+            </LayersControl.Overlay>
+          </>
         )}
 
         {/* Capas temáticas de restauración (estratos, malezas, técnicas, validación) */}
