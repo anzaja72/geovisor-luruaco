@@ -76,25 +76,6 @@ export default function GobernanzaView() {
       </div>
 
       <div className="panel" style={{ marginTop: 14 }}>
-        <div className="ph"><h3><Icon id="grid" /> Detalle de actividades</h3></div>
-        <div className="chart-b" style={{ padding: 0 }}>
-          <table className="fauna-table">
-            <thead><tr><th>Actividad</th><th>Cantidad</th><th>N° de participantes</th><th>Ubicación / Foto</th></tr></thead>
-            <tbody>
-              {actividades.map(([nombre, cantidad, p, ubic]) => (
-                <tr key={nombre}>
-                  <td>{nombre}</td>
-                  <td>{cantidad}</td>
-                  <td>{p}</td>
-                  <td className="pend">{ubic}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de actividades</h3>
           <span className="badge-soft">Fotos de referencia · arrastra para girar</span></div>
         <div style={{ padding: 8 }}>
