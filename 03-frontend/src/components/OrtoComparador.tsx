@@ -23,10 +23,14 @@ const ORTOS: Record<string, OrtoMes> = {
   Febrero: {
     antes: '/ortofotos/febrero-antes.webp',
     antesBounds: [[10.604965, -75.152265], [10.608986, -75.144497]],
+    despues: '/ortofotos/febrero-despues.webp',
+    despuesBounds: [[10.6052965, -75.1522944], [10.6090092, -75.1449155]],
   },
   Mayo: {
     antes: '/ortofotos/mayo-antes.webp',
     antesBounds: [[10.602133, -75.151200], [10.606596, -75.144456]],
+    despues: '/ortofotos/mayo-despues.webp',
+    despuesBounds: [[10.6021329, -75.1512003], [10.6065957, -75.1437571]],
   },
 }
 const MESES = Object.keys(ORTOS)

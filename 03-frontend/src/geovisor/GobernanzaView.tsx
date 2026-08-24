@@ -1,7 +1,11 @@
 import { Footer, Icon } from './Shell'
+import Carousel3D from '../components/Carousel3D'
 import { GOBERNANZA } from './data'
 
 const COLORES = ['#1b6d24', '#2f8a45', '#1565c0', '#00585f', '#6f9e3a', '#8a9e7a', '#7a8a93']
+
+// Fotos de referencia (públicas) — reemplazar por el registro fotográfico real.
+const FOTOS_GOBERNANZA = Array.from({ length: 9 }, (_, i) => `/gobernanza/reunion-${i + 1}.jpg`)
 
 export default function GobernanzaView() {
   const { actividades } = GOBERNANZA
@@ -87,6 +91,14 @@ export default function GobernanzaView() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de actividades</h3>
+          <span className="badge-soft">Fotos de referencia · arrastra para girar</span></div>
+        <div style={{ padding: 8 }}>
+          <Carousel3D images={FOTOS_GOBERNANZA} height={460} />
         </div>
       </div>
 
