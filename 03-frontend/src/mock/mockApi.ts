@@ -210,8 +210,10 @@ export const mockApiMiddleware: Connect.NextHandleFunction = (req, res, next) =>
   }
   else if (url === '/api/fauna/observaciones') {
     body = [
-      { id: 1, nombre_comun: 'Garza real', nombre_cientifico: 'Ardea alba', cobertura_vegetal: 'Bosque de galería', n_individuos: 3, lugar_percha: 'Árbol ribereño', habito: 'acuático', comportamiento: 'forrajeo', fecha: '2026-05-09', hora: '06:40', observacion: 'Datos demo' },
-      { id: 2, nombre_comun: 'Iguana verde', nombre_cientifico: 'Iguana iguana', cobertura_vegetal: 'Vegetación secundaria', n_individuos: 1, lugar_percha: 'Rama alta', habito: 'arbóreo', comportamiento: 'asoleamiento', fecha: '2026-05-09', hora: '10:15', observacion: 'Datos demo' },
+      { id: 1, grupo: 'aves', nombre_comun: '', nombre_cientifico: 'Leptotila verreauxi', cobertura_vegetal: 'Vegetación secundaria', n_individuos: 3, lugar_percha: '', habito: '', comportamiento: '', fecha: '', hora: '', observacion: 'Línea base (muestra)' },
+      { id: 2, grupo: 'aves', nombre_comun: '', nombre_cientifico: 'Ortalis garrula', cobertura_vegetal: 'Mosaico de cultivos', n_individuos: 4, lugar_percha: '', habito: '', comportamiento: '', fecha: '', hora: '', observacion: 'Línea base (muestra)' },
+      { id: 3, grupo: 'reptiles', nombre_comun: '', nombre_cientifico: 'Anolis auratus', cobertura_vegetal: 'Vegetación secundaria', n_individuos: 5, lugar_percha: '', habito: '', comportamiento: '', fecha: '', hora: '', observacion: 'Línea base (muestra)' },
+      { id: 4, grupo: 'mamiferos', nombre_comun: 'Mono aullador', nombre_cientifico: 'Alouatta seniculus', cobertura_vegetal: 'Bosque denso', n_individuos: 5, lugar_percha: '', habito: '', comportamiento: '', fecha: '', hora: '', observacion: 'Línea base (muestra)' },
     ]
   }
   else if (url === '/api/coberturas') body = coberturas()

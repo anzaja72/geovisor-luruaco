@@ -97,6 +97,7 @@ export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection
 
 export interface FaunaObservacion {
   id: number
+  grupo: string
   nombre_comun: string
   nombre_cientifico: string
   cobertura_vegetal: string

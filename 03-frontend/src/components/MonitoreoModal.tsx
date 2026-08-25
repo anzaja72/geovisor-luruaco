@@ -82,6 +82,7 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
         return {
           path: '/api/fauna/observacion',
           body: {
+            grupo: f.grupo || 'aves',
             nombre_comun: f.nombre_comun, nombre_cientifico: f.nombre_cientifico,
             cobertura_vegetal: f.cobertura, n_individuos: int(f.individuos || ''),
             lugar_percha: f.percha, habito: f.habito, comportamiento: f.comportamiento,
@@ -206,6 +207,13 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
 
           {tab === 'fauna' && (
             <div className="form-grid">
+              <label>Grupo
+                <select value={f.grupo ?? 'aves'} onChange={set('grupo')}>
+                  <option value="aves">Aves</option>
+                  <option value="anfibios">Anfibios</option>
+                  <option value="mamiferos">Mamíferos</option>
+                  <option value="reptiles">Reptiles</option>
+                </select></label>
               <label>Nombre común
                 <input value={f.nombre_comun ?? ''} onChange={set('nombre_comun')} placeholder="p. ej. Garza" /></label>
               <label>Nombre científico

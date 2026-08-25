@@ -196,6 +196,7 @@ func crearGobernanza(c *fiber.Ctx) error {
 // Fauna → eco_restauracion.fauna_observaciones (un avistamiento por registro)
 // ------------------------------------------------------------------
 type faunaObsBody struct {
+	Grupo            string `json:"grupo"`
 	NombreComun      string `json:"nombre_comun"`
 	NombreCientifico string `json:"nombre_cientifico"`
 	CoberturaVegetal string `json:"cobertura_vegetal"`
@@ -223,12 +224,13 @@ func crearFaunaObservacion(c *fiber.Ctx) error {
 	var id int64
 	err := db.QueryRowContext(c.UserContext(), `
 		INSERT INTO eco_restauracion.fauna_observaciones
-		  (nombre_comun, nombre_cientifico, cobertura_vegetal, n_individuos, lugar_percha,
+		  (grupo, nombre_comun, nombre_cientifico, cobertura_vegetal, n_individuos, lugar_percha,
 		   habito, comportamiento, fecha, hora, observacion)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::date,$9,$10) RETURNING id`,
-		nullIfEmpty(b.NombreComun), nullIfEmpty(b.NombreCientifico), nullIfEmpty(b.CoberturaVegetal),
-		b.NIndividuos, nullIfEmpty(b.LugarPercha), nullIfEmpty(b.Habito), nullIfEmpty(b.Comportamiento),
-		fecha, nullIfEmpty(b.Hora), nullIfEmpty(b.Observacion),
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::date,$10,$11) RETURNING id`,
+		nullIfEmpty(b.Grupo), nullIfEmpty(b.NombreComun), nullIfEmpty(b.NombreCientifico),
+		nullIfEmpty(b.CoberturaVegetal), b.NIndividuos, nullIfEmpty(b.LugarPercha),
+		nullIfEmpty(b.Habito), nullIfEmpty(b.Comportamiento), fecha, nullIfEmpty(b.Hora),
+		nullIfEmpty(b.Observacion),
 	).Scan(&id)
 	if err != nil {
 		return serverError(c, "Error al registrar observación de fauna", err)
@@ -239,12 +241,12 @@ func crearFaunaObservacion(c *fiber.Ctx) error {
 // GET /api/fauna/observaciones
 func listarFaunaObservaciones(c *fiber.Ctx) error {
 	rows, err := db.QueryContext(c.UserContext(), `
-		SELECT id, COALESCE(nombre_comun,''), COALESCE(nombre_cientifico,''),
+		SELECT id, COALESCE(grupo,''), COALESCE(nombre_comun,''), COALESCE(nombre_cientifico,''),
 		       COALESCE(cobertura_vegetal,''), COALESCE(n_individuos,0),
 		       COALESCE(lugar_percha,''), COALESCE(habito,''), COALESCE(comportamiento,''),
 		       COALESCE(fecha::text,''), COALESCE(hora,''), COALESCE(observacion,'')
 		FROM eco_restauracion.fauna_observaciones
-		ORDER BY fecha DESC NULLS LAST, id DESC LIMIT 500`)
+		ORDER BY grupo, nombre_cientifico, id DESC LIMIT 2000`)
 	if err != nil {
 		return serverError(c, "Error al listar observaciones de fauna", err)
 	}
@@ -252,12 +254,12 @@ func listarFaunaObservaciones(c *fiber.Ctx) error {
 	out := []fiber.Map{}
 	for rows.Next() {
 		var id, n int64
-		var nc, ns, cv, lp, hb, cp, fe, ho, ob string
-		if rows.Scan(&id, &nc, &ns, &cv, &n, &lp, &hb, &cp, &fe, &ho, &ob) != nil {
+		var gr, nc, ns, cv, lp, hb, cp, fe, ho, ob string
+		if rows.Scan(&id, &gr, &nc, &ns, &cv, &n, &lp, &hb, &cp, &fe, &ho, &ob) != nil {
 			continue
 		}
 		out = append(out, fiber.Map{
-			"id": id, "nombre_comun": nc, "nombre_cientifico": ns, "cobertura_vegetal": cv,
+			"id": id, "grupo": gr, "nombre_comun": nc, "nombre_cientifico": ns, "cobertura_vegetal": cv,
 			"n_individuos": n, "lugar_percha": lp, "habito": hb, "comportamiento": cp,
 			"fecha": fe, "hora": ho, "observacion": ob,
 		})

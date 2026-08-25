@@ -40,6 +40,16 @@ export default function FaunaView(map: GeovisorMapProps) {
   }, [])
   const totalInd = obs.reduce((s, o) => s + (o.n_individuos || 0), 0)
   const especies = new Set(obs.map((o) => o.nombre_cientifico || o.nombre_comun).filter(Boolean)).size
+  // Abundancia y riqueza por grupo taxonómico (a partir de las observaciones).
+  const porGrupo: Record<string, { ab: number; esp: Set<string> }> = {}
+  for (const o of obs) {
+    const g = o.grupo || 'otros'
+    if (!porGrupo[g]) porGrupo[g] = { ab: 0, esp: new Set() }
+    porGrupo[g].ab += o.n_individuos || 0
+    if (o.nombre_cientifico) porGrupo[g].esp.add(o.nombre_cientifico)
+  }
+  const ab = (id: string) => porGrupo[id]?.ab || 0
+  const riq = (id: string) => porGrupo[id]?.esp.size || 0
 
   return (
     <>
@@ -53,8 +63,8 @@ export default function FaunaView(map: GeovisorMapProps) {
           <div key={g.id} className="kpi2">
             <div className="top"><span className="chip"><Icon id={g.icon} /></span><span className="lab">{g.nombre}</span></div>
             <div className="sub">
-              <div><em>Abundancia</em><b className="pend">s/d</b></div>
-              <div><em>Riqueza</em><b className="pend">s/d</b></div>
+              <div><em>Abundancia</em><b className={ab(g.id) ? '' : 'pend'}>{ab(g.id) || 's/d'}</b></div>
+              <div><em>Riqueza</em><b className={riq(g.id) ? '' : 'pend'}>{riq(g.id) || 's/d'}</b></div>
             </div>
           </div>
         ))}
@@ -104,8 +114,8 @@ export default function FaunaView(map: GeovisorMapProps) {
                   {GRUPOS_FAUNA.map(g => (
                     <tr key={g.id}>
                       <td><span className="grp"><Icon id={g.icon} /> {g.nombre.replace('Especies de ', '')}</span></td>
-                      <td className="pend">s/d</td>
-                      <td className="pend">s/d</td>
+                      <td className={ab(g.id) ? '' : 'pend'}>{ab(g.id) || 's/d'}</td>
+                      <td className={riq(g.id) ? '' : 'pend'}>{riq(g.id) || 's/d'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,12 +168,13 @@ export default function FaunaView(map: GeovisorMapProps) {
           ) : (
             <table className="fauna-table">
               <thead><tr>
-                <th>Nombre común</th><th>Científico</th><th>Ind.</th><th>Cobertura</th>
+                <th>Grupo</th><th>Nombre común</th><th>Científico</th><th>Ind.</th><th>Cobertura</th>
                 <th>Percha</th><th>Hábito</th><th>Comportamiento</th><th>Fecha</th><th>Hora</th><th>Observación</th>
               </tr></thead>
               <tbody>
                 {obs.map((o) => (
                   <tr key={o.id}>
+                    <td className="cap">{o.grupo || '—'}</td>
                     <td>{o.nombre_comun || '—'}</td><td><i>{o.nombre_cientifico || '—'}</i></td>
                     <td>{o.n_individuos || '—'}</td><td>{o.cobertura_vegetal || '—'}</td>
                     <td>{o.lugar_percha || '—'}</td><td>{o.habito || '—'}</td>
