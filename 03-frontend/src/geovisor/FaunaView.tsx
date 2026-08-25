@@ -1,25 +1,54 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import { fetchFaunaObservaciones, type FaunaObservacion } from '../lib/api'
 
-const Q_COLOR: [string, string, string] = ['#e08a2c', '#2f6fb0', '#b0509c']
+/** Curva de rarefacción Q0 (riqueza esperada de Hurlbert) a partir del vector de
+ *  abundancias por especie: E[S_m] = Σ (1 − C(N−nᵢ,m)/C(N,m)). */
+function rarefaccion(abund: number[], puntos = 40): { m: number; s: number }[] {
+  const N = abund.reduce((a, b) => a + b, 0)
+  if (N < 2 || abund.length < 1) return []
+  const ratio = abund.map(() => 1)
+  const out: { m: number; s: number }[] = [{ m: 0, s: 0 }]
+  const step = Math.max(1, Math.floor(N / puntos))
+  for (let m = 1; m <= N; m++) {
+    let s = 0
+    const den = N - (m - 1)
+    for (let i = 0; i < abund.length; i++) {
+      const num = N - abund[i] - (m - 1)
+      ratio[i] = den > 0 && num > 0 ? ratio[i] * (num / den) : 0
+      s += 1 - ratio[i]
+    }
+    if (m % step === 0 || m === N) out.push({ m, s })
+  }
+  return out
+}
 
-/** Curvas de rarefacción/extrapolación (Q0, Q1, Q2). Sin `datos`, solo dibuja
- *  los ejes y la leyenda — estructura lista para poblarse desde
- *  fauna_diversidad_curvas una vez exista el muestreo de campo. */
-function CurvaDiversidad({ nMax = 600 }: { nMax?: number }) {
-  const W = 320, H = 190
-  const padL = 32, padR = 10, padT = 10, padB = 26
-
+/** Curva de riqueza (rarefacción Q0) con datos reales de la muestra. */
+function CurvaDiversidad({ curva, N, S }: { curva: { m: number; s: number }[]; N: number; S: number }) {
+  const W = 320, H = 190, padL = 32, padR = 10, padT = 10, padB = 26
+  const ejeX = <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="var(--line)" />
+  const ejeY = <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="var(--line)" />
+  if (curva.length < 2) {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 190 }}>
+        {ejeX}{ejeY}
+        <text x={W / 2} y={H / 2} fontSize="9" fill="var(--muted)" textAnchor="middle">Sin datos de abundancia</text>
+      </svg>
+    )
+  }
+  const xmax = N, ymax = Math.max(1, Math.ceil(S * 1.05))
+  const X = (m: number) => padL + (m / xmax) * (W - padL - padR)
+  const Y = (s: number) => (H - padB) - (s / ymax) * (H - padB - padT)
+  const pts = curva.map((p) => `${X(p.m).toFixed(1)},${Y(p.s).toFixed(1)}`).join(' ')
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 190 }}>
-      <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="var(--line)" />
-      <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="var(--line)" />
-      <text x={W / 2} y={H - 6} fontSize="8" fill="var(--muted)" textAnchor="middle">Número de individuos</text>
-      <text x={9} y={H / 2} fontSize="8" fill="var(--muted)" textAnchor="middle" transform={`rotate(-90 9 ${H / 2})`}>Riqueza</text>
-      <text x={2} y={padT + 4} fontSize="7" fill="var(--muted)">{`n=${nMax}`}</text>
-      <text x={2} y={H - padB} fontSize="7" fill="var(--muted)">0</text>
+      {ejeX}{ejeY}
+      <polyline fill="none" stroke="#2f6fb0" strokeWidth="2.2" points={pts} />
+      <circle cx={X(N)} cy={Y(S)} r="3.2" fill="#2f6fb0" />
+      <text x={X(N) - 4} y={Y(S) - 6} fontSize="8" fill="#2f6fb0" textAnchor="end">{S} sp.</text>
+      <text x={W / 2} y={H - 4} fontSize="8" fill="var(--muted)" textAnchor="middle">Número de individuos (n={N})</text>
+      <text x={9} y={H / 2} fontSize="8" fill="var(--muted)" textAnchor="middle" transform={`rotate(-90 9 ${H / 2})`}>Riqueza esperada</text>
     </svg>
   )
 }
@@ -50,6 +79,18 @@ export default function FaunaView(map: GeovisorMapProps) {
   }
   const ab = (id: string) => porGrupo[id]?.ab || 0
   const riq = (id: string) => porGrupo[id]?.esp.size || 0
+
+  // Curva de rarefacción (Q0) desde el vector de abundancias por especie.
+  const abund = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const o of obs) {
+      if (o.nombre_cientifico && o.n_individuos) m.set(o.nombre_cientifico, (m.get(o.nombre_cientifico) || 0) + o.n_individuos)
+    }
+    return [...m.values()]
+  }, [obs])
+  const curva = useMemo(() => rarefaccion(abund), [abund])
+  const Nind = abund.reduce((a, b) => a + b, 0)
+  const Sesp = abund.length
 
   return (
     <>
@@ -127,21 +168,17 @@ export default function FaunaView(map: GeovisorMapProps) {
 
       <div className="grid2" style={{ marginTop: 14 }}>
         <div className="panel chart-b">
-          <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="activity" /> Curvas de Riqueza de Especies</h3></div>
-          <div className="chart-empty-overlay">
-            <CurvaDiversidad />
-          </div>
+          <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="activity" /> Curva de Riqueza de Especies (rarefacción)</h3></div>
+          <CurvaDiversidad curva={curva} N={Nind} S={Sesp} />
           <div className="div-legend">
-            <span><i style={{ background: Q_COLOR[0] }} /> q0</span>
-            <span><i style={{ background: Q_COLOR[1] }} /> q1</span>
-            <span><i style={{ background: Q_COLOR[2] }} /> q2</span>
-            <span><i className="line solid" /> Rarefacción</span>
-            <span><i className="line dashed" /> Extrapolación</span>
+            <span><i style={{ background: '#2f6fb0' }} /> Riqueza esperada (Q0, Hurlbert)</span>
+            <span>· calculada de la muestra ({Sesp} especies, {Nind} individuos)</span>
           </div>
         </div>
 
         <div className="panel chart-b">
-          <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="target" /> Gradiente Ambiental</h3></div>
+          <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="target" /> Gradiente Ambiental</h3>
+            <span className="badge-soft">Pendiente · requiere datos de transecto</span></div>
           <div className="chart-empty-overlay">
             <svg viewBox="0 0 320 190" style={{ width: '100%', height: 190 }}>
               <line x1="32" y1="164" x2="310" y2="164" stroke="var(--line)" />
