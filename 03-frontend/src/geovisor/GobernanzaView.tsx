@@ -4,8 +4,8 @@ import { GOBERNANZA } from './data'
 
 const COLORES = ['#1b6d24', '#2f8a45', '#1565c0', '#00585f', '#6f9e3a', '#8a9e7a', '#7a8a93']
 
-// Fotos de referencia (públicas) — reemplazar por el registro fotográfico real.
-const FOTOS_GOBERNANZA = Array.from({ length: 9 }, (_, i) => `/gobernanza/reunion-${i + 1}.jpg`)
+// Registro fotográfico real de actividades de gobernanza (25 fotos).
+const FOTOS_GOBERNANZA = Array.from({ length: 25 }, (_, i) => `/gobernanza/gob-${String(i + 1).padStart(2, '0')}.jpg`)
 
 export default function GobernanzaView() {
   const { actividades } = GOBERNANZA
@@ -77,7 +77,7 @@ export default function GobernanzaView() {
 
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de actividades</h3>
-          <span className="badge-soft">Fotos de referencia · arrastra para girar</span></div>
+          <span className="badge-soft">{FOTOS_GOBERNANZA.length} fotos · arrastra para girar</span></div>
         <div style={{ padding: 8 }}>
           <Carousel3D images={FOTOS_GOBERNANZA} height={460} />
         </div>

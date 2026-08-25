@@ -984,6 +984,11 @@
   border-top: 1px solid var(--line);
   text-align: center;
 }
+.orto-pdf {
+  display: block; text-align: center; padding: 8px; font-size: 12px; font-weight: 700;
+  color: var(--primary); background: #fafbfc; border-top: 1px solid var(--line); text-decoration: none;
+}
+.orto-pdf:hover { background: #eef3f8; text-decoration: underline; }
 
 /* Galería de fotos (evidencia) + visor ampliado */
 .foto-grid {

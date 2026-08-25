@@ -69,6 +69,7 @@ function Lado({
   bounds,
   fit,
   polys,
+  pdf,
   selfRef,
   otherRef,
   lockRef,
@@ -78,6 +79,7 @@ function Lado({
   bounds?: B
   fit: B
   polys: GeoFeature[]
+  pdf?: string
   selfRef: React.MutableRefObject<LeafletMap | null>
   otherRef: React.MutableRefObject<LeafletMap | null>
   lockRef: React.MutableRefObject<boolean>
@@ -107,6 +109,11 @@ function Lado({
         <Sync selfRef={selfRef} otherRef={otherRef} lockRef={lockRef} />
       </MapContainer>
       {!img && <div className="compare-empty">Sin imagen «después» para este mes</div>}
+      {img && pdf && (
+        <a className="orto-pdf" href={pdf} target="_blank" rel="noopener" download>
+          ⬇ Descargar salida gráfica ({titulo.toLowerCase()}, PDF)
+        </a>
+      )}
     </div>
   )
 }
@@ -143,6 +150,7 @@ export default function OrtoComparador({ poligonos }: { poligonos: GeoFeature[] 
           bounds={orto.antesBounds}
           fit={orto.antesBounds}
           polys={polys}
+          pdf={`/salidas/${mes.toLowerCase()}-antes.pdf`}
           selfRef={mapA}
           otherRef={mapB}
           lockRef={lockRef}
@@ -153,6 +161,7 @@ export default function OrtoComparador({ poligonos }: { poligonos: GeoFeature[] 
           bounds={orto.despuesBounds ?? orto.antesBounds}
           fit={orto.antesBounds}
           polys={polys}
+          pdf={`/salidas/${mes.toLowerCase()}-despues.pdf`}
           selfRef={mapB}
           otherRef={mapA}
           lockRef={lockRef}
