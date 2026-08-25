@@ -279,7 +279,7 @@ export default function MapView({
   // georreferenciados (tipo_monitoreo='ficorremediacion').
   const puntosRel =
     componente === 'restauracion'
-      ? puntos
+      ? puntos.filter((p) => p.properties?.tipo_monitoreo !== 'ficorremediacion')
       : componente === 'ficorremediacion'
         ? puntos.filter((p) => p.properties?.tipo_monitoreo === 'ficorremediacion')
         : []
