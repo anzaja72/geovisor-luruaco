@@ -21,7 +21,7 @@ import MeasureTool from './MeasureTool'
 import TematicasOverlays from './TematicasOverlays'
 import IgacOverlays from './IgacOverlays'
 import { CoordsControl, MapToolbar } from './MapTools'
-import limpiezaLaguna from '../geovisor/limpiezaLaguna.json'
+import limpiezaMensual from '../geovisor/limpiezaMensual.json'
 import faunaAves from '../geovisor/faunaAves.json'
 import faunaHerpetos from '../geovisor/faunaHerpetos.json'
 
@@ -467,18 +467,18 @@ export default function MapView({
           </LayersControl.Overlay>
         )}
 
-        {/* Áreas de limpieza de la laguna (capa estática) — solo Vegetación Acuática */}
+        {/* Polígonos de limpieza por mes (capa estática) — solo Vegetación Acuática */}
         {componente === 'maleza' && (
-          <LayersControl.Overlay checked name="🟩 Áreas de limpieza de maleza">
+          <LayersControl.Overlay checked name="🟩 Polígonos de limpieza">
             <GeoJSON
-              data={limpiezaLaguna as unknown as GeoJSON.GeoJsonObject}
-              style={{ color: '#15803d', weight: 2.5, fillColor: '#22c55e', fillOpacity: 0.25 }}
+              data={limpiezaMensual as unknown as GeoJSON.GeoJsonObject}
+              style={{ color: '#15803d', weight: 2.5, fillColor: '#22c55e', fillOpacity: 0.3 }}
               onEachFeature={(f, layer) => {
                 const p = (f.properties || {}) as Record<string, unknown>
                 const el = document.createElement('div')
                 el.className = 'popup'
                 const t = document.createElement('strong')
-                t.textContent = String(p.nombre ?? 'Área de limpieza')
+                t.textContent = `Limpieza — ${String(p.mes ?? '')}`
                 const d = document.createElement('div')
                 d.textContent = [p.area, p.perimetro].filter(Boolean).join(' · ')
                 el.append(t, d)
