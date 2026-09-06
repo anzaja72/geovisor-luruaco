@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import MapView, { claseCobertura, CLASE_COLOR, type GeovisorMapProps } from '../components/MapView'
 import { Footer, Icon } from './Shell'
 import { RESTAURACION as R, ACTIVA_TXT, PASIVA_TXT, SEMBRADOS_TXT } from './data'
+import { CRA, PALETA_CRA } from '../lib/marca'
 import { fetchIndicadoresRestauracion, type IndicadoresRestauracion } from '../lib/api'
 
 type MapProps = GeovisorMapProps
 
 const fmt = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const ABUND_COLORS = ['#1b6d24', '#2f8a45', '#4f9e63', '#00585f', '#1565c0', '#6f9e3a', '#8a9e7a', '#7a8a93', '#aab2bb']
+const ABUND_COLORS = PALETA_CRA
 const sinPrefijo = (n: string) => n.replace(/^[\d.]+\.?\s*/, '')
 
 const FECHAS: [string, string][] = [
@@ -115,7 +116,7 @@ export default function RestauracionView(map: MapProps) {
               <option key={clave} value={clave}>{label}</option>
             ))}
           </select></div>
-        {live && !sinMediciones && <span className="badge-soft" style={{ background: '#e3f5e6', color: '#1b6d24', borderColor: '#bfe6c6' }}>● Datos en vivo (backend)</span>}
+        {live && !sinMediciones && <span className="badge-soft" style={{ background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' }}>● Datos en vivo (backend)</span>}
         {sinMediciones && <span className="badge-soft">Sin mediciones registradas para esta {filtrando ? 'cobertura' : 'fecha'}</span>}
       </div>
 
@@ -194,10 +195,10 @@ export default function RestauracionView(map: MapProps) {
             <div className="empty"><Icon id="leaf" /><b>Sin mediciones</b><p>Esta fecha aún no tiene especies registradas.</p></div>
           ) : (
             <svg viewBox="0 0 320 150" style={{ width: '100%', height: 150 }}>
-              <polyline fill="none" stroke="#1b6d24" strokeWidth="2.2" points="12,28 32,55 52,138 72,138 92,138 112,138 132,138 152,138 172,138 192,138 212,138 232,138 252,138 272,138 292,138" />
-              <g fill="#1b6d24"><circle cx="12" cy="28" r="3.2" /><circle cx="32" cy="55" r="3.2" /></g>
-              <text x="12" y="20" fontSize="8" fill="#5b6470">{topRiq ? `${topRiq[0].codigo}: ${topRiq[0].riqueza}` : 'BD1: 8'}</text>
-              <text x="34" y="48" fontSize="8" fill="#5b6470">{topRiq ? `${topRiq[1].codigo}: ${topRiq[1].riqueza}` : 'BR1: 6'}</text>
+              <polyline fill="none" stroke={CRA.azul} strokeWidth="2.2" points="12,28 32,55 52,138 72,138 92,138 112,138 132,138 152,138 172,138 192,138 212,138 232,138 252,138 272,138 292,138" />
+              <g fill={CRA.azul}><circle cx="12" cy="28" r="3.2" /><circle cx="32" cy="55" r="3.2" /></g>
+              <text x="12" y="20" fontSize="8" fill="var(--muted)">{topRiq ? `${topRiq[0].codigo}: ${topRiq[0].riqueza}` : 'BD1: 8'}</text>
+              <text x="34" y="48" fontSize="8" fill="var(--muted)">{topRiq ? `${topRiq[1].codigo}: ${topRiq[1].riqueza}` : 'BR1: 6'}</text>
               <text x="150" y="150" fontSize="8" fill="#5b6470" textAnchor="middle">resto: 0–1 sp.</text></svg>
           )}</div>
         <div className="panel chart-b"><div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="grid" /> Abundancia por especies</h3></div>

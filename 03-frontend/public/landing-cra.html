@@ -3,23 +3,33 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Geovisor de Restauración Ecológica — Ciénaga de Luruaco</title>
+<title>Geovisor de Restauración Ecológica · C.R.A. — Ciénaga de Luruaco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#003178; --navy2:#0d47a1; --green:#1b6d24; --green-d:#155c1d;
-    --teal:#00585f; --ink:#191c1d; --muted:#5b6470; --line:#e5e7eb; --bg:#f6f8fa;
+    /* Colores institucionales C.R.A. — Manual de Identidad Visual
+       Azul #005F96 · Cian #00B5D9 · Verde #8FD400 · Ámbar #EDB512 · Gris #969491.
+       El verde de marca solo cubre rellenos; para texto se usa el derivado --green. */
+    --navy:#005F96; --navy2:#0d7ab8; --green:#4d7a00; --green-d:#3f6600;
+    --cra-verde:#8FD400; --cra-ambar:#EDB512;
+    --teal:#00B5D9; --ink:#191c1d; --muted:#5b6470; --line:#e5e7eb; --bg:#f6f8fa;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{font-family:'Lato',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   img{display:block;max-width:100%}
   a{text-decoration:none;color:inherit}
   .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
 
   /* Nav */
-  .nav{position:fixed;top:0;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
+  .franja-cra{position:fixed;top:0;left:0;width:100%;z-index:41;background:#fff;border-bottom:1px solid var(--line)}
+  .franja-cra .wrap{display:flex;align-items:center;gap:16px;min-height:58px}
+  .franja-cra img{width:60px;height:auto}   /* mínimo 1,5 cm de ancho */
+  .franja-cra span{font-size:12px;color:var(--muted);line-height:1.35}
+  .franja-cra b{display:block;font-size:12.5px;color:var(--navy)}
+  @media (max-width:640px){.franja-cra span{font-size:11px}}
+  .nav{position:fixed;top:58px;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
   .nav.on-hero{background:transparent;border-color:transparent}
   .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:64px;flex-wrap:nowrap}
   .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;min-width:0}
@@ -31,8 +41,8 @@
   .navlinks a{opacity:.85}
   .navlinks a:hover{opacity:1}
   .btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-weight:700;
-    border-radius:9999px;padding:11px 22px;font-size:14px;background:var(--green);color:#fff;transition:.2s}
-  .btn:hover{background:var(--green-d);transform:translateY(-1px)}
+    border-radius:9999px;padding:11px 22px;font-size:14px;background:var(--navy);color:#fff;transition:.2s}
+  .btn:hover{background:var(--navy2);transform:translateY(-1px)}
   .btn-lg{padding:14px 28px;font-size:16px}
   .btn-ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(4px)}
   .btn-ghost:hover{background:rgba(255,255,255,.2)}
@@ -125,6 +135,15 @@
 </style>
 </head>
 <body>
+  <!-- Entidad contratante: isologo sobre fondo sólido y con su área de reserva -->
+  <div class="franja-cra">
+    <div class="wrap">
+      <img src="/logo-cra.svg" alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
+      <span><b>Corporación Autónoma Regional del Atlántico</b>
+        Autoridad ambiental del departamento del Atlántico · Contrato 324 de 2025</span>
+    </div>
+  </div>
+
   <nav class="nav" id="nav">
     <div class="wrap">
       <a class="brand" href="#top">
@@ -234,7 +253,7 @@
           <h4>Geovisor Luruaco</h4>
           <p>Herramienta técnica de monitoreo y trazabilidad para la restauración ecológica de la Ciénaga de Luruaco, departamento del Atlántico — Contrato 324 de 2025.</p>
           <div class="partners">
-            <img src="/logo-cra.jpeg" alt="C.R.A." />
+            <img src="/logo-cra.svg" alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
             <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" />
           </div>
         </div>

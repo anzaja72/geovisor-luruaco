@@ -151,13 +151,16 @@
 .login-cra {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;   /* área de reserva del isologo */
   border-top: 1px solid var(--line);
   padding-top: 12px;
   margin-top: 4px;
 }
 .login-cra img {
-  height: 40px;
+  /* Tamaño mínimo de reproducción del isologo: 1,5 cm de ancho (≈57 px),
+     según el Manual de Identidad Visual de la C.R.A. */
+  width: 62px;
+  height: auto;
   flex-shrink: 0;
 }
 .login-cra span {
@@ -616,7 +619,7 @@
   min-height: 0;
 }
 .leaflet-container {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Lato', system-ui, sans-serif;
   background: #aaccdd;
 }
 
@@ -1086,7 +1089,7 @@
 /* ---------- Popups ---------- */
 .popup {
   min-width: 220px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 .popup-title {
   font-size: 15px;
@@ -1131,7 +1134,7 @@
 
 /* Etiqueta con el nombre de la técnica al pasar el cursor sobre la capa */
 .leaflet-tooltip.tec-tip {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-size: 11px;
   font-weight: 700;
   color: var(--navy-800);

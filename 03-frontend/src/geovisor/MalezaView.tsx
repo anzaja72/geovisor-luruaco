@@ -28,7 +28,7 @@ export default function MalezaView(map: GeovisorMapProps) {
             <button key={f} className={fecha === f ? 'on' : ''} onClick={() => setFecha(f)}>{f}</button>
           ))}
         </div>
-        {polys.length > 0 && <span className="badge-soft" style={{ background: '#e3f5e6', color: '#1b6d24', borderColor: '#bfe6c6' }}>● Datos en vivo (backend)</span>}
+        {polys.length > 0 && <span className="badge-soft" style={{ background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' }}>● Datos en vivo (backend)</span>}
       </div>
 
       <div className="kpis k4" style={{ marginBottom: 18 }}>

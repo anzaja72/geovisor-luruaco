@@ -1,14 +1,28 @@
 /* ===== Shell compartido — Geovisor Luruaco (4 componentes + transversal) ===== */
 :root{
-  --primary:#003178; --primary-c:#0d47a1; --secondary:#1b6d24; --sec-c:#a0f399;
-  --on-sec-c:#1b5e20; --tertiary:#00585f; --tert-c:#e0f3f4;
+  /* ---- Identidad institucional C.R.A. (Manual de Identidad Visual, Ley 2345/2023)
+     Colores de marca:
+       Azul   #005F96  Pantone 7691 C · CMYK 100/43/0/30
+       Cian   #00B5D9  Pantone 638 C  · CMYK 86/0/9/0
+       Verde  #8FD400  Pantone 375 C  · CMYK 46/0/90/0
+       Ámbar  #EDB512  Pantone 7408   · CMYK 0/29/100/0
+       Gris   #969491  CMYK 0/0/0/50
+     El verde y el ámbar de marca no alcanzan contraste AA como texto sobre blanco,
+     así que se usan en rellenos y se acompañan de variantes oscurecidas del mismo
+     matiz (--secondary-ink, --warn) para tipografía. ---- */
+  --cra-azul:#005F96; --cra-cian:#00B5D9; --cra-verde:#8FD400;
+  --cra-ambar:#EDB512; --cra-gris:#969491;
+
+  --primary:#005F96; --primary-c:#0d7ab8; --secondary:#4d7a00; --sec-c:#eaf7c8;
+  --on-sec-c:#3f6600; --tertiary:#00B5D9; --tert-c:#ddf4fb;
   --bg:#f6f8fa; --card:#fff; --line:#e4e8ee; --ink:#181c20; --muted:#5b6470;
-  --opt:#1565c0; --ok:#1b6d24; --warn:#b8860b; --stress:#cf5b1a; --poor:#ba1a1a;
+  --opt:#005F96; --ok:#4d7a00; --warn:#8a6a00; --stress:#cf5b1a; --poor:#ba1a1a;
   --c-mosaico:#e7c878; --c-bdenso:#2f7d3a; --c-galeria:#7cc47f; --c-vsec:#c0e39a; --c-desnuda:#bcbcbc;
   --water:#bfe0ea; --weed:#7ab648;
+  --topbar-h:78px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);
+body{font-family:Lato,system-ui,sans-serif;background:var(--bg);color:var(--ink);
   font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
 .i{width:20px;height:20px;display:inline-block;vertical-align:middle;fill:none;
   stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -17,11 +31,13 @@ button{font-family:inherit;cursor:pointer}
 a{color:inherit}
 
 /* Top app bar */
-.topbar{height:58px;background:var(--card);border-bottom:1px solid var(--line);
+.topbar{height:var(--topbar-h);background:var(--card);border-bottom:1px solid var(--line);
   display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:30}
 .brand{display:flex;align-items:center;gap:12px}
-.brand .mark{width:34px;height:34px;border-radius:8px;background:var(--primary);color:#fff;
-  display:grid;place-items:center;font-weight:800;font-size:12px;letter-spacing:.5px}
+.brand .mark{width:60px;height:auto;display:block;object-fit:contain;
+  /* Tamaño mínimo de reproducción: 1,5 cm de ancho (≈57 px).
+     El área de reserva queda libre: ningún texto ni línea la invade. */
+  margin-right:18px}
 .brand h1{font-size:15px;font-weight:700;color:var(--primary);line-height:1.1}
 .brand small{font-size:11px;color:var(--muted);font-weight:500}
 .topnav{display:flex;align-items:center;gap:8px}
@@ -31,11 +47,11 @@ a{color:inherit}
 .iconbtn{width:38px;height:38px;border-radius:50%;border:0;background:none;color:var(--muted);display:grid;place-items:center}
 .iconbtn:hover{background:var(--bg);color:var(--primary)}
 
-.shell{display:flex;min-height:calc(100vh - 58px)}
+.shell{display:flex;min-height:calc(100vh - var(--topbar-h))}
 
 /* Sidebar */
 .side{width:248px;background:var(--card);border-right:1px solid var(--line);
-  display:flex;flex-direction:column;flex:none;position:sticky;top:58px;height:calc(100vh - 58px)}
+  display:flex;flex-direction:column;flex:none;position:sticky;top:var(--topbar-h);height:calc(100vh - var(--topbar-h))}
 .side .sh{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
 .side .sh b{font-size:15px;color:var(--primary)}
 .side .sh span{display:block;font-size:12px;color:var(--muted)}
@@ -207,7 +223,7 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 
 /* Charts */
 .bars{display:flex;flex-direction:row;align-items:flex-end;gap:5px;height:140px;margin-top:8px}
-.bars .b{flex:1;background:linear-gradient(180deg,#2f8a45,#1b6d24);border-radius:3px 3px 0 0;position:relative;min-height:3px}
+.bars .b{flex:1;background:linear-gradient(180deg,var(--cra-verde),var(--secondary));border-radius:3px 3px 0 0;position:relative;min-height:3px}
 .bars .b.zero{background:#e8edf2}
 .bars .b.blue{background:linear-gradient(180deg,#3b82f6,#1565c0)}
 .bars .b span{position:absolute;bottom:-17px;left:-2px;right:-2px;text-align:center;font-size:8px;color:var(--muted)}

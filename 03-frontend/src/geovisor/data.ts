@@ -22,9 +22,9 @@ export const RESTAURACION = {
   ] as [string, number][],
   // Abundancia por especie (% sobre 75 individuos identificados)
   abundancia: [
-    ['Olleto', 37, '#1b6d24'], ['Guácimo', 28, '#2f8a45'], ['Tiribuche', 9, '#4f9e63'],
-    ['Espina', 5, '#00585f'], ['Uvito', 5, '#1565c0'], ['Guayacán', 4, '#6f9e3a'],
-    ['Guacamayo', 3, '#8a9e7a'], ['Manca perro', 3, '#7a8a93'], ['Otras (4)', 5, '#aab2bb'],
+    ['Olleto', 37, '#005F96'], ['Guácimo', 28, '#8FD400'], ['Tiribuche', 9, '#00B5D9'],
+    ['Espina', 5, '#EDB512'], ['Uvito', 5, '#0d7ab8'], ['Guayacán', 4, '#4d7a00'],
+    ['Guacamayo', 3, '#7ec5e0'], ['Manca perro', 3, '#b98f0f'], ['Otras (4)', 5, '#969491'],
   ] as [string, number, string][],
   // Detalle de cobertura (CLC) — total 48,01 ha
   coberturas: [

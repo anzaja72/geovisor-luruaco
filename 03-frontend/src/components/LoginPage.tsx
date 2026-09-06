@@ -70,7 +70,7 @@ export default function LoginPage({ onLogin }: Props) {
           ))}
         </div>
         <div className="login-cra">
-          <img src="/logo-cra.jpeg" alt="C.R.A." />
+          <img src="/logo-cra.svg" alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
           <span>Proyecto financiado por la Corporación Autónoma Regional del Atlántico</span>
         </div>
         <p className="login-foot">Acceso restringido · roles: administrador, técnico, consulta</p>

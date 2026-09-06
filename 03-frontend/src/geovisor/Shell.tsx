@@ -52,7 +52,8 @@ function TopBar({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void 
   return (
     <header className="topbar">
       <div className="brand">
-        <div className="mark">CRA</div>
+        <img className="mark" src="/logo-cra.svg" width={38} height={39}
+          alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
         <div><h1>Geovisor de Restauración Ecológica</h1><small>Ciénaga de Luruaco · Atlántico</small></div>
       </div>
       <div className="topnav">

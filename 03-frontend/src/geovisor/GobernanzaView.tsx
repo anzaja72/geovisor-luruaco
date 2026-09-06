@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import Carousel3D, { type Foto } from '../components/Carousel3D'
 import { GOBERNANZA } from './data'
+import { PALETA_CRA } from '../lib/marca'
 
-const COLORES = ['#1b6d24', '#2f8a45', '#1565c0', '#00585f', '#6f9e3a', '#8a9e7a', '#7a8a93']
+const COLORES = PALETA_CRA
 
 // Registro fotográfico real de actividades de gobernanza (25 fotos). Las rutas son el
 // respaldo si no se puede leer el índice; /gobernanza/index.json añade la referencia
