@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { COMPONENTES, type CompId } from './data'
+import { accionShell } from '../lib/acciones'
 import type { Usuario } from '../lib/auth'
 
 const SPRITE = `
@@ -71,8 +72,9 @@ function TopBar({ usuario, onLogout, onCopiloto }: { usuario: Usuario; onLogout:
 }
 
 function Sidebar({
-  active, onNav, onMonitoreo, onImport,
-}: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void; onImport?: () => void }) {
+  active, onNav, onMonitoreo, onImport, onAjustes, onSoporte,
+}: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void; onImport?: () => void
+     onAjustes: () => void; onSoporte: () => void }) {
   return (
     <aside className="side">
       <div className="sh"><b>Gestión Ambiental</b><span>Ciénaga de Luruaco</span></div>
@@ -100,9 +102,9 @@ function Sidebar({
           <a className="nav-mini" href="#" onClick={(e) => { e.preventDefault(); onImport() }}>
             <Icon id="download" style={{ width: 18, height: 18 }} /> Importar datos</a>
         )}
-        <a className="nav-mini" href="#" onClick={(e) => e.preventDefault()}>
+        <a className="nav-mini" href="#" onClick={(e) => { e.preventDefault(); onAjustes() }}>
           <Icon id="settings" style={{ width: 18, height: 18 }} /> Ajustes</a>
-        <a className="nav-mini" href="#" onClick={(e) => e.preventDefault()}>
+        <a className="nav-mini" href="#" onClick={(e) => { e.preventDefault(); onSoporte() }}>
           <Icon id="help" style={{ width: 18, height: 18 }} /> Soporte</a>
       </div>
     </aside>
@@ -110,13 +112,15 @@ function Sidebar({
 }
 
 export default function Shell({
-  usuario, onLogout, active, onNav, onMonitoreo, onImport, onCopiloto, children,
+  usuario, onLogout, active, onNav, onMonitoreo, onImport, onCopiloto, onAjustes, onSoporte, children,
 }: {
   usuario: Usuario
   onLogout: () => void
   active: CompId
   onNav: (c: CompId) => void
   onCopiloto?: () => void
+  onAjustes: () => void
+  onSoporte: () => void
   onMonitoreo?: () => void
   onImport?: () => void
   children: ReactNode
@@ -126,7 +130,8 @@ export default function Shell({
       <Sprite />
       <TopBar usuario={usuario} onLogout={onLogout} onCopiloto={onCopiloto} />
       <div className="shell">
-        <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport} />
+        <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport}
+          onAjustes={onAjustes} onSoporte={onSoporte} />
         <main className="main">{children}</main>
       </div>
     </>
@@ -138,9 +143,9 @@ export function Footer() {
     <div className="foot-bar">
       <div className="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
       <div className="links">
-        <a href="#" onClick={(e) => e.preventDefault()}>Importar datos</a>
-        <a href="#" onClick={(e) => e.preventDefault()}>Exportar GeoJSON</a>
-        <a href="#" onClick={(e) => e.preventDefault()}>Contacto</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); accionShell('importar') }}>Importar datos</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); accionShell('descargas') }}>Descargar datos</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); accionShell('soporte') }}>Contacto</a>
       </div>
     </div>
   )

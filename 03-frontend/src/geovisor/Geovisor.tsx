@@ -10,6 +10,8 @@ import ReportesView from './ReportesView'
 import { useGeoData } from '../hooks/useGeoData'
 import MonitoreoModal from '../components/MonitoreoModal'
 import Copiloto from '../components/Copiloto'
+import AjustesModal from '../components/AjustesModal'
+import SoporteModal from '../components/SoporteModal'
 import ImportModal from '../components/ImportModal'
 import { puedeEditar, type Usuario } from '../lib/auth'
 import { iniciarAutoSync } from '../lib/offlineQueue'
@@ -21,6 +23,8 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
   const [monitoreoOpen, setMonitoreoOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [copilotoOpen, setCopilotoOpen] = useState(false)
+  const [ajustesOpen, setAjustesOpen] = useState(false)
+  const [soporteOpen, setSoporteOpen] = useState(false)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
   // Nota: "lotes" (lotes_bioaumentacion) nunca se pasa al geovisor — es data de muestra
   // con el nombre restringido ("Planta de Bioaumentación") y no debe mostrarse en ningún componente.
@@ -29,6 +33,18 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
 
   // Sube los registros guardados en el navegador (modo offline) al recuperar internet.
   useEffect(() => iniciarAutoSync(reload), [reload])
+
+  // Acciones emitidas desde el pie de página (ver accionShell en Shell.tsx).
+  useEffect(() => {
+    const atender = (e: Event) => {
+      const accion = (e as CustomEvent<string>).detail
+      if (accion === 'soporte') setSoporteOpen(true)
+      else if (accion === 'descargas') setActive('reportes')
+      else if (accion === 'importar' && canEdit) setImportOpen(true)
+    }
+    window.addEventListener('geovisor:accion', atender)
+    return () => window.removeEventListener('geovisor:accion', atender)
+  }, [canEdit])
 
   // ⌘K / Ctrl+K abre el copiloto desde cualquier punto de la aplicación.
   useEffect(() => {
@@ -56,6 +72,8 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         onMonitoreo={canEdit ? () => setMonitoreoOpen(true) : undefined}
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onCopiloto={() => setCopilotoOpen(true)}
+        onAjustes={() => setAjustesOpen(true)}
+        onSoporte={() => setSoporteOpen(true)}
       >
         {active === 'restauracion' && <RestauracionView {...mapProps} />}
         {active === 'maleza' && <MalezaView {...mapProps} />}
@@ -65,6 +83,9 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         {active === 'transversal' && <TransversalView onNav={setActive} />}
         {active === 'reportes' && <ReportesView />}
       </Shell>
+
+      {ajustesOpen && <AjustesModal onClose={() => setAjustesOpen(false)} usuario={usuario} />}
+      {soporteOpen && <SoporteModal onClose={() => setSoporteOpen(false)} />}
 
       <Copiloto
         abierto={copilotoOpen}

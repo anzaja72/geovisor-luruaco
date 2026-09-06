@@ -1,5 +1,6 @@
 import { createReadStream, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { execSync } from 'node:child_process'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { mockApiMiddleware } from './src/mock/mockApi'
@@ -40,8 +41,17 @@ function serveTiles(): Plugin {
   }
 }
 
+// Identificación de la versión publicada, para la ventana de soporte.
+const commit = (() => {
+  try { return execSync('git rev-parse --short HEAD').toString().trim() } catch { return 'local' }
+})()
+
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(commit),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [react(), mockApi(), serveTiles()],
   server: {
     // Permite servir bajo dominios de túnel (cloudflared/ngrok) para demos en línea.
