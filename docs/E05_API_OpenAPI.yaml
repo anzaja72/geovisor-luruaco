@@ -1,0 +1,1073 @@
+openapi: 3.0.3
+
+# =============================================================================
+# API de la Geodatabase de Restauración Ecológica — Ciénaga de Luruaco
+# Entregable de la cláusula 5.4.c del contrato UTL-001 de 2026.
+# Generada a partir del código fuente del backend (02-backend/*.go).
+# =============================================================================
+
+info:
+  title: API Geodatabase Luruaco
+  version: "1.0.0"
+  description: |
+    API REST de la plataforma de gestión y visualización de información geográfica
+    y alfanumérica del proyecto de restauración ecológica de la Ciénaga de Luruaco
+    (Contrato UTL-001 de 2026, Unión Temporal Restauración Luruaco).
+
+    ## Autenticación
+
+    Todos los recursos bajo `/api` exigen un token JWT, salvo `POST /api/auth/login`.
+    El token se obtiene en el inicio de sesión y se envía en cada petición:
+
+        Authorization: Bearer <token>
+
+    El token usa el algoritmo HS256, tiene una vigencia de **24 horas** y transporta
+    el identificador, correo, nombre y rol del usuario.
+
+    ## Roles y permisos
+
+    | Rol | Alcance |
+    |---|---|
+    | `consulta` | Lectura de todos los recursos y descarga de reportes |
+    | `tecnico` | Lo anterior, más creación y edición de datos e importación de capas |
+    | `administrador` | Control total, incluida la gestión de usuarios y el borrado de registros |
+
+    Un token válido con rol insuficiente devuelve `403`; sin token o con token
+    vencido, `401`.
+
+    ## Formato geográfico
+
+    Las capas se entregan como `FeatureCollection` de GeoJSON (RFC 7946) en
+    **EPSG:4326**. Las geometrías provienen de PostGIS mediante `ST_AsGeoJSON`.
+  contact:
+    name: MC Consultorías & Capacitación S.A.S.
+    email: info@mcconsultorias.com.co
+  license:
+    name: Uso privativo del CONTRATANTE (cláusula séptima del contrato)
+
+servers:
+  - url: https://geodatabase.mcconsultorias.com.co
+    description: Producción
+  - url: http://localhost:8080
+    description: Desarrollo local
+
+tags:
+  - name: Sistema
+    description: Verificación de disponibilidad del servicio
+  - name: Autenticación
+    description: Inicio de sesión, sesión activa y cambio de contraseña
+  - name: Capas geográficas
+    description: Zonas, lotes, puntos, coberturas y capas importadas
+  - name: Componentes técnicos
+    description: Capas temáticas de restauración, fauna y monitoreo
+  - name: Indicadores
+    description: Indicadores calculados y resúmenes por periodo
+  - name: Captura de datos
+    description: Formularios de campo (creación de registros)
+  - name: Importación
+    description: Carga masiva de capas en GeoJSON y CSV
+  - name: Reportes
+    description: Descarga de reportes en CSV, Excel y PDF
+  - name: Usuarios
+    description: Gestión de cuentas (solo administrador)
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ------------------------------------------------------------------ Sistema
+  /health:
+    get:
+      tags: [Sistema]
+      operationId: getHealth
+      summary: Estado del servicio
+      description: Comprueba que la API y la conexión a la base de datos responden. No requiere autenticación.
+      security: []
+      responses:
+        "200":
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  database: { type: string, example: connected }
+
+  # ----------------------------------------------------------- Autenticación
+  /api/auth/login:
+    post:
+      tags: [Autenticación]
+      operationId: postAuthLogin
+      summary: Iniciar sesión
+      description: Valida las credenciales y devuelve el token de sesión (vigencia 24 h).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: admin@luruaco.local }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string, description: JWT HS256 }
+                  usuario: { $ref: "#/components/schemas/Usuario" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "401":
+          description: Credenciales inválidas o cuenta inactiva
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/auth/me:
+    get:
+      tags: [Autenticación]
+      operationId: getAuthMe
+      summary: Usuario de la sesión actual
+      responses:
+        "200":
+          description: Datos del usuario autenticado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Usuario" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/auth/password:
+    put:
+      tags: [Autenticación]
+      operationId: putAuthPassword
+      summary: Cambiar la propia contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actual, nueva]
+              properties:
+                actual: { type: string, format: password }
+                nueva:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Mínimo 8 caracteres
+      responses:
+        "200": { description: Contraseña actualizada }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  # ------------------------------------------------------- Capas geográficas
+  /api/zonas:
+    get:
+      tags: [Capas geográficas]
+      operationId: getZonas
+      summary: Polígonos de restauración
+      description: Áreas de intervención del proyecto con su categoría de calidad y periodo.
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/zonas/{id}:
+    get:
+      tags: [Capas geográficas]
+      operationId: getZonasPorId
+      summary: Polígono de restauración por identificador
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { $ref: "#/components/responses/FeatureGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /api/zonas/{id}/puntos:
+    get:
+      tags: [Capas geográficas]
+      operationId: getZonasPorIdPuntos
+      summary: Puntos de monitoreo de una zona
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/puntos:
+    get:
+      tags: [Capas geográficas]
+      operationId: getPuntos
+      summary: Parcelas y puntos de monitoreo
+      description: |
+        Devuelve las parcelas permanentes y los puntos de control. La propiedad
+        `codigo_punto` es la nomenclatura de la parcela (BD1, BR1, CU1, DD4…) y
+        `descripcion` guarda la cobertura Corine asociada.
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+    post:
+      tags: [Captura de datos]
+      operationId: postPuntos
+      summary: Registrar un punto por coordenadas
+      description: Requiere rol `administrador` o `tecnico`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [longitud, latitud]
+              properties:
+                codigo_punto:
+                  type: string
+                  description: Si se omite, se genera como `OBS-<epoch>`
+                nombre_punto: { type: string }
+                tipo_monitoreo:
+                  type: string
+                  default: observacion
+                  example: parcela
+                descripcion: { type: string }
+                longitud: { type: number, format: double, minimum: -180, maximum: 180 }
+                latitud: { type: number, format: double, minimum: -90, maximum: 90 }
+      responses:
+        "201":
+          description: Punto creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer, format: int64 }
+                  codigo_punto: { type: string }
+        "400":
+          description: Cuerpo inválido o coordenadas fuera de rango
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/lotes:
+    get:
+      tags: [Capas geográficas]
+      operationId: getLotes
+      summary: Lotes de bioaumentación
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/lotes/{id}:
+    get:
+      tags: [Capas geográficas]
+      operationId: getLotesPorId
+      summary: Lote por identificador
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { $ref: "#/components/responses/FeatureGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /api/coberturas:
+    get:
+      tags: [Capas geográficas]
+      operationId: getCoberturas
+      summary: Coberturas vegetales (Corine Land Cover)
+      description: |
+        Coberturas del levantamiento con dron. Cada feature incluye `codigo_corine`,
+        `descripcion`, `clase_tematica`, `area_hectareas` y `porcentaje`.
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/capas:
+    get:
+      tags: [Capas geográficas]
+      operationId: getCapas
+      summary: Catálogo de capas importadas
+      description: Lista los nombres de capa disponibles en `capas_geograficas` y su conteo.
+      responses:
+        "200":
+          description: Catálogo de capas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capas:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        capa: { type: string, example: aislamiento_interno }
+                        total: { type: integer }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/capas/geojson:
+    get:
+      tags: [Capas geográficas]
+      operationId: getCapasGeojson
+      summary: Geometrías de las capas importadas
+      description: |
+        Devuelve las capas cargadas por importación (aislamiento interno, polígonos
+        de limpieza de maleza acuática, curvas de nivel y demás). La propiedad
+        `capa` identifica a cuál pertenece cada feature.
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  # --------------------------------------------------- Componentes técnicos
+  /api/estratos:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getEstratos
+      summary: Estratos de vegetación
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/malezas:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getMalezas
+      summary: Registros de malezas e invasoras
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/tecnicas:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getTecnicas
+      summary: Técnicas de restauración aplicadas
+      description: |
+        Polígonos de las herramientas de manejo del paisaje (HMP) implementadas.
+        `tecnica` guarda el tipo de restauración (activa/pasiva) y `descripcion`
+        el nombre de la HMP aplicada (sistema agroforestal, núcleos de vegetación…).
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/validacion:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getValidacion
+      summary: Sitios de validación con porcentaje de cumplimiento
+      description: |
+        Estaciones con su monitoreo de validación más reciente. El campo
+        `cumplimiento` se calcula como `valor / meta × 100`.
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/fotografias:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getFotografias
+      summary: Registro fotográfico georreferenciado
+      responses:
+        "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/fauna/observaciones:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getFaunaObservaciones
+      summary: Observaciones de fauna de la línea base
+      responses:
+        "200":
+          description: Listado de observaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FaunaObservacion" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  # ------------------------------------------------------------- Indicadores
+  /api/resumen:
+    get:
+      tags: [Indicadores]
+      operationId: getResumen
+      summary: Resumen de sitios por categoría de calidad
+      parameters:
+        - name: periodo
+          in: query
+          schema: { type: string }
+          description: Periodo a resumir (por ejemplo `Línea base`)
+      responses:
+        "200":
+          description: Resumen del periodo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resumen" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/restauracion/indicadores:
+    get:
+      tags: [Indicadores]
+      operationId: getRestauracionIndicadores
+      summary: Indicadores del componente de restauración
+      description: |
+        Calcula riqueza, densidad por hectárea, área basal, altura media, índice de
+        Shannon, abundancia por especie y superficie por cobertura, a partir del
+        censo forestal (`arboles_monitoreo`) y las coberturas Corine.
+      parameters:
+        - name: fecha
+          in: query
+          schema: { type: string, default: Linea base }
+          description: Campaña de monitoreo (`Linea base`, `Monitoreo 1`…)
+        - name: cobertura
+          in: query
+          schema:
+            type: string
+            enum: [todas, denso, secundaria, galeria, mosaico, desnuda]
+          description: Filtra el censo por clase de cobertura
+      responses:
+        "200":
+          description: Indicadores calculados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IndicadoresRestauracion" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  # ---------------------------------------------------------- Monitoreos
+  /api/monitoreos:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getMonitoreos
+      summary: Histórico de monitoreos
+      parameters:
+        - name: indicador
+          in: query
+          schema: { type: string }
+          description: Coincidencia parcial sobre el nombre del indicador
+        - name: desde
+          in: query
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          schema: { type: string, format: date }
+        - name: estacion_id
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Hasta 500 registros, del más reciente al más antiguo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  monitoreos:
+                    type: array
+                    items: { $ref: "#/components/schemas/Monitoreo" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+    post:
+      tags: [Captura de datos]
+      operationId: postMonitoreos
+      summary: Registrar un monitoreo
+      description: Requiere rol `administrador` o `tecnico`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MonitoreoEntrada" }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/monitoreos/{id}:
+    put:
+      tags: [Captura de datos]
+      operationId: putMonitoreosPorId
+      summary: Actualizar un monitoreo
+      description: Requiere rol `administrador` o `tecnico`.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MonitoreoEntrada" }
+      responses:
+        "200": { description: Registro actualizado }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+    delete:
+      tags: [Captura de datos]
+      operationId: deleteMonitoreosPorId
+      summary: Eliminar un monitoreo
+      description: Requiere rol `administrador`.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: Registro eliminado }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  # ------------------------------------------------------- Captura de datos
+  /api/restauracion/arbol:
+    post:
+      tags: [Captura de datos]
+      operationId: postRestauracionArbol
+      summary: Registrar un individuo del censo forestal
+      description: |
+        Alta de un árbol medido en parcela. El área basal se calcula en la base de
+        datos como `π·(DAP/200)²`. Requiere rol `administrador` o `tecnico`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha, id_parcela]
+              properties:
+                fecha: { type: string, example: Linea base }
+                id_parcela: { type: string, example: BD1 }
+                cobertura: { type: string }
+                especie: { type: string, description: Nombre científico }
+                nombre_comun: { type: string }
+                altura_max: { type: number, format: double, description: Metros }
+                n_fustes: { type: integer }
+                dap_eq: { type: number, format: double, description: Centímetros }
+                categoria_arbol:
+                  type: string
+                  enum: [Brinzal, Latizal, Fustal]
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/fauna/grupo:
+    post:
+      tags: [Captura de datos]
+      operationId: postFaunaGrupo
+      summary: Registrar abundancia y riqueza por grupo taxonómico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha, grupo]
+              properties:
+                fecha: { type: string }
+                grupo:
+                  type: string
+                  enum: [aves, mamiferos, anfibios, reptiles]
+                abundancia: { type: integer }
+                riqueza: { type: integer }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/fauna/observacion:
+    post:
+      tags: [Captura de datos]
+      operationId: postFaunaObservacion
+      summary: Registrar una observación de fauna
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FaunaObservacion" }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/ficor/medicion:
+    post:
+      tags: [Captura de datos]
+      operationId: postFicorMedicion
+      summary: Registrar una medición de ficorremediación
+      description: Calidad de agua, calidad de sedimentos o biota asociada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tipo, fecha]
+              properties:
+                tipo:
+                  type: string
+                  enum: [agua, sedimento, biota]
+                fecha: { type: string, format: date }
+                variable: { type: string, example: Oxígeno Disuelto }
+                categoria:
+                  type: string
+                  enum: [metal_pesado, plaguicida]
+                  description: Solo para `tipo=sedimento`
+                grupo: { type: string, description: Solo para `tipo=biota` }
+                valor: { type: number, format: double }
+                unidad: { type: string, example: mg/L }
+                abundancia: { type: integer }
+                riqueza: { type: integer }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/gobernanza/actividad:
+    post:
+      tags: [Captura de datos]
+      operationId: postGobernanzaActividad
+      summary: Registrar una actividad de gobernanza ambiental
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actividad]
+              properties:
+                actividad: { type: string, example: Taller de acuerdo social }
+                cantidad: { type: integer, description: Número de eventos }
+                participantes: { type: integer }
+                ubicacion: { type: string }
+                fecha: { type: string, format: date }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/maleza/limpieza:
+    post:
+      tags: [Captura de datos]
+      operationId: postMalezaLimpieza
+      summary: Registrar una jornada de limpieza de vegetación acuática
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fecha]
+              properties:
+                fecha: { type: string, description: Campaña o fecha de la jornada }
+                area_ha: { type: number, format: double }
+                borde_km: { type: number, format: double }
+                observaciones: { type: string }
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ------------------------------------------------------------ Importación
+  /api/import/geojson:
+    post:
+      tags: [Importación]
+      operationId: postImportGeojson
+      summary: Importar una capa en GeoJSON
+      description: |
+        Carga un `FeatureCollection` completo en `capas_geograficas` dentro de una
+        transacción: si alguna geometría falla, se registra el error y continúa el
+        resto. Requiere rol `administrador` o `tecnico`.
+      parameters:
+        - name: capa
+          in: query
+          required: true
+          schema: { type: string }
+          description: Nombre con el que se agrupará la capa
+        - name: origen
+          in: query
+          schema: { type: string, default: geojson }
+      requestBody:
+        required: true
+        content:
+          application/geo+json:
+            schema: { $ref: "#/components/schemas/FeatureCollection" }
+      responses:
+        "200":
+          description: Resultado de la importación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  insertados: { type: integer }
+                  errores: { type: integer }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/import/csv:
+    post:
+      tags: [Importación]
+      operationId: postImportCsv
+      summary: Importar puntos desde CSV
+      description: |
+        El CSV debe traer cabecera; las columnas de coordenadas se detectan por
+        nombre. Requiere rol `administrador` o `tecnico`.
+      parameters:
+        - name: capa
+          in: query
+          required: true
+          schema: { type: string }
+        - name: srid
+          in: query
+          schema: { type: integer, default: 4326 }
+          description: Sistema de referencia de las coordenadas del archivo
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema: { type: string }
+      responses:
+        "200":
+          description: Resultado de la importación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  insertados: { type: integer }
+                  errores: { type: integer }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # --------------------------------------------------------------- Reportes
+  /api/reportes/{tipo}:
+    get:
+      tags: [Reportes]
+      operationId: getReportesPorTipo
+      summary: Descargar un reporte
+      description: |
+        Genera el reporte en el formato solicitado y lo devuelve como archivo
+        descargable, con el nombre `reporte_<tipo>_<AAAAMMDD>.<formato>`.
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [sitios, coberturas, monitoreos, indicadores, insumos]
+        - name: formato
+          in: query
+          schema:
+            type: string
+            enum: [csv, xlsx, pdf]
+            default: csv
+      responses:
+        "200":
+          description: Archivo del reporte
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
+            application/pdf:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "404":
+          description: Tipo de reporte no reconocido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  # --------------------------------------------------------------- Usuarios
+  /api/usuarios:
+    get:
+      tags: [Usuarios]
+      operationId: getUsuarios
+      summary: Listar usuarios
+      description: Requiere rol `administrador`.
+      responses:
+        "200":
+          description: Cuentas registradas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: array
+                    items: { $ref: "#/components/schemas/UsuarioDetalle" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+    post:
+      tags: [Usuarios]
+      operationId: postUsuarios
+      summary: Crear un usuario
+      description: Requiere rol `administrador`. La contraseña se almacena con bcrypt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, email, password, rol]
+              properties:
+                nombre: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password, minLength: 8 }
+                rol:
+                  type: string
+                  enum: [administrador, tecnico, consulta]
+      responses:
+        "201": { $ref: "#/components/responses/Creado" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /api/usuarios/{id}:
+    put:
+      tags: [Usuarios]
+      operationId: putUsuariosPorId
+      summary: Actualizar un usuario
+      description: Requiere rol `administrador`. Permite cambiar nombre, rol y estado.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre: { type: string }
+                rol:
+                  type: string
+                  enum: [administrador, tecnico, consulta]
+                activo: { type: boolean }
+      responses:
+        "200": { description: Usuario actualizado }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+    delete:
+      tags: [Usuarios]
+      operationId: deleteUsuariosPorId
+      summary: Desactivar o eliminar un usuario
+      description: Requiere rol `administrador`.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: Usuario eliminado }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token obtenido en `POST /api/auth/login`, vigente 24 horas.
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    ColeccionGeoJSON:
+      description: Colección de entidades geográficas
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/FeatureCollection" }
+    FeatureGeoJSON:
+      description: Entidad geográfica
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Feature" }
+    Creado:
+      description: Registro creado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id: { type: integer, format: int64 }
+    NoAutenticado:
+      description: Falta el token o está vencido
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            sinToken:
+              value: { error: Token requerido }
+            vencido:
+              value: { error: Token inválido o expirado }
+    SinPermiso:
+      description: El rol del usuario no autoriza la operación
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { error: Rol sin permiso para esta operación }
+    SolicitudInvalida:
+      description: Cuerpo o parámetros inválidos
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoEncontrado:
+      description: El recurso no existe
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    Usuario:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nombre: { type: string }
+        email: { type: string, format: email }
+        rol:
+          type: string
+          enum: [administrador, tecnico, consulta]
+
+    UsuarioDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Usuario"
+        - type: object
+          properties:
+            activo: { type: boolean }
+            creado_en: { type: string, format: date }
+            ultimo_acceso: { type: string, format: date-time }
+
+    Geometry:
+      type: object
+      description: Geometría GeoJSON (RFC 7946) en EPSG:4326
+      properties:
+        type:
+          type: string
+          enum: [Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon]
+        coordinates:
+          description: Estructura según el tipo de geometría
+      required: [type, coordinates]
+
+    Feature:
+      type: object
+      properties:
+        type: { type: string, enum: [Feature] }
+        geometry: { $ref: "#/components/schemas/Geometry" }
+        properties:
+          type: object
+          additionalProperties: true
+          description: Atributos de la entidad; varían según la capa
+
+    FeatureCollection:
+      type: object
+      properties:
+        type: { type: string, enum: [FeatureCollection] }
+        features:
+          type: array
+          items: { $ref: "#/components/schemas/Feature" }
+
+    Monitoreo:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        estacion_id: { type: integer, format: int64 }
+        codigo_punto: { type: string }
+        fecha: { type: string, format: date }
+        indicador: { type: string }
+        valor: { type: number, format: double, nullable: true }
+        unidad: { type: string }
+        responsable: { type: string }
+        observaciones: { type: string }
+
+    MonitoreoEntrada:
+      type: object
+      required: [fecha, indicador]
+      properties:
+        estacion_id: { type: integer, format: int64, nullable: true }
+        parcela_id: { type: integer, format: int64, nullable: true }
+        fecha: { type: string, format: date, example: "2026-07-15" }
+        indicador: { type: string }
+        valor: { type: number, format: double, nullable: true }
+        unidad: { type: string }
+        responsable: { type: string }
+        observaciones: { type: string }
+
+    FaunaObservacion:
+      type: object
+      properties:
+        id: { type: integer, format: int64, readOnly: true }
+        grupo:
+          type: string
+          enum: [aves, mamiferos, anfibios, reptiles]
+        nombre_comun: { type: string }
+        nombre_cientifico: { type: string }
+        cobertura_vegetal: { type: string }
+        n_individuos: { type: integer }
+        lugar_percha: { type: string }
+        habito: { type: string }
+        comportamiento: { type: string }
+        fecha: { type: string }
+        hora: { type: string }
+        observacion: { type: string }
+
+    Resumen:
+      type: object
+      properties:
+        periodo: { type: string }
+        sitios_visitados: { type: integer }
+        sitios_reportados: { type: integer }
+        categorias:
+          type: array
+          items:
+            type: object
+            properties:
+              categoria:
+                type: string
+                enum: [pesima, inadecuada, aceptable, adecuada, optima]
+              cantidad: { type: integer }
+              porcentaje: { type: number, format: double }
+
+    IndicadoresRestauracion:
+      type: object
+      properties:
+        fecha: { type: string }
+        riqueza: { type: integer, description: Número de especies distintas }
+        densidad_ha: { type: number, format: double, description: Individuos por hectárea }
+        area_basal_ha: { type: number, format: double, description: m² por hectárea }
+        individuos: { type: integer }
+        fustes: { type: integer }
+        altura_media: { type: number, format: double }
+        shannon: { type: number, format: double, description: Índice de Shannon H′ }
+        activa_ha: { type: number, format: double }
+        pasiva_ha: { type: number, format: double }
+        area_total_ha: { type: number, format: double }
+        sin_datos:
+          type: boolean
+          description: true cuando la campaña aún no tiene mediciones de campo
+        parcelas:
+          type: array
+          items:
+            type: object
+            properties:
+              codigo: { type: string }
+              individuos: { type: integer }
+              riqueza: { type: integer }
+              densidad_ha: { type: number, format: double }
+        abundancia:
+          type: array
+          items:
+            type: object
+            properties:
+              nombre: { type: string }
+              n: { type: integer }
+              pct: { type: number, format: double }
+        coberturas:
+          type: array
+          items:
+            type: object
+            properties:
+              clase: { type: string }
+              ha: { type: number, format: double }
+              pct: { type: number, format: double }
