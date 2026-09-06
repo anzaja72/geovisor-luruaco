@@ -46,7 +46,7 @@ const controlIcon = L.divIcon({
 
 export type ComponenteGeovisor = 'restauracion' | 'maleza' | 'ficorremediacion' | 'fauna'
 
-/** Props de datos comunes a los 4 geovisores (todas las vistas reciben el mismo paquete;
+/** Props de datos comunes a los componentes con mapa (todas las vistas reciben el mismo paquete;
  *  MapView decide internamente qué es pertinente según `componente`). */
 export interface GeovisorMapProps {
   zonas: GeoFeature[]

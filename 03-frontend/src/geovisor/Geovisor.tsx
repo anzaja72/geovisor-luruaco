@@ -42,7 +42,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
     return () => window.removeEventListener('keydown', atajo)
   }, [])
 
-  // Props base del mapa, comunes a los 4 geovisores. Cada vista decide qué es pertinente
+  // Props base del mapa, comunes a los componentes con geovisor. Cada vista decide qué es pertinente
   // pasando su propio `componente` a <MapView>; el filtrado real ocurre allí.
   const mapProps = { zonas, puntos, capas, coberturas, tematicas, selected, onSelect: setSelected }
 

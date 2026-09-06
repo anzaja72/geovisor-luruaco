@@ -89,7 +89,7 @@
   .card h3{margin:0 0 6px;color:var(--navy);font-size:16.5px;font-weight:700}
   .card p{font-size:13.5px;color:var(--muted)}
 
-  /* Componentes (los 4 reales) */
+  /* Componentes */
   .comp-grid{display:grid;grid-template-columns:1fr;gap:16px}
   .comp{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;position:relative;overflow:hidden}
   .comp .top{display:flex;align-items:center;gap:14px;margin-bottom:12px}
@@ -97,7 +97,7 @@
   .comp h3{font-size:16.5px;color:var(--navy);font-weight:700}
   .comp p{font-size:13.5px;color:var(--muted);margin-bottom:14px}
   .status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
-  .status.live{background:#e3f5e6;color:var(--green-d)}
+  .status.live{background:#eaf7c8;color:var(--green-d)}
   .status.partial{background:#fff4e0;color:#a86a00}
   .status.pending{background:#eceff2;color:#5b6470}
   .status .d{width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -169,7 +169,7 @@
       <span class="tag"><span class="dot"></span> Geodatabase y geovisor en producción</span>
       <h1>Geovisor de Restauración Ecológica</h1>
       <p class="sub">Ciénaga de Luruaco · Departamento del Atlántico</p>
-      <p class="lead">Plataforma oficial del Contrato 324 de 2025 para visualizar, monitorear y dar trazabilidad temporal a las intervenciones de restauración del humedal, organizada en cuatro componentes con evidencia georreferenciada.</p>
+      <p class="lead">Plataforma oficial del Contrato 324 de 2025 para visualizar, monitorear y dar trazabilidad temporal a las intervenciones de restauración del humedal, organizada en seis componentes con evidencia georreferenciada.</p>
       <div class="cta">
         <a class="btn btn-lg" href="/?entrar=1">Ingresar a la plataforma →</a>
         <a class="btn btn-ghost btn-lg" href="#componentes">Conocer la plataforma ↓</a>
@@ -192,8 +192,8 @@
 
   <section class="block alt" id="componentes">
     <div class="wrap">
-      <h2>Cuatro componentes, un solo geovisor</h2>
-      <p class="intro">Cada componente del proyecto tiene su propio geovisor, indicadores y capas — mostrando únicamente los datos que le son pertinentes.</p>
+      <h2>Seis componentes, un solo geovisor</h2>
+      <p class="intro">Cada componente tiene sus propios indicadores y capas, y muestra únicamente los datos que le son pertinentes. Cuatro de ellos incorporan geovisor sobre el predio; el tablero transversal consolida el avance de todos.</p>
       <div class="comp-grid">
         <div class="comp">
           <div class="top"><span class="ico" style="background:#e3f5e6;color:var(--green-d)">🌱</span><h3>Restauración Ecológica</h3></div>
@@ -201,7 +201,7 @@
           <span class="status live"><span class="d"></span>Datos reales en vivo</span>
         </div>
         <div class="comp">
-          <div class="top"><span class="ico" style="background:#dbe7fb;color:var(--navy)">🌊</span><h3>Maleza Acuática</h3></div>
+          <div class="top"><span class="ico" style="background:#dbe7fb;color:var(--navy)">🌊</span><h3>Vegetación Acuática</h3></div>
           <p>Polígonos de limpieza en el borde de la ciénaga y avance mensual de hectáreas removidas.</p>
           <span class="status live"><span class="d"></span>Datos reales en vivo</span>
         </div>
@@ -212,8 +212,20 @@
         </div>
         <div class="comp">
           <div class="top"><span class="ico" style="background:#eceff2;color:var(--muted)">🦜</span><h3>Monitoreo de Fauna</h3></div>
-          <p>Avistamientos, cámaras trampa y grupos taxonómicos monitoreados en el ecosistema.</p>
-          <span class="status pending"><span class="d"></span>En definición</span>
+          <p>Línea base de aves, mamíferos, anfibios y reptiles, con curva de riqueza y visor 3D de los especímenes registrados.</p>
+          <span class="status live"><span class="d"></span>Línea base cargada</span>
+        </div>
+
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#eaf7c8;color:var(--green-d)">👥</span><h3>Gobernanza Ambiental</h3></div>
+          <p>Socializaciones, talleres de acuerdo social, capacitaciones y negocios verdes, con su registro fotográfico de campo.</p>
+          <span class="status live"><span class="d"></span>Datos reales en vivo</span>
+        </div>
+
+        <div class="comp">
+          <div class="top"><span class="ico" style="background:#ddf4fb;color:var(--teal)">📊</span><h3>Dashboard Transversal</h3></div>
+          <p>Consolidado del avance de todos los componentes para el seguimiento de los indicadores contractuales.</p>
+          <span class="status live"><span class="d"></span>Consolida los componentes</span>
         </div>
       </div>
     </div>
