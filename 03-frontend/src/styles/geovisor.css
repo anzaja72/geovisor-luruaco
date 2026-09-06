@@ -404,12 +404,12 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
   background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
 
 .cop-velo{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;pointer-events:none;
-  transition:opacity .2s;z-index:60}
+  transition:opacity .2s;z-index:1800}
 .cop-velo.on{opacity:1;pointer-events:auto}
 .cop{position:fixed;top:0;right:0;height:100vh;width:min(420px,100vw);background:var(--card);
   border-left:1px solid var(--line);box-shadow:-14px 0 40px rgba(15,23,42,.16);
   display:flex;flex-direction:column;transform:translateX(100%);transition:transform .24s cubic-bezier(.32,.72,0,1);
-  z-index:61}
+  z-index:1801}
 .cop.on{transform:none}
 .cop-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 18px;
   background:var(--primary);color:#fff}

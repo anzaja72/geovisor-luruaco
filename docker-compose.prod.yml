@@ -7,6 +7,7 @@
 #   JWT_SECRET=...         (openssl rand -hex 32)
 #   ADMIN_EMAIL=...        ADMIN_PASSWORD=...
 #   CORS_ALLOW_ORIGINS=https://tu-dominio.com
+#   LLM_API_KEY=...        (opcional, copiloto: clave del proveedor del modelo)
 # ============================================================
 services:
   postgis:
@@ -48,6 +49,11 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Definir ADMIN_PASSWORD en .env}
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
       PORT: "8080"
+      # Copiloto: proveedor del modelo de lenguaje. Sin LLM_API_KEY el asistente
+      # sigue respondiendo con los datos de la geodatabase, solo que sin redacción.
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-meta/llama-3.3-70b-instruct}
     depends_on:
       postgis:
         condition: service_healthy
