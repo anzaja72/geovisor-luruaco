@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
+import FaunaViewer3D from '../components/FaunaViewer3D'
+import { FICHAS_FAUNA, type GrupoFaunaId } from './faunaFichas'
 import { fetchFaunaObservaciones, type FaunaObservacion } from '../lib/api'
 
 /** Curva de rarefacción Q0 (riqueza esperada de Hurlbert) a partir del vector de
@@ -62,6 +64,9 @@ const GRUPOS_FAUNA: { id: 'aves' | 'anfibios' | 'mamiferos' | 'reptiles'; nombre
 
 export default function FaunaView(map: GeovisorMapProps) {
   const [obs, setObs] = useState<FaunaObservacion[]>([])
+  // Grupo mostrado en el visor 3D de especímenes (línea base de fauna).
+  const [grupo3d, setGrupo3d] = useState<GrupoFaunaId>('aves')
+  const ficha = FICHAS_FAUNA.find((f) => f.id === grupo3d)!
   useEffect(() => {
     const ac = new AbortController()
     fetchFaunaObservaciones(ac.signal).then((d) => { if (!ac.signal.aborted) setObs(d) }).catch(() => {})
@@ -117,6 +122,58 @@ export default function FaunaView(map: GeovisorMapProps) {
           <div className="sub">
             <div><em>Abundancia</em><b className={totalInd ? '' : 'pend'}>{totalInd || 's/d'}</b></div>
             <div><em>Riqueza</em><b className={especies ? '' : 'pend'}>{especies || 's/d'}</b></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Especímenes 3D de la línea base — ocupa el lugar que antes tenía el mapa */}
+      <div className="panel" style={{ marginBottom: 14 }}>
+        <div className="ph">
+          <h3><Icon id="paw" /> Especímenes 3D de la línea base</h3>
+          <span className="badge-soft">{FICHAS_FAUNA.length} grupos · modelos desde fotos de campo</span>
+        </div>
+        <div className="f3d-wrap">
+          <div className="f3d-grupos">
+            {FICHAS_FAUNA.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className={`f3d-grupo${f.id === grupo3d ? ' on' : ''}`}
+                onClick={() => setGrupo3d(f.id)}
+              >
+                <img src={f.foto} alt="" loading="lazy" />
+                <span className="tx">
+                  <b>{f.nombre}</b>
+                  <small>{f.especieModelo}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <FaunaViewer3D ficha={ficha} alto={400} />
+
+          <div className="f3d-ficha">
+            <div className="cab">
+              <b>{ficha.nombre}</b>
+              <small>{ficha.clase} · modelo: {ficha.especieModelo}</small>
+            </div>
+            <div className="datos">
+              <div><em>Riqueza</em><b>{ficha.riqueza}</b></div>
+              <div><em>Registros</em><b>{ficha.registros}</b></div>
+            </div>
+            <p>{ficha.descripcion}</p>
+            <div className="datos">
+              <div><em>Coberturas</em><b style={{ fontSize: 11.5, fontWeight: 700 }}>{ficha.coberturas}</b></div>
+              <div><em>Rol ecológico</em><b style={{ fontSize: 11.5, fontWeight: 700 }}>{ficha.rol}</b></div>
+            </div>
+            <div className="f3d-chips">
+              {ficha.puntos.map((p) => (
+                <button key={p.id} type="button" title={p.detail}>
+                  <i style={{ background: p.color }} />{p.label}
+                </button>
+              ))}
+            </div>
+            <div className="dato">{ficha.dato}</div>
           </div>
         </div>
       </div>
