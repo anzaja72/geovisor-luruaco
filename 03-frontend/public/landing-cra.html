@@ -24,8 +24,10 @@
 
   /* Nav */
   .nav{position:fixed;top:0;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
-    .nav.on-hero{background:linear-gradient(180deg,rgba(0,95,150,.94),rgba(0,95,150,.82));
-    border-color:transparent;backdrop-filter:blur(10px)}
+    /* Sobre el hero la barra no tiene fondo propio: solo un velo oscuro degradado
+     que sostiene la legibilidad del logo en negativo y de los enlaces. */
+  .nav.on-hero{background:linear-gradient(180deg,rgba(8,20,30,.55),rgba(8,20,30,.12) 70%,transparent);
+    border-color:transparent;backdrop-filter:none}
   /* Versiones del isologo: a color sobre fondo claro, en negativo sobre el azul
      institucional (Manual de Identidad Visual, usos correctos 3 y 4). El logo
      nunca queda sobre la fotografía: la barra siempre aporta su propio plano. */
