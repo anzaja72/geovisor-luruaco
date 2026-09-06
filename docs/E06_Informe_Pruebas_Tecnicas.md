@@ -15,12 +15,12 @@ un entorno de laboratorio. Las pruebas cubren cuatro frentes:
 
 | Frente | Casos | Qué comprueba |
 |---|---|---|
-| Disponibilidad y servicios de la API | 28 | Que cada recurso documentado responda con los datos esperados |
-| Control de acceso | 10 | Que la información no sea accesible sin autorización |
+| Disponibilidad y servicios de la API | 30 | Que cada recurso documentado responda con los datos esperados |
+| Control de acceso | 11 | Que la información no sea accesible sin autorización |
 | Funcionalidad de la interfaz | 11 | Que cada componente del geovisor cargue y opere |
 | Entorno de publicación | — | Certificado, protocolo, tiempos y volumen transferido |
 
-**Total: 49 casos ejecutados, 49 conformes.**
+**Total: 52 casos ejecutados, 52 conformes.**
 
 ### Criterio de no destrucción
 
@@ -38,7 +38,7 @@ los formularios de captura.
 | Elemento | Valor |
 |---|---|
 | URL productiva | https://geodatabase.mcconsultorias.com.co |
-| Versión desplegada | `473ba92` |
+| Versión desplegada | Identidad institucional, visor 3D de fauna y copiloto operativos (verificado por comportamiento en el propio ambiente) |
 | Servidor | VPS Ubuntu · Docker Compose (proyecto `geovisor`) |
 | Servicios | `geodb-frontend` (Nginx), `geodb-backend` (Go/Fiber), `geodb-postgis` (PostGIS 16-3.4) |
 | Proxy y TLS | Traefik con Let's Encrypt |
@@ -75,6 +75,8 @@ Se consultó cada recurso con una sesión de rol `administrador`.
 | P-21 | `GET /api/auth/me` | 200 | 76 ms |
 | P-22 – P-24 | `GET /api/reportes/sitios` en CSV, Excel y PDF | 200 | 82 / 80 / 129 ms |
 | P-25 – P-28 | `GET /api/reportes/{coberturas, monitoreos, indicadores, insumos}` | 200 | 76 – 80 ms |
+| P-29 | `POST /api/copiloto` con una pregunta del proyecto | 200 | — |
+| P-30 | `POST /api/copiloto` con pregunta vacía (rechazo esperado) | 400 | — |
 
 **Observación sobre P-11.** La consulta de malezas tardó 1,6 s frente a los 80–200 ms
 del resto. Es la primera consulta que toca esa tabla tras el arranque, de modo que el
@@ -88,7 +90,7 @@ posteriores bajan al rango normal. No obstante, conviene vigilarla cuando la tab
 | Capas geográficas importadas | 1.130 entidades |
 | Técnicas de restauración aplicadas | 27 polígonos |
 | Coberturas vegetales (Corine) | 24 polígonos |
-| Parcelas y puntos de monitoreo | 20 puntos |
+| Puntos de monitoreo | 20 · de ellos 15 parcelas permanentes y 5 de ficorremediación |
 | Observaciones de fauna | 119 registros |
 | Estratos de vegetación | 3 |
 | Malezas | 2 |
@@ -117,6 +119,7 @@ apartado 7.
 | S-08 | Importación de capas sin token | 401 | 401 |
 | S-09 | Recurso inexistente con sesión válida | 404 | 404 |
 | S-10 | Verificación de disponibilidad sin token | 200 | 200 |
+| S-11 | Consulta al copiloto sin token | 401 | 401 |
 
 Ningún recurso de datos quedó accesible sin autenticación. El esquema de roles
 —`administrador`, `tecnico`, `consulta`— está implementado en el middleware del backend
@@ -140,6 +143,26 @@ administración se aplica ruta por ruta.
 | F-09 | Gobernanza: registro fotográfico, 25 fotos con su referencia | Conforme |
 | F-10 | Panel transversal | Conforme |
 | F-11 | Módulo de descarga de reportes (CSV, Excel, PDF) | Conforme |
+
+### 5.1 Copiloto del geovisor
+
+Verificado en producción con una sesión de rol `administrador`:
+
+| Comprobación | Resultado |
+|---|---|
+| Responde con las cifras de la geodatabase | Conforme |
+| Cita la tabla de la que provienen | Conforme — `puntos_monitoreo` |
+| Ofrece el acceso al componente correspondiente | Conforme — Restauración Ecológica |
+| Redacción por el proveedor configurado | Activa · `nvidia/nemotron-3-ultra-550b-a55b` |
+
+Respuesta obtenida a la pregunta «¿Cuántas parcelas de monitoreo hay?»:
+
+> Hay 15 parcelas de monitoreo permanentes, identificadas como BD1, BR1, CU1, CU2, CU3,
+> DD1, DD2, DD3, DD4, DD5, DD6, DD7, VS1, VS2 y VS3.
+
+La cifra y la nomenclatura corresponden a los registros de `puntos_monitoreo` con
+`tipo_monitoreo = 'parcela'`, lo que confirma que la respuesta se construye sobre el dato
+almacenado y no sobre una estimación del modelo.
 
 ---
 
@@ -189,7 +212,7 @@ verificarla antes del 14 de noviembre de 2026.
 
 La plataforma se encuentra **publicada en ambiente productivo y operativa**, con
 certificado válido, control de acceso efectivo y todos sus componentes funcionales. Los
-49 casos ejecutados resultaron conformes. Las salvedades registradas corresponden a
+52 casos ejecutados resultaron conformes. Las salvedades registradas corresponden a
 información de campo pendiente de entrega, no a defectos del desarrollo.
 
 Se da por cumplido lo previsto en la cláusula 5.5 del contrato: pruebas funcionales y
