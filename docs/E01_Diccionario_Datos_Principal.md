@@ -1,7 +1,8 @@
 # 📚 Diccionario de Datos — Geodatabase `eco_restauracion`
 
 **Motor:** PostgreSQL 16 + PostGIS 3.4 · **SRID:** 4326 (WGS84) · **Esquema:** `eco_restauracion`
-Scripts fuente (orden de aplicación): `schema-completo.sql` → migraciones `02…06` de `04-base-de-datos/`.
+Scripts fuente (orden de aplicación): `schema-completo.sql` → migraciones `02…15` de `04-base-de-datos/`.
+Actualizado a la migración 15.
 
 ## Tablas
 
@@ -68,6 +69,77 @@ id PK · **capa** (nombre lógico) · nombre · propiedades JSONB · origen ·
 id PK · nombre · **email UNIQUE** · password_hash (bcrypt) ·
 **rol** (administrador · tecnico · consulta) · activo · creado_en · ultimo_acceso.
 
+## Tablas por componente técnico
+
+Las tablas anteriores forman el núcleo espacial de la geodatabase. Las siguientes
+sostienen cada componente del geovisor y se incorporaron en las migraciones 07 a 15.
+
+### Restauración ecológica
+
+#### estratos_vegetacion (mig. 07)
+id PK · **estrato** (herbaceo · arbustivo · arboreo) · cobertura_pct · altura_m · fecha ·
+periodo · **origen** (muestra · campo) · descripcion · **geom MultiPolygon GIST**.
+
+#### malezas (mig. 07)
+id PK · especie · cobertura_pct · **estado** (requiere_control · en_control · controlada ·
+monitoreo) · fecha · origen · observaciones · **geom Geometry GIST**.
+
+#### tecnicas_restauracion (mig. 07) — herramientas de manejo del paisaje aplicadas
+id PK · **tecnica** (revegetalizacion · bioaumentacion · siembra · control_malezas ·
+recuperacion_suelo · restauracion_pasiva) · **descripcion** (nombre de la HMP: sistema
+agroforestal, núcleos de vegetación…) · fecha · area_hectareas · responsable · origen ·
+**geom MultiPolygon GIST**.
+
+> El campo `tecnica` guarda el tipo de restauración y `descripcion` el nombre de la
+> herramienta aplicada. El geovisor muestra `descripcion` como título del elemento.
+
+#### arboles_monitoreo (mig. 08) — censo forestal
+id PK · **fecha** (campaña: 'Linea base', 'Monitoreo 1'…) · cobertura · **id_parcela**
+(enlaza `puntos_monitoreo.codigo_punto`) · id_arbol · especie · nombre_comun ·
+altura_max · n_fustes · dap_eq · area_basal_arbol · categoria_arbol (Brinzal · Latizal ·
+Fustal) · created_at. Un registro = un individuo medido.
+
+### Monitoreo de fauna
+
+#### fauna_observaciones (mig. 13)
+id PK · grupo · nombre_comun · nombre_cientifico · cobertura_vegetal · n_individuos ·
+lugar_percha · habito · comportamiento · fecha · hora · observacion · created_at.
+
+#### fauna_grupos_resumen (mig. 09)
+id PK · fecha · **grupo** (aves · anfibios · mamiferos · reptiles) · abundancia · riqueza.
+
+#### fauna_diversidad_curvas (mig. 09) — curvas de rarefacción
+id PK · fecha · grupo · n_individuos (eje x) · riqueza_estimada (eje y) · riqueza_ic_inf ·
+riqueza_ic_sup · **tipo_segmento** (rarefaccion · extrapolacion) · n_observado.
+
+### Vegetación acuática
+
+#### maleza_limpieza (mig. 12)
+id PK · **fecha** (campaña) · area_ha removidas · borde_km intervenidos · observaciones.
+
+### Ficorremediación
+
+#### ficor_calidad_agua (mig. 11)
+id PK · fecha · **variable** (pH, Oxígeno Disuelto, DBO5…) · valor · unidad.
+
+#### ficor_calidad_sedimentos (mig. 11)
+id PK · fecha · **categoria** (metal_pesado · plaguicida) · variable · valor · unidad (mg/kg).
+
+#### ficor_biota (mig. 11)
+id PK · fecha · grupo · abundancia · riqueza.
+
+### Gobernanza ambiental
+
+#### gobernanza_actividades (mig. 10)
+id PK · actividad · cantidad de eventos · participantes · ubicacion · fecha.
+
+### Plataforma
+
+#### copiloto_consultas (mig. 15) — registro de uso del asistente
+id PK · usuario_id FK→usuarios · pregunta · **con_modelo** (redactada por el proveedor o
+compuesta con los datos) · modelo · creado_en. No almacena la respuesta: interesa la
+necesidad de información, no el texto generado.
+
 ## Vistas
 | Vista | Contenido |
 |---|---|
@@ -75,12 +147,22 @@ id PK · nombre · **email UNIQUE** · password_hash (bcrypt) ·
 | vw_resumen_calidad | agregado por periodo/categoría (mig. 02) |
 | vw_capas_inventario | capa, tipo de geometría, total (mig. 04) |
 | vw_lotes_resumen / vw_lotes_centroides | resúmenes de lotes (schema base) |
+| v_resumen_poligonos | conteo y superficie de polígonos por tipo de ecosistema y estado (schema base) |
+| vw_indicadores_restauracion | riqueza, densidad/ha, área basal/ha, altura media y Shannon por campaña, desde el censo (mig. 08) |
+| vw_fauna_total | abundancia y riqueza agregadas por campaña (mig. 09) |
+| vw_gobernanza_resumen | eventos y participantes por tipo de actividad (mig. 10) |
+| vw_copiloto_frecuentes | preguntas más repetidas al copiloto en los últimos 30 días (mig. 15) |
 
 ## Relaciones
 ```
 poligonos_restauracion 1—N puntos_monitoreo 1—N monitoreos N—1 parcelas
 parcelas 1—N fotografias
-(lotes_bioaumentacion, coberturas_vegetales, capas_geograficas: independientes, unidas por periodo)
+puntos_monitoreo.codigo_punto —— arboles_monitoreo.id_parcela   (enlace por código, sin FK)
+usuarios 1—N copiloto_consultas
+
+Sin dependencias entre sí, unidas por el campo de campaña (`fecha`) o por `periodo`:
+  coberturas_vegetales · capas_geograficas · lotes_bioaumentacion · estratos_vegetacion
+  malezas · tecnicas_restauracion · fauna_* · ficor_* · maleza_limpieza · gobernanza_actividades
 ```
 
 ## Sistemas de referencia

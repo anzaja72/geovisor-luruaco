@@ -1,5 +1,5 @@
 -- ============================================================================
--- 13 · Registro de consultas al copiloto
+-- 15 · Registro de consultas al copiloto
 -- Guarda lo que la gente pregunta al asistente del geovisor. Sirve para dos
 -- cosas: saber qué información busca el usuario (y ajustar la plataforma a esa
 -- demanda) y sustentar el informe de uso del sistema.

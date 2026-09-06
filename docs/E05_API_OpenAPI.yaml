@@ -68,6 +68,8 @@ tags:
     description: Carga masiva de capas en GeoJSON y CSV
   - name: Reportes
     description: Descarga de reportes en CSV, Excel y PDF
+  - name: Copiloto
+    description: Preguntas en lenguaje natural respondidas con datos de la geodatabase
   - name: Usuarios
     description: Gestión de cuentas (solo administrador)
 
@@ -770,6 +772,64 @@ paths:
         "401": { $ref: "#/components/responses/NoAutenticado" }
         "404":
           description: Tipo de reporte no reconocido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  # --------------------------------------------------------------- Copiloto
+  /api/copiloto:
+    post:
+      tags: [Copiloto]
+      operationId: postCopiloto
+      summary: Preguntar al copiloto del geovisor
+      description: |
+        Responde una pregunta en lenguaje natural sobre el proyecto. Las cifras se
+        leen de la geodatabase antes de redactar la respuesta y se entregan al modelo
+        de lenguaje como contexto, con la instrucción de no inventar ninguna.
+
+        Si no hay proveedor configurado —o si su servicio falla— la respuesta se
+        compone directamente con esos datos y `con_modelo` vuelve en `false`.
+
+        Límite de 12 consultas por minuto y usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pregunta]
+              properties:
+                pregunta:
+                  type: string
+                  maxLength: 500
+                  example: ¿Cuánta área se restauró de forma activa?
+      responses:
+        "200":
+          description: Respuesta del copiloto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  respuesta: { type: string }
+                  fuentes:
+                    type: array
+                    items: { type: string }
+                    description: Tablas o conjuntos de datos de los que salen las cifras
+                  vistas:
+                    type: array
+                    items:
+                      type: string
+                      enum: [restauracion, maleza, ficorremediacion, fauna, gobernanza]
+                    description: Componentes del geovisor donde consultar lo respondido
+                  modelo: { type: string, description: Modelo empleado; vacío en modo sin modelo }
+                  con_modelo:
+                    type: boolean
+                    description: false cuando la respuesta se compuso solo con los datos
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "429":
+          description: Se superó el límite de consultas por minuto
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
