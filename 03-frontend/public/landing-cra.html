@@ -23,26 +23,30 @@
   .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
 
   /* Nav */
-  .franja-cra{position:fixed;top:0;left:0;width:100%;z-index:41;background:#fff;border-bottom:1px solid var(--line)}
-  .franja-cra .wrap{display:flex;align-items:center;gap:16px;min-height:58px}
-  .franja-cra img{width:60px;height:auto}   /* mínimo 1,5 cm de ancho */
-  .franja-cra span{font-size:12px;color:var(--muted);line-height:1.35}
-  .franja-cra b{display:block;font-size:12.5px;color:var(--navy)}
-  @media (max-width:640px){.franja-cra span{font-size:11px}}
-  .nav{position:fixed;top:58px;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
-  .nav.on-hero{background:transparent;border-color:transparent}
+  .nav{position:fixed;top:0;left:0;width:100%;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);transition:.2s}
+    .nav.on-hero{background:linear-gradient(180deg,rgba(0,95,150,.94),rgba(0,95,150,.82));
+    border-color:transparent;backdrop-filter:blur(10px)}
+  /* Versiones del isologo: a color sobre fondo claro, en negativo sobre el azul
+     institucional (Manual de Identidad Visual, usos correctos 3 y 4). El logo
+     nunca queda sobre la fotografía: la barra siempre aporta su propio plano. */
+  .brand .logo-negativo{display:none}
+  .nav.on-hero .brand .logo-color{display:none}
+  .nav.on-hero .brand .logo-negativo{display:block}
   .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:64px;flex-wrap:nowrap}
-  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;min-width:0}
+  .brand{display:flex;align-items:center;gap:16px;font-weight:700;font-size:13.5px;min-width:0}
   .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .brand img{width:32px;height:32px;border-radius:8px;object-fit:cover;background:#fff;flex:none}
+  .brand img{width:60px;height:auto;object-fit:contain;flex:none}
   .brand small{display:none}
   .nav .btn{padding:9px 16px;font-size:12.5px;white-space:nowrap;flex:none}
   .navlinks{display:none;align-items:center;gap:28px;font-size:13.5px;font-weight:600}
   .navlinks a{opacity:.85}
   .navlinks a:hover{opacity:1}
   .btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-weight:700;
-    border-radius:9999px;padding:11px 22px;font-size:14px;background:var(--navy);color:#fff;transition:.2s}
-  .btn:hover{background:var(--navy2);transform:translateY(-1px)}
+    border-radius:9999px;padding:11px 22px;font-size:14px;color:#fff;transition:.2s;
+    background:rgba(0,95,150,.72);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.35)}
+  .btn:hover{background:rgba(13,122,184,.85);transform:translateY(-1px)}
+  .nav:not(.on-hero) .btn{background:var(--navy);border-color:transparent}
+  .nav:not(.on-hero) .btn:hover{background:var(--navy2)}
   .btn-lg{padding:14px 28px;font-size:16px}
   .btn-ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(4px)}
   .btn-ghost:hover{background:rgba(255,255,255,.2)}
@@ -128,26 +132,19 @@
     .navlinks{display:flex}
     footer .cols{grid-template-columns:1.4fr .8fr .8fr}
     .brand{font-size:15px;gap:10px}
-    .brand img{width:38px;height:38px}
+    .brand img{width:64px;height:auto}
     .brand small{display:block}
     .nav .btn{padding:11px 22px;font-size:14px}
   }
 </style>
 </head>
 <body>
-  <!-- Entidad contratante: isologo sobre fondo sólido y con su área de reserva -->
-  <div class="franja-cra">
-    <div class="wrap">
-      <img src="/logo-cra.svg" alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
-      <span><b>Corporación Autónoma Regional del Atlántico</b>
-        Autoridad ambiental del departamento del Atlántico · Contrato 324 de 2025</span>
-    </div>
-  </div>
-
   <nav class="nav" id="nav">
     <div class="wrap">
       <a class="brand" href="#top">
-        <img src="/logo-proyecto.jpeg" alt="Restauración Luruaco" />
+        <img class="logo-color" src="/logo-cra.svg"
+          alt="Corporación Autónoma Regional del Atlántico — C.R.A." />
+        <img class="logo-negativo" src="/logo-cra-negativo.svg" alt="" aria-hidden="true" />
         <span>Restauración Luruaco<small>Ciénaga de Luruaco · Atlántico</small></span>
       </a>
       <div class="navlinks">
@@ -292,7 +289,6 @@
       nav.classList.toggle('on-hero', !past);
       nav.style.color = past ? 'var(--ink)' : '#fff';
       nav.querySelectorAll('.navlinks a, .brand').forEach(el => { el.style.color = past ? 'var(--ink)' : '#fff' });
-      const navBtn = nav.querySelector('.btn:not(.btn-ghost)');
     };
     window.addEventListener('scroll', onScroll);
     onScroll();
