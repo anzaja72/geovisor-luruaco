@@ -389,6 +389,19 @@ export default function MapView({
                               <dd>{p.nombre_punto}</dd>
                             </>
                           )}
+                          {/* Nomenclatura de la parcela (BD1, BR1, CU1, DD4…) */}
+                          {p.codigo_punto && (
+                            <>
+                              <dt>{esFicor ? 'Código' : 'Nomenclatura'}</dt>
+                              <dd>{p.codigo_punto}</dd>
+                            </>
+                          )}
+                          {!esFicor && p.descripcion && (
+                            <>
+                              <dt>Cobertura</dt>
+                              <dd>{p.descripcion}</dd>
+                            </>
+                          )}
                           <dt>Coordenadas</dt>
                           <dd>{coords[1].toFixed(5)}, {coords[0].toFixed(5)}</dd>
                           {p.elevacion != null && (
@@ -398,7 +411,7 @@ export default function MapView({
                             </>
                           )}
                         </dl>
-                        {p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
+                        {esFicor && p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
                       </div>
                     </Popup>
                   </Marker>

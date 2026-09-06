@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import MapView, { claseCobertura, CLASE_COLOR, type GeovisorMapProps } from '../components/MapView'
 import { Footer, Icon } from './Shell'
-import { RESTAURACION as R, ACTIVA_TXT, PASIVA_TXT } from './data'
+import { RESTAURACION as R, ACTIVA_TXT, PASIVA_TXT, SEMBRADOS_TXT } from './data'
 import { fetchIndicadoresRestauracion, type IndicadoresRestauracion } from '../lib/api'
 
 type MapProps = GeovisorMapProps
@@ -11,7 +11,7 @@ const ABUND_COLORS = ['#1b6d24', '#2f8a45', '#4f9e63', '#00585f', '#1565c0', '#6
 const sinPrefijo = (n: string) => n.replace(/^[\d.]+\.?\s*/, '')
 
 const FECHAS: [string, string][] = [
-  ['Linea base', 'Línea base (2024)'], ['Monitoreo 1', 'Monitoreo 1'], ['Monitoreo 2', 'Monitoreo 2'],
+  ['Linea base', 'Línea base (Julio 2026)'], ['Monitoreo 1', 'Monitoreo 1 (noviembre 2026)'], ['Monitoreo 2', 'Monitoreo 2'],
   ['Monitoreo 3', 'Monitoreo 3'], ['Monitoreo 4', 'Monitoreo 4'],
 ]
 
@@ -129,7 +129,10 @@ export default function RestauracionView(map: MapProps) {
             <div className="top"><span className="chip"><Icon id="sprout" /></span><span className="lab">Restauración activa</span></div><div className="val num">{fmt(d.activa)} <small>ha</small></div></div>
           <div className="kpi click alt" onClick={() => setInfo({ t: 'Restauración pasiva', v: `${fmt(d.pasiva)} ha`, b: PASIVA_TXT })}>
             <div className="top"><span className="chip"><Icon id="shield" /></span><span className="lab">Restauración pasiva</span></div><div className="val num">{fmt(d.pasiva)} <small>ha</small></div></div>
-          <div className="kpi" title="No incluido en el censo"><div className="top"><span className="chip"><Icon id="users" /></span><span className="lab">Individuos sembrados</span></div><div className="val">s/d<sup style={{ color: 'var(--secondary)' }}>*</sup></div></div>
+          <div className="kpi click" title="Plántulas recibidas del vivero y plantadas en campo"
+            onClick={() => setInfo({ t: 'Individuos sembrados', v: `${R.sembrados.toLocaleString('es-CO')} plántulas`, b: SEMBRADOS_TXT })}>
+            <div className="top"><span className="chip"><Icon id="users" /></span><span className="lab">Individuos sembrados</span></div>
+            <div className="val num">{R.sembrados.toLocaleString('es-CO')}</div></div>
         </div>
 
         <div className="cob-table-wrap">
@@ -213,7 +216,7 @@ export default function RestauracionView(map: MapProps) {
 
       <div className="note"><b>{live && !sinMediciones ? 'Datos en vivo' : 'Datos reales'}</b> del censo <i>arboles_resumen.xlsx</i> — Línea base: 75 árboles, 136 fustes, 12 especies, 15 parcelas.
         {' '}<b>Fórmulas:</b> Densidad = N ÷ área muestreada · Área basal = Σ[π·(DAP/200)²] ÷ área muestreada · Riqueza = especies distintas · Shannon H′ = −Σ(pᵢ·ln pᵢ).
-        {' '}<b>Supuesto:</b> parcela = 0,1 ha (→ 1,5 ha); confirmar con Yurani. <b>*</b> «Individuos sembrados» no está en el censo. Monitoreos 1–4 aún sin mediciones de campo.</div>
+        {' '}<b>Supuesto:</b> parcela = 0,1 ha (→ 1,5 ha); confirmar con Yurani. <b>Individuos sembrados:</b> {R.sembrados.toLocaleString('es-CO')} plántulas recibidas del vivero (no hace parte del censo). Monitoreos 1–4 aún sin mediciones de campo.</div>
 
       <Footer />
 

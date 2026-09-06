@@ -11,6 +11,7 @@ export const RESTAURACION = {
   pasivaHa: 6.28,
   individuos: 75,
   fustes: 136,
+  sembrados: 17565, // plántulas recibidas del vivero y plantadas en campo
   alturaMedia: 5.5,
   shannon: 1.81,
   // Densidad por parcela (ind/ha) — solo BD1/BR1 tienen árboles en línea base
@@ -48,6 +49,11 @@ export const PASIVA_TXT =
   'reservorios de biodiversidad, fuentes potenciales de semillas y núcleos para la recuperación de la ' +
   'cobertura vegetal. Se destinaron a preservación y conservación mediante restauración pasiva, por medio ' +
   'de eliminación de tensionantes (tala, quemas, cultivos) y aislamiento con cerca de púas y cerca viva.'
+
+export const SEMBRADOS_TXT =
+  'En total se recibieron 17.565 plántulas en campo por parte del vivero, las cuales se plantaron en las ' +
+  'coberturas de Tierras desnudas y degradadas y en Mosaico de cultivos, empleando la HMP de Sistema ' +
+  'agroforestal con franjas de restauración.'
 
 // Maleza acuática: hectáreas removidas acumuladas por monitoreo (datos reales).
 export const MALEZA = {

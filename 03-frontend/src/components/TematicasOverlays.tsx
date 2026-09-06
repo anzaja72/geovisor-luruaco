@@ -7,7 +7,7 @@ import {
   colorCumplimiento,
   ESTRATO,
   MALEZA_ESTADO,
-  TECNICA,
+  tecnicaMeta,
 } from '../lib/tematicas'
 
 type Props = Record<string, unknown>
@@ -80,18 +80,23 @@ export default function TematicasOverlays({ tematicas }: { tematicas: Tematicas 
           <GeoJSON
             key={`tec-${tecnicas.length}`}
             data={fc(tecnicas)}
-            style={(f) => {
-              const t = (f?.properties as Props)?.tecnica as keyof typeof TECNICA
-              return { color: '#fff', weight: 1, fillColor: TECNICA[t]?.color ?? '#888', fillOpacity: 0.5 }
-            }}
+            style={(f) => ({
+              color: '#fff', weight: 1,
+              fillColor: tecnicaMeta((f?.properties ?? {}) as Props).color,
+              fillOpacity: 0.5,
+            })}
             onEachFeature={(f, layer) => {
               const p = f.properties as Props
-              const t = p.tecnica as keyof typeof TECNICA
+              // El nombre de la HMP vive en los atributos de la capa: encabeza el popup
+              // de información y se muestra como etiqueta al pasar el cursor.
+              const { nombre, tipo, color } = tecnicaMeta(p)
+              const propio = tipo && tipo !== nombre // el tipo aporta algo distinto del nombre
               layer.bindPopup(
-                popup('Técnica de restauración', TECNICA[t]?.color ?? '#888',
-                  (TECNICA[t]?.label ?? '').toUpperCase(),
-                  [['Fecha', String(p.fecha ?? '')], ['Área', `${p.area_hectareas ?? 0} ha`],
+                popup(nombre, color, (propio ? tipo : 'Técnica aplicada').toUpperCase(),
+                  [['Técnica', nombre], ['Tipo de restauración', propio ? tipo : ''],
+                   ['Fecha', String(p.fecha ?? '')], ['Área', `${p.area_hectareas ?? 0} ha`],
                    ['Responsable', String(p.responsable ?? '')]], p))
+              layer.bindTooltip(nombre, { sticky: true, direction: 'top', className: 'tec-tip' })
             }}
           />
         </LayersControl.Overlay>
