@@ -1,13 +1,32 @@
+import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
-import Carousel3D from '../components/Carousel3D'
+import Carousel3D, { type Foto } from '../components/Carousel3D'
 import { GOBERNANZA } from './data'
 
 const COLORES = ['#1b6d24', '#2f8a45', '#1565c0', '#00585f', '#6f9e3a', '#8a9e7a', '#7a8a93']
 
-// Registro fotográfico real de actividades de gobernanza (25 fotos).
-const FOTOS_GOBERNANZA = Array.from({ length: 25 }, (_, i) => `/gobernanza/gob-${String(i + 1).padStart(2, '0')}.jpg`)
+// Registro fotográfico real de actividades de gobernanza (25 fotos). Las rutas son el
+// respaldo si no se puede leer el índice; /gobernanza/index.json añade la referencia
+// (tipo de actividad) de cada foto.
+const FOTOS_GOBERNANZA: Foto[] = Array.from({ length: 25 }, (_, i) => ({
+  src: `/gobernanza/gob-${String(i + 1).padStart(2, '0')}.jpg`,
+}))
 
 export default function GobernanzaView() {
+  const [fotos, setFotos] = useState<Foto[]>(FOTOS_GOBERNANZA)
+
+  // Índice de fotos con su referencia (generado desde las carpetas del registro).
+  useEffect(() => {
+    const ac = new AbortController()
+    fetch('/gobernanza/index.json', { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Foto[] | null) => {
+        if (Array.isArray(data) && data.length > 0) setFotos(data)
+      })
+      .catch(() => { /* sin índice: se muestran las fotos sin referencia */ })
+    return () => ac.abort()
+  }, [])
+
   const { actividades } = GOBERNANZA
   const tipos = actividades.length
   const eventos = actividades.reduce((s, [, c]) => s + c, 0)
@@ -77,9 +96,9 @@ export default function GobernanzaView() {
 
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de actividades</h3>
-          <span className="badge-soft">{FOTOS_GOBERNANZA.length} fotos · arrastra para girar</span></div>
-        <div style={{ padding: 8 }}>
-          <Carousel3D images={FOTOS_GOBERNANZA} height={460} />
+          <span className="badge-soft">{fotos.length} fotos · arrastra para girar · clic para ampliar</span></div>
+        <div style={{ padding: '14px 8px 8px' }}>
+          <Carousel3D images={fotos} height={560} />
         </div>
       </div>
 
