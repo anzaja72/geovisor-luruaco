@@ -394,3 +394,63 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 .f3d-reintentar{font-size:11px;font-weight:700;color:var(--secondary);background:var(--card);
   border:1px solid var(--secondary);border-radius:999px;padding:4px 14px}
 .f3d-reintentar:hover{background:#f2faf3}
+
+/* ---------- Copiloto del geovisor ---------- */
+.search-btn{border:1px solid var(--line);color:var(--muted);gap:10px;text-align:left;
+  transition:border-color .15s,color .15s}
+.search-btn:hover{border-color:var(--primary);color:var(--primary)}
+.search-btn span{flex:1;font-size:13px}
+.search-btn kbd{font:inherit;font-size:10.5px;font-weight:700;color:var(--muted);
+  background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+
+.cop-velo{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:60}
+.cop-velo.on{opacity:1;pointer-events:auto}
+.cop{position:fixed;top:0;right:0;height:100vh;width:min(420px,100vw);background:var(--card);
+  border-left:1px solid var(--line);box-shadow:-14px 0 40px rgba(15,23,42,.16);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .24s cubic-bezier(.32,.72,0,1);
+  z-index:61}
+.cop.on{transform:none}
+.cop-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 18px;
+  background:var(--primary);color:#fff}
+.cop-h b{font-size:14px;display:block}
+.cop-h small{font-size:11px;opacity:.85}
+.cop-x{border:0;background:none;color:#fff;font-size:22px;line-height:1;opacity:.85;padding:0 2px}
+.cop-x:hover{opacity:1}
+
+.cop-hilo{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.cop-inicio p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.cop-sug{display:flex;flex-direction:column;gap:7px}
+.cop-sug button{text-align:left;font-size:12.5px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:9px 12px;transition:.15s}
+.cop-sug button:hover{border-color:var(--primary);color:var(--primary);background:#fff}
+
+.cop-turno{display:flex;flex-direction:column;gap:8px}
+.cop-q{align-self:flex-end;max-width:85%;background:var(--primary);color:#fff;font-size:13px;
+  border-radius:12px 12px 3px 12px;padding:9px 13px}
+.cop-a{background:var(--bg);border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:12px 14px}
+.cop-a p{font-size:13px;line-height:1.55;color:var(--ink)}
+.cop-err{color:var(--poor);font-size:12.5px}
+.cop-fuentes{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted)}
+.cop-fuentes em{font-style:normal;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.cop-acciones{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.cop-acciones button{font-size:11.5px;font-weight:700;color:var(--tertiary);background:var(--tert-c);
+  border:1px solid #b6e6f2;border-radius:999px;padding:5px 11px}
+.cop-acciones button:hover{background:#c9eef7}
+.cop-nota{margin-top:8px;font-size:10.5px;color:var(--warn);font-style:italic}
+
+.cop-cargando{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.cop-cargando span{width:5px;height:5px;border-radius:50%;background:var(--tertiary);
+  animation:copPulso 1s infinite ease-in-out}
+.cop-cargando span:nth-child(2){animation-delay:.15s}
+.cop-cargando span:nth-child(3){animation-delay:.3s;margin-right:5px}
+@keyframes copPulso{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+.cop-entrada{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.cop-entrada input{flex:1;font:inherit;font-size:13px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+.cop-entrada input:focus{border-color:var(--primary);background:#fff}
+.cop-entrada button{width:40px;border:0;border-radius:10px;background:var(--primary);color:#fff;
+  font-size:16px;font-weight:700}
+.cop-entrada button:disabled{background:var(--line);color:var(--muted)}
+.cop-pie{padding:0 14px 12px;font-size:10px;color:var(--muted);line-height:1.4}

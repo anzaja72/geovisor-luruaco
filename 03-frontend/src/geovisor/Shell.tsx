@@ -48,7 +48,7 @@ export function Icon({ id, style }: { id: string; style?: CSSProperties }) {
   return <svg className="i" style={style}><use href={`#${id}`} /></svg>
 }
 
-function TopBar({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void }) {
+function TopBar({ usuario, onLogout, onCopiloto }: { usuario: Usuario; onLogout: () => void; onCopiloto?: () => void }) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -57,8 +57,11 @@ function TopBar({ usuario, onLogout }: { usuario: Usuario; onLogout: () => void 
         <div><h1>Geovisor de Restauración Ecológica</h1><small>Ciénaga de Luruaco · Atlántico</small></div>
       </div>
       <div className="topnav">
-        <div className="search"><Icon id="search" style={{ width: 18, height: 18 }} />
-          <input placeholder="Buscar predio, parcela o especie…" /></div>
+        <button className="search search-btn" onClick={onCopiloto} title="Preguntar al copiloto (⌘K)">
+          <Icon id="search" style={{ width: 18, height: 18 }} />
+          <span>Pregunta sobre el proyecto…</span>
+          <kbd>⌘K</kbd>
+        </button>
         <button className="iconbtn" title="Notificaciones"><Icon id="bell" /></button>
         <button className="iconbtn" title={usuario.nombre}><Icon id="user" /></button>
         <button className="iconbtn" title="Cerrar sesión" onClick={onLogout}><Icon id="logout" /></button>
@@ -107,12 +110,13 @@ function Sidebar({
 }
 
 export default function Shell({
-  usuario, onLogout, active, onNav, onMonitoreo, onImport, children,
+  usuario, onLogout, active, onNav, onMonitoreo, onImport, onCopiloto, children,
 }: {
   usuario: Usuario
   onLogout: () => void
   active: CompId
   onNav: (c: CompId) => void
+  onCopiloto?: () => void
   onMonitoreo?: () => void
   onImport?: () => void
   children: ReactNode
@@ -120,7 +124,7 @@ export default function Shell({
   return (
     <>
       <Sprite />
-      <TopBar usuario={usuario} onLogout={onLogout} />
+      <TopBar usuario={usuario} onLogout={onLogout} onCopiloto={onCopiloto} />
       <div className="shell">
         <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport} />
         <main className="main">{children}</main>

@@ -146,6 +146,9 @@ func main() {
 	// --- Reportes (CSV/Excel/PDF): cualquier usuario autenticado ---
 	api.Get("/reportes/:tipo", lectura, getReporte)
 
+	// Copiloto: preguntas en lenguaje natural respondidas con datos de la geodatabase
+	api.Post("/copiloto", lectura, copiloto)
+
 	// --- Gestión de usuarios: solo administrador ---
 	admin := requireAuth("administrador")
 	api.Get("/usuarios", admin, listarUsuarios)

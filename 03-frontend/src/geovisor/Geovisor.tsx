@@ -9,6 +9,7 @@ import TransversalView from './TransversalView'
 import ReportesView from './ReportesView'
 import { useGeoData } from '../hooks/useGeoData'
 import MonitoreoModal from '../components/MonitoreoModal'
+import Copiloto from '../components/Copiloto'
 import ImportModal from '../components/ImportModal'
 import { puedeEditar, type Usuario } from '../lib/auth'
 import { iniciarAutoSync } from '../lib/offlineQueue'
@@ -19,6 +20,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
   const [active, setActive] = useState<CompId>('restauracion')
   const [monitoreoOpen, setMonitoreoOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [copilotoOpen, setCopilotoOpen] = useState(false)
   const [selected, setSelected] = useState<GeoFeature | null>(null)
   // Nota: "lotes" (lotes_bioaumentacion) nunca se pasa al geovisor — es data de muestra
   // con el nombre restringido ("Planta de Bioaumentación") y no debe mostrarse en ningún componente.
@@ -27,6 +29,18 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
 
   // Sube los registros guardados en el navegador (modo offline) al recuperar internet.
   useEffect(() => iniciarAutoSync(reload), [reload])
+
+  // ⌘K / Ctrl+K abre el copiloto desde cualquier punto de la aplicación.
+  useEffect(() => {
+    const atajo = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setCopilotoOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', atajo)
+    return () => window.removeEventListener('keydown', atajo)
+  }, [])
 
   // Props base del mapa, comunes a los 4 geovisores. Cada vista decide qué es pertinente
   // pasando su propio `componente` a <MapView>; el filtrado real ocurre allí.
@@ -41,6 +55,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         onNav={setActive}
         onMonitoreo={canEdit ? () => setMonitoreoOpen(true) : undefined}
         onImport={canEdit ? () => setImportOpen(true) : undefined}
+        onCopiloto={() => setCopilotoOpen(true)}
       >
         {active === 'restauracion' && <RestauracionView {...mapProps} />}
         {active === 'maleza' && <MalezaView {...mapProps} />}
@@ -50,6 +65,12 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         {active === 'transversal' && <TransversalView onNav={setActive} />}
         {active === 'reportes' && <ReportesView />}
       </Shell>
+
+      <Copiloto
+        abierto={copilotoOpen}
+        onCerrar={() => setCopilotoOpen(false)}
+        onIrA={setActive}
+      />
 
       <MonitoreoModal
         open={monitoreoOpen}
