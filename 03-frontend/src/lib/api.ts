@@ -211,3 +211,67 @@ export async function importarArchivo(
   if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
   return data as ImportResult
 }
+
+// ---------------------------------------------------------------------------
+// Lecturas por componente. Cierran el circuito de los formularios de campo:
+// lo que se registra en gobernanza, vegetación acuática o ficorremediación se
+// consulta por aquí, en lugar de mostrar constantes del propio frontend.
+// ---------------------------------------------------------------------------
+
+export interface GobernanzaActividad {
+  actividad: string
+  cantidad: number
+  participantes: number
+  ubicacion: string
+}
+
+export interface GobernanzaResumen {
+  actividades: GobernanzaActividad[]
+  eventos: number
+  participantes: number
+  tipos: number
+}
+
+export function fetchGobernanza(signal?: AbortSignal): Promise<GobernanzaResumen> {
+  return getJSON<GobernanzaResumen>('/api/gobernanza/actividades', signal)
+}
+
+export interface MalezaJornada {
+  fecha: string
+  area_ha: number
+  borde_km: number
+  observaciones: string
+}
+
+export interface MalezaResumen {
+  jornadas: MalezaJornada[]
+  acumulado_ha: number
+  borde_km: number
+}
+
+export function fetchMalezaLimpiezas(signal?: AbortSignal): Promise<MalezaResumen> {
+  return getJSON<MalezaResumen>('/api/maleza/limpiezas', signal)
+}
+
+export interface FicorMedicion {
+  fecha: string
+  variable?: string
+  categoria?: string
+  grupo?: string
+  valor?: number
+  unidad?: string
+  abundancia?: number
+  riqueza?: number
+  sin_valor?: boolean
+}
+
+export interface FicorMediciones {
+  agua: FicorMedicion[]
+  sedimentos: FicorMedicion[]
+  biota: FicorMedicion[]
+  sin_datos: boolean
+}
+
+export function fetchFicorMediciones(signal?: AbortSignal): Promise<FicorMediciones> {
+  return getJSON<FicorMediciones>('/api/ficor/mediciones', signal)
+}

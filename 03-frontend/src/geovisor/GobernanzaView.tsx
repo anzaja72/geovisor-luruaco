@@ -3,6 +3,7 @@ import { Footer, Icon } from './Shell'
 import Carousel3D, { type Foto } from '../components/Carousel3D'
 import { GOBERNANZA } from './data'
 import { PALETA_CRA } from '../lib/marca'
+import { fetchGobernanza, type GobernanzaActividad } from '../lib/api'
 
 const COLORES = PALETA_CRA
 
@@ -13,8 +14,29 @@ const FOTOS_GOBERNANZA: Foto[] = Array.from({ length: 25 }, (_, i) => ({
   src: `/gobernanza/gob-${String(i + 1).padStart(2, '0')}.jpg`,
 }))
 
+/** Respaldo con los datos de la línea base, por si la geodatabase no responde. */
+const RESPALDO: GobernanzaActividad[] = GOBERNANZA.actividades.map(
+  ([actividad, cantidad, participantes, ubicacion]) => ({ actividad, cantidad, participantes, ubicacion }),
+)
+
 export default function GobernanzaView() {
   const [fotos, setFotos] = useState<Foto[]>(FOTOS_GOBERNANZA)
+  const [actividades, setActividades] = useState<GobernanzaActividad[]>(RESPALDO)
+  const [enVivo, setEnVivo] = useState(false)
+
+  // Las actividades salen de la geodatabase: así lo que se registra por el
+  // formulario de campo aparece en esta vista.
+  useEffect(() => {
+    const ac = new AbortController()
+    fetchGobernanza(ac.signal)
+      .then((d) => {
+        if (ac.signal.aborted || !d.actividades?.length) return
+        setActividades(d.actividades)
+        setEnVivo(true)
+      })
+      .catch(() => { /* sin backend se conservan los datos de la línea base */ })
+    return () => ac.abort()
+  }, [])
 
   // Índice de fotos con su referencia (generado desde las carpetas del registro).
   useEffect(() => {
@@ -28,27 +50,27 @@ export default function GobernanzaView() {
     return () => ac.abort()
   }, [])
 
-  const { actividades } = GOBERNANZA
   const tipos = actividades.length
-  const eventos = actividades.reduce((s, [, c]) => s + c, 0)
-  const participantes = actividades.reduce((s, [, , p]) => s + p, 0)
-  const promedio = Math.round((participantes / eventos) * 10) / 10
-  const maxParticipantes = Math.max(...actividades.map(([, , p]) => p))
+  const eventos = actividades.reduce((s, a) => s + a.cantidad, 0)
+  const participantes = actividades.reduce((s, a) => s + a.participantes, 0)
+  const promedio = eventos > 0 ? Math.round((participantes / eventos) * 10) / 10 : 0
+  const maxParticipantes = Math.max(...actividades.map((a) => a.participantes), 1)
 
   // Agrupación por ubicación: # de actividades y participantes por sitio.
   const porUbicacion = new Map<string, { eventos: number; participantes: number }>()
-  for (const [, cantidad, p, ubic] of actividades) {
-    const u = porUbicacion.get(ubic) ?? { eventos: 0, participantes: 0 }
-    u.eventos += cantidad
-    u.participantes += p
-    porUbicacion.set(ubic, u)
+  for (const a of actividades) {
+    const u = porUbicacion.get(a.ubicacion) ?? { eventos: 0, participantes: 0 }
+    u.eventos += a.cantidad
+    u.participantes += a.participantes
+    porUbicacion.set(a.ubicacion, u)
   }
 
   return (
     <>
       <div className="page-title">
         <h2><Icon id="users" /> Gobernanza Ambiental</h2>
-        <span className="badge-soft">Datos reales · participación comunitaria</span>
+        <span className="badge-soft" style={enVivo ? { background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' } : undefined}>
+          {enVivo ? '● Datos en vivo (geodatabase)' : 'Datos reales · participación comunitaria'}</span>
       </div>
 
       <div className="kpis k4" style={{ marginBottom: 18 }}>
@@ -62,14 +84,14 @@ export default function GobernanzaView() {
         <div className="panel chart-b">
           <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="activity" /> Participantes por tipo de actividad</h3></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-            {actividades.map(([nombre, , p], i) => (
-              <div key={nombre} title={`${nombre}: ${p} participantes`}>
+            {actividades.map((a, i) => (
+              <div key={a.actividad} title={`${a.actividad}: ${a.participantes} participantes`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                  <span style={{ color: 'var(--ink)' }}>{nombre}</span>
-                  <b style={{ color: 'var(--ink)' }}>{p}</b>
+                  <span style={{ color: 'var(--ink)' }}>{a.actividad}</span>
+                  <b style={{ color: 'var(--ink)' }}>{a.participantes}</b>
                 </div>
                 <div style={{ height: 8, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.max(4, (p / maxParticipantes) * 100)}%`, background: COLORES[i % COLORES.length], borderRadius: 4 }} />
+                  <div style={{ height: '100%', width: `${Math.max(4, (a.participantes / maxParticipantes) * 100)}%`, background: COLORES[i % COLORES.length], borderRadius: 4 }} />
                 </div>
               </div>
             ))}

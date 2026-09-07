@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
-import { fetchIndicadoresRestauracion, type IndicadoresRestauracion } from '../lib/api'
+import { fetchGobernanza, fetchIndicadoresRestauracion, fetchMalezaLimpiezas,
+  type IndicadoresRestauracion } from '../lib/api'
 import { MALEZA, GOBERNANZA } from './data'
 import type { CompId } from './data'
 
@@ -9,12 +10,22 @@ const fmt = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 2,
 export default function TransversalView({ onNav }: { onNav: (c: CompId) => void }) {
   const go = (c: CompId) => (e: React.MouseEvent) => { e.preventDefault(); onNav(c) }
   const [ind, setInd] = useState<IndicadoresRestauracion | null>(null)
+  // El consolidado lee de la geodatabase los tres frentes con datos cargados;
+  // las constantes quedan solo como respaldo si el backend no responde.
+  const [gob, setGob] = useState<{ eventos: number; participantes: number; tipos: number } | null>(null)
+  const [maleza, setMaleza] = useState<{ acumulado: number; jornadas: number } | null>(null)
 
   useEffect(() => {
     const ac = new AbortController()
     fetchIndicadoresRestauracion('Linea base', undefined, ac.signal)
       .then((d) => { if (!ac.signal.aborted && !d.sin_datos) setInd(d) })
-      .catch(() => { /* fallback a constantes */ })
+      .catch(() => { /* respaldo en constantes */ })
+    fetchGobernanza(ac.signal)
+      .then((d) => { if (!ac.signal.aborted && d.actividades?.length) setGob(d) })
+      .catch(() => { /* respaldo en constantes */ })
+    fetchMalezaLimpiezas(ac.signal)
+      .then((d) => { if (!ac.signal.aborted && d.jornadas?.length) setMaleza({ acumulado: d.acumulado_ha, jornadas: d.jornadas.length }) })
+      .catch(() => { /* respaldo en constantes */ })
     return () => ac.abort()
   }, [])
 
@@ -22,8 +33,11 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
   const activa = ind?.activa_ha ?? 41.72
   const especies = ind?.riqueza ?? 12
   const parcelas = ind ? ind.parcelas.length : 15
-  const participantes = GOBERNANZA.actividades.reduce((s, [, , p]) => s + p, 0)
-  const eventosGobernanza = GOBERNANZA.actividades.reduce((s, [, c]) => s + c, 0)
+  const participantes = gob?.participantes ?? GOBERNANZA.actividades.reduce((s, [, , p]) => s + p, 0)
+  const eventosGobernanza = gob?.eventos ?? GOBERNANZA.actividades.reduce((s, [, c]) => s + c, 0)
+  const tiposGobernanza = gob?.tipos ?? GOBERNANZA.actividades.length
+  const malezaAcum = maleza?.acumulado ?? MALEZA.acumulado
+  const malezaJornadas = maleza?.jornadas ?? MALEZA.poligonos
 
   return (
     <>
@@ -35,7 +49,7 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
       <div className="kpis k6" style={{ marginBottom: 18 }}>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="leaf" /></span><span className="lab">Área analizada</span></div><div className="val num">{area} <small>ha</small></div></div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="sprout" /></span><span className="lab">Restauración activa</span></div><div className="val num">{fmt(activa)} <small>ha</small></div></div>
-        <div className="kpi blue"><div className="top"><span className="chip"><Icon id="trash" /></span><span className="lab">Maleza removida</span></div><div className="val num">{MALEZA.acumulado} <small>ha</small></div></div>
+        <div className="kpi blue"><div className="top"><span className="chip"><Icon id="trash" /></span><span className="lab">Maleza removida</span></div><div className="val num">{malezaAcum.toLocaleString('es-CO')} <small>ha</small></div></div>
         <div className="kpi alt"><div className="top"><span className="chip"><Icon id="pin" /></span><span className="lab">Puntos de monitoreo</span></div><div className="val num">{parcelas}</div></div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="tree" /></span><span className="lab">Especies registradas</span></div><div className="val num">{especies}</div></div>
         <div className="kpi blue"><div className="top"><span className="chip"><Icon id="users" /></span><span className="lab">Participantes</span></div><div className="val num">{participantes}</div></div>
@@ -50,7 +64,7 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
         </a>
         <a className="comp-card" href="#" onClick={go('maleza')} style={{ textDecoration: 'none' }}>
           <div className="h"><span className="ic" style={{ background: '#dbe7fb', color: 'var(--primary)' }}><Icon id="waves" /></span><div><b>Vegetación Acuática</b><span>Remoción en el borde de la laguna</span></div></div>
-          <div className="mini"><span><b>{MALEZA.acumulado} ha</b>removidas</span><span><b>{MALEZA.poligonos}</b>polígonos</span><span><b>3</b>monitoreos</span></div>
+          <div className="mini"><span><b>{malezaAcum.toLocaleString('es-CO')} ha</b>removidas</span><span><b>{MALEZA.poligonos}</b>polígonos</span><span><b>{malezaJornadas}</b>jornadas</span></div>
           <div className="progress"><i style={{ width: '55%', background: 'var(--primary)' }} /></div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Mar 6,06 → Abr 15,71 → May 19 ha</div>
         </a>
@@ -68,7 +82,7 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
         </a>
         <a className="comp-card" href="#" onClick={go('gobernanza')} style={{ textDecoration: 'none' }}>
           <div className="h"><span className="ic" style={{ background: '#dbe7fb', color: 'var(--primary)' }}><Icon id="users" /></span><div><b>Gobernanza Ambiental</b><span>Socializaciones · talleres · capacitaciones</span></div></div>
-          <div className="mini"><span><b>{eventosGobernanza}</b>eventos</span><span><b>{participantes}</b>participantes</span><span><b>{GOBERNANZA.actividades.length}</b>tipos</span></div>
+          <div className="mini"><span><b>{eventosGobernanza}</b>eventos</span><span><b>{participantes}</b>participantes</span><span><b>{tiposGobernanza}</b>tipos</span></div>
           <div className="progress"><i style={{ width: '100%' }} /></div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Datos reales · Contrato 324 de 2025</div>
         </a>

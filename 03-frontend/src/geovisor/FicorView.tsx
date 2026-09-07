@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoFoto from '../components/OrtoFoto'
 import GaleriaFotos from '../components/GaleriaFotos'
 import { FICOR_AGUA, FICOR_SEDIMENTOS, FICOR_BIOTA } from './data'
+import { fetchFicorMediciones, type FicorMedicion } from '../lib/api'
 
 const EVIDENCIA_FICOR = Array.from(
   { length: 11 },
@@ -10,11 +12,46 @@ const EVIDENCIA_FICOR = Array.from(
 )
 
 export default function FicorView(map: GeovisorMapProps) {
+  // Las variables previstas son estructura fija; los valores, cuando existan,
+  // vienen de la geodatabase. Mientras no haya mediciones, cada variable se
+  // muestra como «sin dato» en lugar de con un cero.
+  const [medidas, setMedidas] = useState<Map<string, FicorMedicion>>(new Map())
+  const [enVivo, setEnVivo] = useState(false)
+
+  useEffect(() => {
+    const ac = new AbortController()
+    fetchFicorMediciones(ac.signal)
+      .then((d) => {
+        if (ac.signal.aborted || d.sin_datos) return
+        const m = new Map<string, FicorMedicion>()
+        for (const x of [...d.agua, ...d.sedimentos]) if (x.variable) m.set(x.variable, x)
+        setMedidas(m)
+        setEnVivo(true)
+      })
+      .catch(() => { /* sin backend, todo queda como «sin dato» */ })
+    return () => ac.abort()
+  }, [])
+
+  /** Celda de variable: valor medido si existe, «sin dato» si no. */
+  const celda = (etiqueta: string, unidad: string) => {
+    const m = medidas.get(etiqueta)
+    const hay = m && !m.sin_valor && m.valor != null
+    return (
+      <div key={etiqueta} className="cell"><div className="l">{etiqueta}</div>
+        <div className={hay ? 'v num' : 'v pend num'}>
+          {hay ? m!.valor!.toLocaleString('es-CO') : '—'} <small>{m?.unidad || unidad}</small></div>
+        <div className="status" style={{ color: hay ? 'var(--secondary)' : 'var(--muted)' }}>
+          <span className="d" style={{ background: hay ? 'var(--cra-verde)' : '#cfd6dd' }} />
+          {hay ? `Medido${m!.fecha ? ' · ' + m!.fecha : ''}` : 'Sin dato'}</div></div>
+    )
+  }
+
   return (
     <>
       <div className="page-title">
         <h2><Icon id="flask" /> Ficorremediación</h2>
-        <span className="badge-soft">Estructura lista · datos en captura</span>
+        <span className="badge-soft" style={enVivo ? { background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' } : undefined}>
+          {enVivo ? '● Datos en vivo (geodatabase)' : 'Estructura lista · datos en captura'}</span>
       </div>
 
       <div className="kpis k4" style={{ marginBottom: 18 }}>
@@ -34,11 +71,7 @@ export default function FicorView(map: GeovisorMapProps) {
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="droplet" /> Calidad del agua</h3><span className="badge-soft">En captura</span></div>
         <div className="wq">
-          {FICOR_AGUA.map(([l, u]) => (
-            <div key={l} className="cell"><div className="l">{l}</div>
-              <div className="v pend num">— <small>{u}</small></div>
-              <div className="status" style={{ color: 'var(--muted)' }}><span className="d" style={{ background: '#cfd6dd' }} /> Sin dato</div></div>
-          ))}
+          {FICOR_AGUA.map(([l, u]) => celda(l, u))}
         </div>
       </div>
 
@@ -49,11 +82,7 @@ export default function FicorView(map: GeovisorMapProps) {
             <div key={g.categoria} style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 8 }}>{g.categoria}</div>
               <div className="wq">
-                {g.variables.map(([l, u]) => (
-                  <div key={l} className="cell"><div className="l">{l}</div>
-                    <div className="v pend num">— <small>{u}</small></div>
-                    <div className="status" style={{ color: 'var(--muted)' }}><span className="d" style={{ background: '#cfd6dd' }} /> Sin dato</div></div>
-                ))}
+                {g.variables.map(([l, u]) => celda(l, u))}
               </div>
             </div>
           ))}

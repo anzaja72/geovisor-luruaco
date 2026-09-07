@@ -1,12 +1,34 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoComparador from '../components/OrtoComparador'
 import { MALEZA as M } from './data'
+import { fetchMalezaLimpiezas } from '../lib/api'
 
 export default function MalezaView(map: GeovisorMapProps) {
   const [fecha, setFecha] = useState('Mayo')
-  const maxV = Math.max(...M.serie.map((s) => s[1]))
+  // Jornadas de limpieza leídas de la geodatabase; si no responde, se conservan
+  // las de la línea base para no dejar la vista en blanco.
+  const [serie, setSerie] = useState<[string, number][]>(M.serie)
+  const [acumulado, setAcumulado] = useState(M.acumulado)
+  const [bordeKm, setBordeKm] = useState<number | null>(null)
+  const [enVivo, setEnVivo] = useState(false)
+
+  useEffect(() => {
+    const ac = new AbortController()
+    fetchMalezaLimpiezas(ac.signal)
+      .then((d) => {
+        if (ac.signal.aborted || !d.jornadas?.length) return
+        setSerie(d.jornadas.map((j) => [j.fecha, j.area_ha] as [string, number]))
+        setAcumulado(d.acumulado_ha)
+        if (d.borde_km > 0) setBordeKm(d.borde_km)
+        setEnVivo(true)
+      })
+      .catch(() => { /* sin backend se conserva la línea base */ })
+    return () => ac.abort()
+  }, [])
+
+  const maxV = Math.max(...serie.map((s) => s[1]), 1)
 
   const polys = useMemo(
     () => map.capas.filter((f) => f.properties?.capa === 'maleza_acuatica'),
@@ -28,14 +50,19 @@ export default function MalezaView(map: GeovisorMapProps) {
             <button key={f} className={fecha === f ? 'on' : ''} onClick={() => setFecha(f)}>{f}</button>
           ))}
         </div>
-        {polys.length > 0 && <span className="badge-soft" style={{ background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' }}>● Datos en vivo (backend)</span>}
+        {(enVivo || polys.length > 0) && <span className="badge-soft" style={{ background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' }}>● Datos en vivo (geodatabase)</span>}
       </div>
 
       <div className="kpis k4" style={{ marginBottom: 18 }}>
         <div className="kpi blue"><div className="top"><span className="chip"><Icon id="trash" /></span><span className="lab">Maleza removida (acum.)</span></div>
-          <div className="val num">19,0 <small>ha</small></div><div className="trend up">+3,29 ha vs. abril</div></div>
+          <div className="val num">{acumulado.toLocaleString('es-CO', { minimumFractionDigits: 1 })} <small>ha</small></div>
+          {serie.length > 1 && (
+            <div className="trend up">+{(serie[serie.length - 1][1] - serie[serie.length - 2][1]).toLocaleString('es-CO', { maximumFractionDigits: 2 })} ha vs. {serie[serie.length - 2][0].toLowerCase()}</div>
+          )}</div>
         <div className="kpi blue"><div className="top"><span className="chip"><Icon id="droplet" /></span><span className="lab">Borde de laguna intervenido</span></div>
-          <div className="val num">~3,1 <small>km</small></div></div>
+          <div className={bordeKm ? 'val num' : 'val num'}>
+            {bordeKm ? bordeKm.toLocaleString('es-CO', { maximumFractionDigits: 2 }) : '~3,1'} <small>km</small></div>
+          {!bordeKm && <div className="trend">estimado · pendiente de medición</div>}</div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="layers" /></span><span className="lab">Polígonos de limpieza</span></div>
           <div className="val num">{nPolys}</div></div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="scale" /></span><span className="lab">Biomasa retirada</span></div>
@@ -57,12 +84,12 @@ export default function MalezaView(map: GeovisorMapProps) {
         <div className="bigstat">
           <div className="lab">Maleza acuática removida</div>
           <div className="v num">19,0 <small>ha</small></div>
-          <div className="sub">Acumulado a mayo de 2026 · línea base = 0 ha</div>
+          <div className="sub">Acumulado a {serie.length ? serie[serie.length - 1][0].toLowerCase() : 'la última jornada'} · línea base = 0 ha</div>
         </div>
         <div className="panel chart-b">
           <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="trend" /> Hectáreas removidas (acumulado)</h3></div>
           <div className="bars" style={{ height: 150 }}>
-            {M.serie.map(([n, v]) => (
+            {serie.map(([n, v]) => (
               <div key={n} className="b blue" title={`${n}: ${v} ha`} style={{ height: `${Math.max(10, (v / maxV) * 100)}%` }}>
                 <em>{v.toLocaleString('es-CO')}</em><span>{n}</span></div>
             ))}
