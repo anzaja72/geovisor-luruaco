@@ -17,7 +17,7 @@ sobre un entorno de demostración.
 |---|---|---|
 | 1 · La geodatabase | Técnicos y administrador | 2 h |
 | 2 · El geovisor | Todos los roles | 2 h |
-| 3 · Captura de información y reportes | Consulta y técnicos | 2 h |
+| 3 · Captura de información y reportes | Técnicos | 2 h |
 | 4 · Administración de la plataforma | Administrador | 2 h |
 
 **Requisitos:** computador con navegador actualizado, conexión a internet y cuenta
@@ -69,7 +69,7 @@ comprobar el dato en el componente que indica.
 
 ## 4. Taller 3 · Captura de información y reportes
 
-*Consulta y técnicos*
+*Técnicos*
 
 - El formulario de registro de cada componente y qué campos son obligatorios.
 - Qué ocurre cuando no hay señal en campo: el registro queda en el dispositivo y se envía

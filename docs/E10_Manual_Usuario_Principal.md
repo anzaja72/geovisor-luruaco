@@ -19,9 +19,13 @@ Su rol determina lo que puede hacer:
 
 | Rol | Puede |
 |---|---|
-| Consulta | Ver todos los componentes y descargar reportes |
-| Técnico | Lo anterior, más registrar monitoreos e importar capas |
-| Administrador | Todo, incluida la gestión de cuentas |
+| Consulta | Ver los componentes y sus indicadores. No descarga información ni registra datos |
+| Técnico | Todo lo anterior, más descargar reportes, registrar monitoreos e importar capas |
+| Administrador | Todo, incluida la administración de cuentas |
+
+**¿No tiene cuenta?** En la página de inicio, la pestaña **Crear cuenta** abre una de
+consulta al instante. Para registrar información en campo, solicite el rol de técnico
+al administrador.
 
 ---
 
@@ -39,10 +43,12 @@ herramientas:
 - Monitoreo de Fauna
 - Gobernanza Ambiental
 - Dashboard Transversal
-- *Herramientas:* Descarga de Datos
 
-Al pie del panel: **Registrar Monitoreo**, **Importar datos** (según su rol),
-**Ajustes** y **Soporte**.
+Y, según su rol, las herramientas: **Descarga de Datos** (técnico y administrador) y
+**Administración de cuentas** (solo administrador).
+
+Al pie del panel: **Registrar Monitoreo** e **Importar datos** —que aparecen si su rol
+los permite—, **Ajustes** y **Soporte**.
 
 **Área central.** Cambia según el componente elegido. Todos siguen el mismo orden:
 indicadores arriba, mapa o visor en el medio, gráficas y tablas debajo.
@@ -138,7 +144,8 @@ Si un dato todavía no se ha levantado en campo, lo dice; no lo estima.
 
 ## 6. Descargar información
 
-**Descarga de Datos**, en el panel lateral. Cinco reportes —áreas de intervención,
+**Descarga de Datos**, en el panel lateral *(disponible para técnico y administrador)*.
+Cinco reportes —áreas de intervención,
 coberturas Corine, histórico de monitoreos, consolidado de indicadores y catálogo de
 insumos dron— en **CSV**, **Excel** o **PDF**. El archivo se descarga de inmediato.
 
@@ -181,7 +188,8 @@ la plataforma y su navegador.
 | Síntoma | Qué hacer |
 |---|---|
 | «Token inválido o expirado» | Vuelva a iniciar sesión: la sesión dura 24 horas. |
-| No aparece «Registrar Monitoreo» ni «Importar datos» | Su rol es de consulta; solicite el cambio al administrador. |
+| No aparece «Registrar Monitoreo», «Importar datos» ni «Descarga de Datos» | Su rol es de consulta; solicite el cambio al administrador. |
+| Faltan puntos de fauna en el mapa | Las ubicaciones de cámaras trampa y transectos no se entregan al rol de consulta. |
 | Una capa no se ve en el mapa | Revise el control de capas, arriba a la derecha. |
 | La vista dice «sin mediciones registradas» | Esa campaña aún no tiene datos de campo; no es un error. |
 | Un componente muestra «sin dato» | La información todavía no ha sido entregada por el equipo técnico. |

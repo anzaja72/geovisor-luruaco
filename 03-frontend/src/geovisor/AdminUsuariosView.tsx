@@ -20,9 +20,9 @@ interface Cuenta {
 }
 
 const ROLES = [
-  { id: 'consulta', nombre: 'Consulta', desc: 'Ver componentes y descargar reportes' },
-  { id: 'tecnico', nombre: 'Técnico', desc: 'Además registra monitoreos e importa capas' },
-  { id: 'administrador', nombre: 'Administrador', desc: 'Control total, incluidas las cuentas' },
+  { id: 'consulta', nombre: 'Consulta', desc: 'Solo consulta, sin descargas ni capas sensibles' },
+  { id: 'tecnico', nombre: 'Técnico', desc: 'Todo salvo administrar cuentas y borrar registros' },
+  { id: 'administrador', nombre: 'Administrador', desc: 'Control total' },
 ] as const
 
 const ORIGEN_TEXTO: Record<string, string> = {
@@ -174,10 +174,11 @@ export default function AdminUsuariosView({ usuario }: { usuario: Usuario }) {
             <table className="fauna-table">
               <thead><tr><th>Operación</th><th>Consulta</th><th>Técnico</th><th>Admin.</th></tr></thead>
               <tbody>
-                <tr><td>Ver componentes y mapas</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                <tr><td>Descargar reportes</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                <tr><td>Ver componentes, mapas e indicadores</td><td>✓</td><td>✓</td><td>✓</td></tr>
                 <tr><td>Preguntar al copiloto</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                <tr><td>Registrar monitoreos</td><td>—</td><td>✓</td><td>✓</td></tr>
+                <tr><td>Ver capas sensibles (cámaras y transectos)</td><td>—</td><td>✓</td><td>✓</td></tr>
+                <tr><td>Descargar reportes y datos</td><td>—</td><td>✓</td><td>✓</td></tr>
+                <tr><td>Registrar monitoreos en campo</td><td>—</td><td>✓</td><td>✓</td></tr>
                 <tr><td>Importar capas</td><td>—</td><td>✓</td><td>✓</td></tr>
                 <tr><td>Eliminar registros</td><td>—</td><td>—</td><td>✓</td></tr>
                 <tr><td>Administrar cuentas</td><td>—</td><td>—</td><td>✓</td></tr>
@@ -237,6 +238,10 @@ export default function AdminUsuariosView({ usuario }: { usuario: Usuario }) {
         de inicio, y siempre se crea con permiso de <b>consulta</b>: el rol lo fija el servidor,
         no el formulario. Los roles de técnico y administrador solo se asignan desde esta pantalla.
         Una cuenta desactivada deja de poder iniciar sesión, pero conserva su historial.
+        <br /><br />
+        El rol de consulta ve los componentes y los indicadores, pero no descarga información,
+        no registra datos de campo y no recibe las capas con ubicaciones sensibles —cámaras
+        trampa y transectos de fauna—, que el servidor excluye de su respuesta.
       </div>
 
       <Footer />

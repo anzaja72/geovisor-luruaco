@@ -149,7 +149,8 @@ func main() {
 	api.Post("/maleza/limpieza", edicion, crearMalezaLimpieza)
 
 	// --- Reportes (CSV/Excel/PDF): cualquier usuario autenticado ---
-	api.Get("/reportes/:tipo", lectura, getReporte)
+	// La descarga de información queda reservada a técnico y administrador.
+	api.Get("/reportes/:tipo", edicion, getReporte)
 
 	// Copiloto: preguntas en lenguaje natural respondidas con datos de la geodatabase
 	api.Post("/copiloto", lectura, copiloto)
@@ -578,8 +579,18 @@ func nombreFromProps(p map[string]interface{}) sql.NullString {
 
 // getCapas: inventario de capas importadas (nombre, tipo, total).
 func getCapas(c *fiber.Ctx) error {
-	rows, err := db.QueryContext(c.UserContext(),
-		`SELECT capa, tipo_geometria, total FROM eco_restauracion.vw_capas_inventario`)
+	verSensibles := false
+	if u, ok := c.Locals("user").(*Claims); ok {
+		verSensibles = u.Rol == "administrador" || u.Rol == "tecnico"
+	}
+	rows, err := db.QueryContext(c.UserContext(), `
+		SELECT capa,
+		       CASE WHEN count(DISTINCT GeometryType(geom)) = 1
+		            THEN min(GeometryType(geom)) ELSE 'MIXED' END AS tipo_geometria,
+		       count(*) AS total
+		FROM eco_restauracion.capas_geograficas
+		WHERE NOT COALESCE(sensible, false) OR $1
+		GROUP BY capa ORDER BY capa`, verSensibles)
 	if err != nil {
 		return serverError(c, "Error al listar capas", err)
 	}
@@ -599,12 +610,19 @@ func getCapas(c *fiber.Ctx) error {
 // getCapasGeoJSON: features de capas importadas (filtro opcional ?capa=).
 func getCapasGeoJSON(c *fiber.Ctx) error {
 	capa := c.Query("capa", "")
+	// Las capas con ubicaciones sensibles —cámaras trampa, transectos de fauna—
+	// solo se entregan a quien puede editar; el rol de consulta no las recibe.
+	verSensibles := false
+	if u, ok := c.Locals("user").(*Claims); ok {
+		verSensibles = u.Rol == "administrador" || u.Rol == "tecnico"
+	}
 	query := `
 		SELECT capa, nombre, COALESCE(propiedades, '{}'::jsonb), ST_AsGeoJSON(geom)
 		FROM eco_restauracion.capas_geograficas
 		WHERE ($1 = '' OR capa = $1)
+		  AND (NOT COALESCE(sensible, false) OR $2)
 		ORDER BY capa, id`
-	rows, err := db.QueryContext(c.UserContext(), query, capa)
+	rows, err := db.QueryContext(c.UserContext(), query, capa, verSensibles)
 	if err != nil {
 		return serverError(c, "Error al consultar capas", err)
 	}

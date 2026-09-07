@@ -131,24 +131,33 @@ La clave del proveedor reside únicamente en el backend.
 
 | Rol | Perfil | Alcance |
 |---|---|---|
-| `consulta` | Interventoría, dirección del proyecto, entidad | Ver todos los componentes y descargar reportes |
-| `tecnico` | Profesionales de campo | Lo anterior, más registrar monitoreos e importar capas |
-| `administrador` | Responsable de la plataforma | Todo, incluida la gestión de cuentas y el borrado de registros |
+| `consulta` | Público general, veedurías, comunidad | Ver los componentes y sus indicadores. No descarga información, no registra datos y no recibe las capas con ubicaciones sensibles |
+| `tecnico` | Profesionales de campo e interventoría | Todo lo anterior sin restricciones, más registrar monitoreos, importar capas y descargar reportes |
+| `administrador` | Responsable de la plataforma | Control total, incluida la administración de cuentas y el borrado de registros |
+
+Las cuentas de consulta pueden crearse desde la propia página de inicio; los roles de
+técnico y administrador solo los asigna un administrador.
 
 ### 5.2 Permisos por operación
 
 | Operación | consulta | tecnico | administrador |
 |---|:--:|:--:|:--:|
-| Ver componentes y mapas | ✓ | ✓ | ✓ |
-| Consultar indicadores y capas | ✓ | ✓ | ✓ |
-| Descargar reportes (CSV, Excel, PDF) | ✓ | ✓ | ✓ |
+| Ver componentes, mapas e indicadores | ✓ | ✓ | ✓ |
 | Preguntar al copiloto | ✓ | ✓ | ✓ |
 | Cambiar su propia contraseña | ✓ | ✓ | ✓ |
+| Ver capas con ubicaciones sensibles | — | ✓ | ✓ |
+| Descargar reportes (CSV, Excel, PDF) | — | ✓ | ✓ |
 | Registrar monitoreos y observaciones | — | ✓ | ✓ |
 | Importar capas (GeoJSON / CSV) | — | ✓ | ✓ |
 | Editar registros de monitoreo | — | ✓ | ✓ |
 | Eliminar registros de monitoreo | — | — | ✓ |
 | Crear, modificar y desactivar cuentas | — | — | ✓ |
+
+**Qué se considera sensible.** Las ubicaciones de cámaras trampa y los transectos de
+herpetofauna. Divulgarlas facilita la sustracción de los equipos y la presión sobre la
+fauna, así que la consulta pública recibe los indicadores agregados pero no esos puntos.
+La exclusión la aplica el servidor sobre la columna `sensible` de `capas_geograficas`:
+no depende de que la interfaz oculte la capa.
 
 ### 5.3 Aplicación técnica
 

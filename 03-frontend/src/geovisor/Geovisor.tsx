@@ -40,12 +40,12 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
     const atender = (e: Event) => {
       const accion = (e as CustomEvent<string>).detail
       if (accion === 'soporte') setSoporteOpen(true)
-      else if (accion === 'descargas') setActive('reportes')
+      else if (accion === 'descargas' && usuario.rol !== 'consulta') setActive('reportes')
       else if (accion === 'importar' && canEdit) setImportOpen(true)
     }
     window.addEventListener('geovisor:accion', atender)
     return () => window.removeEventListener('geovisor:accion', atender)
-  }, [canEdit])
+  }, [canEdit, usuario.rol])
 
   // ⌘K / Ctrl+K abre el copiloto desde cualquier punto de la aplicación.
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         {active === 'fauna' && <FaunaView {...mapProps} />}
         {active === 'gobernanza' && <GobernanzaView />}
         {active === 'transversal' && <TransversalView onNav={setActive} />}
-        {active === 'reportes' && <ReportesView />}
+        {active === 'reportes' && usuario.rol !== 'consulta' && <ReportesView />}
         {active === 'usuarios' && usuario.rol === 'administrador' && <AdminUsuariosView usuario={usuario} />}
       </Shell>
 

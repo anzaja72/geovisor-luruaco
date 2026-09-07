@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { COMPONENTES, type CompId } from './data'
 import { accionShell } from '../lib/acciones'
+import { getUsuario } from '../lib/auth'
 import type { Usuario } from '../lib/auth'
 
 const SPRITE = `
@@ -72,9 +73,9 @@ function TopBar({ usuario, onLogout, onCopiloto }: { usuario: Usuario; onLogout:
 }
 
 function Sidebar({
-  active, onNav, onMonitoreo, onImport, onAjustes, onSoporte, esAdmin,
+  active, onNav, onMonitoreo, onImport, onAjustes, onSoporte, esAdmin, puedeDescargar,
 }: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void; onImport?: () => void
-     onAjustes: () => void; onSoporte: () => void; esAdmin: boolean }) {
+     onAjustes: () => void; onSoporte: () => void; esAdmin: boolean; puedeDescargar: boolean }) {
   return (
     <aside className="side">
       <div className="sh"><b>Gestión Ambiental</b><span>Ciénaga de Luruaco</span></div>
@@ -88,7 +89,7 @@ function Sidebar({
         ))}
         <div className="sep">Herramientas</div>
         {COMPONENTES
-          .filter(([id]) => id === 'reportes' || (id === 'usuarios' && esAdmin))
+          .filter(([id]) => (id === 'reportes' && puedeDescargar) || (id === 'usuarios' && esAdmin))
           .map(([id, label, ic]) => (
             <a key={id} href="#" className={id === active ? 'active' : ''}
               onClick={(e) => { e.preventDefault(); onNav(id) }}>
@@ -97,9 +98,13 @@ function Sidebar({
           ))}
       </nav>
       <div className="foot">
-        <button className="btn-primary" onClick={onMonitoreo} disabled={!onMonitoreo}>
-          <Icon id="plus" /> Registrar Monitoreo</button>
-        <div style={{ height: 8 }} />
+        {onMonitoreo && (
+          <>
+            <button className="btn-primary" onClick={onMonitoreo}>
+              <Icon id="plus" /> Registrar Monitoreo</button>
+            <div style={{ height: 8 }} />
+          </>
+        )}
         {onImport && (
           <a className="nav-mini" href="#" onClick={(e) => { e.preventDefault(); onImport() }}>
             <Icon id="download" style={{ width: 18, height: 18 }} /> Importar datos</a>
@@ -133,7 +138,9 @@ export default function Shell({
       <TopBar usuario={usuario} onLogout={onLogout} onCopiloto={onCopiloto} />
       <div className="shell">
         <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport}
-          onAjustes={onAjustes} onSoporte={onSoporte} esAdmin={usuario.rol === 'administrador'} />
+          onAjustes={onAjustes} onSoporte={onSoporte}
+          esAdmin={usuario.rol === 'administrador'}
+          puedeDescargar={usuario.rol !== 'consulta'} />
         <main className="main">{children}</main>
       </div>
     </>
@@ -141,12 +148,19 @@ export default function Shell({
 }
 
 export function Footer() {
+  // El pie solo ofrece lo que el rol puede hacer.
+  const rol = getUsuario()?.rol
+  const puedeEditar = rol === 'administrador' || rol === 'tecnico'
   return (
     <div className="foot-bar">
       <div className="cred"><b>C.R.A.</b> — Financiado por la Corporación Autónoma Regional del Atlántico · Contrato 324 de 2025</div>
       <div className="links">
-        <a href="#" onClick={(e) => { e.preventDefault(); accionShell('importar') }}>Importar datos</a>
-        <a href="#" onClick={(e) => { e.preventDefault(); accionShell('descargas') }}>Descargar datos</a>
+        {puedeEditar && (
+          <a href="#" onClick={(e) => { e.preventDefault(); accionShell('importar') }}>Importar datos</a>
+        )}
+        {puedeEditar && (
+          <a href="#" onClick={(e) => { e.preventDefault(); accionShell('descargas') }}>Descargar datos</a>
+        )}
         <a href="#" onClick={(e) => { e.preventDefault(); accionShell('soporte') }}>Contacto</a>
       </div>
     </div>
