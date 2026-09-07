@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Modelo de datos — esquema eco_restauracion",
+    "subtitle": "PostgreSQL 16 + PostGIS 3.4 · EPSG:4326 · 25 tablas y 10 vistas",
+    "output": "modelo-datos.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "espacial", "label": "Núcleo espacial", "focus": ["poligonos", "puntos", "monitoreos", "coberturas", "capas"], "note": "Predio, parcelas y mediciones: la única cadena con llaves foráneas del esquema." },
+      { "id": "restauracion", "label": "Restauración", "focus": ["puntos", "arboles", "tecnicas", "coberturas"], "note": "El censo forestal se enlaza a la parcela por código, no por llave foránea." },
+      { "id": "componentes", "label": "Componentes técnicos", "focus": ["fauna", "maleza", "gobernanza", "ficor"], "note": "Tablas independientes entre sí; se relacionan por el campo de campaña de monitoreo." },
+      { "id": "plataforma", "label": "Plataforma", "focus": ["usuarios", "copiloto", "insumos"], "note": "Cuentas, registro de uso del copiloto y catálogo de productos del levantamiento con dron." }
+    ]
+  },
+  "components": [
+    { "id": "poligonos", "type": "database", "label": "poligonos_restauracion", "sublabel": "Predio y aislamiento", "pos": [60, 110], "size": [190, 54], "tag": "Polygon" },
+    { "id": "puntos", "type": "database", "label": "puntos_monitoreo", "sublabel": "Parcelas y estaciones", "pos": [330, 110], "size": [190, 54], "tag": "Point" },
+    { "id": "monitoreos", "type": "database", "label": "monitoreos", "sublabel": "Mediciones por indicador", "pos": [600, 110], "size": [190, 54] },
+
+    { "id": "coberturas", "type": "database", "label": "coberturas_vegetales", "sublabel": "Corine Land Cover", "pos": [60, 270], "size": [190, 54], "tag": "MultiPolygon" },
+    { "id": "arboles", "type": "database", "label": "arboles_monitoreo", "sublabel": "Censo forestal", "pos": [330, 270], "size": [190, 54], "tag": "tabular" },
+    { "id": "tecnicas", "type": "database", "label": "tecnicas_restauracion", "sublabel": "HMP aplicadas", "pos": [600, 270], "size": [190, 54], "tag": "MultiPolygon" },
+
+    { "id": "fauna", "type": "database", "label": "fauna_observaciones", "sublabel": "Línea base de fauna", "pos": [60, 430], "size": [190, 54] },
+    { "id": "maleza", "type": "database", "label": "maleza_limpieza", "sublabel": "Jornadas de limpieza", "pos": [330, 430], "size": [190, 54] },
+    { "id": "gobernanza", "type": "database", "label": "gobernanza_actividades", "sublabel": "Eventos y participantes", "pos": [600, 430], "size": [190, 54] },
+
+    { "id": "ficor", "type": "database", "label": "ficor_calidad_agua", "sublabel": "+ sedimentos y biota", "pos": [870, 430], "size": [190, 54], "tag": "sin datos aún" },
+    { "id": "capas", "type": "database", "label": "capas_geograficas", "sublabel": "Capas importadas", "pos": [870, 270], "size": [190, 54], "tag": "Geometry" },
+    { "id": "insumos", "type": "database", "label": "insumos_dron", "sublabel": "Catálogo del vuelo", "pos": [870, 110], "size": [190, 54], "tag": "metadatos" },
+
+    { "id": "usuarios", "type": "security", "label": "usuarios", "sublabel": "Cuentas y roles", "pos": [1140, 110], "size": [175, 54], "tag": "bcrypt" },
+    { "id": "copiloto", "type": "database", "label": "copiloto_consultas", "sublabel": "Registro de uso", "pos": [1140, 270], "size": [175, 54] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Núcleo espacial · con llaves foráneas", "wraps": ["poligonos", "puntos", "monitoreos"] },
+    { "kind": "region", "label": "Componentes técnicos · unidos por campaña de monitoreo", "wraps": ["fauna", "maleza", "gobernanza", "ficor"] }
+  ],
+  "connections": [
+    { "id": "poligonos-puntos", "from": "poligonos", "to": "puntos", "label": "1 — N", "variant": "emphasis", "labelAt": [290, 96] },
+    { "id": "puntos-monitoreos", "from": "puntos", "to": "monitoreos", "label": "1 — N", "variant": "emphasis", "labelAt": [560, 96] },
+    { "id": "puntos-arboles", "from": "puntos", "to": "arboles", "label": "codigo_punto = id_parcela", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelAt": [425, 220] },
+    { "id": "usuarios-copiloto", "from": "usuarios", "to": "copiloto", "label": "1 — N", "fromSide": "bottom", "toSide": "top", "labelAt": [1227, 220] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Cómo se relacionan", "items": ["Llaves foráneas solo en el núcleo espacial", "El censo se enlaza a la parcela por código", "Los demás conjuntos se cruzan por campaña", "Todo en EPSG:4326, sin capas duplicadas"] },
+    { "dot": "emerald", "title": "Qué alimenta cada tabla", "items": ["Formularios de campo de cada componente", "Importación de GeoJSON, CSV y shapefile", "Censo forestal y anexos del proyecto", "Levantamiento con dron (ortofoto y MDT)"] },
+    { "dot": "amber", "title": "Vistas de cálculo", "items": ["vw_indicadores_restauracion: riqueza y densidad", "vw_fauna_total y vw_gobernanza_resumen", "vw_areas_intervencion y vw_resumen_calidad", "vw_copiloto_frecuentes: preguntas del mes"] }
+  ]
+}

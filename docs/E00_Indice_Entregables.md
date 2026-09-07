@@ -21,6 +21,7 @@ que la sustenta.
 | [E05 · Especificación de la API](E05_API_OpenAPI.yaml) | Las 40 operaciones de la API en OpenAPI 3.0, con seguridad, roles y esquemas | 5.4 c |
 | [E06 · Informe de pruebas técnicas](E06_Informe_Pruebas_Tecnicas.md) | 52 casos ejecutados en producción: servicios, control de acceso, interfaz y entorno | 5.5 d |
 | [E08 · Registro de incidencias](E08_Registro_Incidencias.md) | Acuerdo de nivel de servicio, clasificación, procedimiento y registro | 5.6 a–d |
+| [Diagramas interactivos](diagramas/README.md) | Arquitectura desplegada, modelo de datos y recorrido de la información, en HTML autónomo | 5.2 e · 5.1 |
 
 ## Manuales
 

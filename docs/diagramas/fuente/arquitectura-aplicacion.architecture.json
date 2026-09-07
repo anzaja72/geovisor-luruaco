@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Geovisor de Restauración Ecológica — Ciénaga de Luruaco",
+    "subtitle": "Arquitectura de la plataforma · C.R.A. · Contrato 324 de 2025",
+    "output": "arquitectura-aplicacion.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "consulta",
+        "label": "Consulta de información",
+        "focus": [
+          "usuario",
+          "traefik",
+          "frontend",
+          "backend",
+          "postgis"
+        ],
+        "note": "El navegador pide las capas, el backend valida el token y consulta PostGIS; devuelve GeoJSON en EPSG:4326."
+      },
+      {
+        "id": "captura",
+        "label": "Captura en campo",
+        "focus": [
+          "tecnico",
+          "traefik",
+          "frontend",
+          "backend",
+          "postgis"
+        ],
+        "note": "El técnico registra un monitoreo. Sin conexión queda en el navegador y se envía al recuperar internet."
+      },
+      {
+        "id": "copiloto",
+        "label": "Copiloto",
+        "focus": [
+          "usuario",
+          "backend",
+          "postgis",
+          "llm"
+        ],
+        "note": "El backend lee las cifras de PostGIS y solo entonces pide al proveedor que las redacte."
+      },
+      {
+        "id": "externos",
+        "label": "Servicios externos",
+        "focus": [
+          "frontend",
+          "igac",
+          "tiles",
+          "llm"
+        ],
+        "note": "Cartografía oficial del IGAC por WMS, teselas de la ortofoto desde el propio servidor y modelo opcional."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "usuario",
+      "type": "external",
+      "label": "Usuario",
+      "sublabel": "Consulta · Interventoría",
+      "pos": [
+        40,
+        170
+      ],
+      "size": [
+        130,
+        52
+      ]
+    },
+    {
+      "id": "tecnico",
+      "type": "external",
+      "label": "Técnico de campo",
+      "sublabel": "Registro de monitoreos",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        130,
+        52
+      ]
+    },
+    {
+      "id": "traefik",
+      "type": "security",
+      "label": "Traefik",
+      "sublabel": "TLS · Let's Encrypt",
+      "pos": [
+        240,
+        237
+      ],
+      "size": [
+        140,
+        52
+      ],
+      "tag": "HTTPS"
+    },
+    {
+      "id": "frontend",
+      "type": "frontend",
+      "label": "geodb-frontend",
+      "sublabel": "Nginx · React 19",
+      "pos": [
+        440,
+        235
+      ],
+      "size": [
+        160,
+        56
+      ]
+    },
+    {
+      "id": "tiles",
+      "type": "database",
+      "label": "Ortofoto (teselas)",
+      "sublabel": "/tiles · z14–z18",
+      "pos": [
+        440,
+        385
+      ],
+      "size": [
+        160,
+        50
+      ],
+      "tag": "volumen del host"
+    },
+    {
+      "id": "backend",
+      "type": "backend",
+      "label": "geodb-backend",
+      "sublabel": "Go 1.26 · Fiber",
+      "pos": [
+        700,
+        235
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "tag": "JWT · 3 roles"
+    },
+    {
+      "id": "postgis",
+      "type": "database",
+      "label": "geodb-postgis",
+      "sublabel": "PostgreSQL 16 + PostGIS 3.4",
+      "pos": [
+        700,
+        385
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "tag": "25 tablas · EPSG:4326"
+    },
+    {
+      "id": "llm",
+      "type": "cloud",
+      "label": "Proveedor de modelo",
+      "sublabel": "NVIDIA NIM · opcional",
+      "pos": [
+        700,
+        90
+      ],
+      "size": [
+        160,
+        50
+      ]
+    },
+    {
+      "id": "igac",
+      "type": "cloud",
+      "label": "Geoservicios IGAC",
+      "sublabel": "Catastro · Pendientes · Agrología",
+      "pos": [
+        440,
+        90
+      ],
+      "size": [
+        160,
+        50
+      ],
+      "tag": "WMS"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "VPS · Docker Compose (proyecto geovisor)",
+      "wraps": [
+        "traefik",
+        "frontend",
+        "tiles",
+        "backend",
+        "postgis"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Red interna · sin puertos publicados",
+      "wraps": [
+        "frontend",
+        "backend",
+        "postgis"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "usuario-traefik",
+      "from": "usuario",
+      "to": "traefik",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "labelAt": [
+        195,
+        200
+      ]
+    },
+    {
+      "id": "tecnico-traefik",
+      "from": "tecnico",
+      "to": "traefik",
+      "label": "captura",
+      "variant": "emphasis",
+      "labelAt": [
+        195,
+        322
+      ]
+    },
+    {
+      "id": "traefik-frontend",
+      "from": "traefik",
+      "to": "frontend",
+      "label": "dominio",
+      "labelAt": [
+        410,
+        300
+      ],
+      "route": "straight"
+    },
+    {
+      "id": "frontend-backend",
+      "from": "frontend",
+      "to": "backend",
+      "label": "/api · JWT",
+      "labelAt": [
+        650,
+        222
+      ],
+      "variant": "security"
+    },
+    {
+      "id": "backend-postgis",
+      "from": "backend",
+      "to": "postgis",
+      "label": "SQL",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        812,
+        340
+      ]
+    },
+    {
+      "id": "backend-llm",
+      "from": "backend",
+      "to": "llm",
+      "label": "redacción",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        840,
+        190
+      ]
+    },
+    {
+      "id": "frontend-igac",
+      "from": "frontend",
+      "to": "igac",
+      "label": "capas IGAC",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        580,
+        190
+      ]
+    },
+    {
+      "id": "frontend-tiles",
+      "from": "frontend",
+      "to": "tiles",
+      "label": "ortofoto",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        560,
+        345
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Publicación",
+      "items": [
+        "Tres contenedores en una red interna",
+        "Ningún puerto expuesto salvo Traefik",
+        "Certificado renovado automáticamente",
+        "Actualización por git pull y rebuild"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Control de acceso",
+      "items": [
+        "Token JWT con vigencia de 24 horas",
+        "Roles: consulta, técnico y administrador",
+        "Se aplica en el servidor, ruta por ruta",
+        "Sin token: 401 · rol insuficiente: 403"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Datos que salen de la base",
+      "items": [
+        "Capas en GeoJSON (RFC 7946), EPSG:4326",
+        "Indicadores calculados en el servidor",
+        "Reportes en CSV, Excel y PDF",
+        "El copiloto no calcula cifras: solo redacta"
+      ]
+    }
+  ]
+}

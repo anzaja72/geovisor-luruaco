@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Ciclo del dato — del campo al geovisor",
+    "subtitle": "Cómo la información levantada en terreno llega a la pantalla",
+    "output": "flujo-del-dato.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1080,
+      520
+    ]
+  },
+  "stages": [
+    {
+      "label": "Captura"
+    },
+    {
+      "label": "Ingreso"
+    },
+    {
+      "label": "Almacenamiento"
+    },
+    {
+      "label": "Cálculo"
+    },
+    {
+      "label": "Consumo"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "campo",
+      "type": "external",
+      "label": "Trabajo de campo",
+      "sublabel": "Censo y talleres",
+      "stage": 0,
+      "row": 0,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "insumos",
+      "type": "external",
+      "label": "Vuelo con dron",
+      "sublabel": "Ortofoto",
+      "stage": 0,
+      "row": 1,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "formularios",
+      "type": "frontend",
+      "label": "Formularios",
+      "sublabel": "Registro",
+      "stage": 1,
+      "row": 0,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "importacion",
+      "type": "backend",
+      "label": "Importación",
+      "sublabel": "GeoJSON y CSV",
+      "stage": 1,
+      "row": 1,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "postgis",
+      "type": "database",
+      "label": "PostGIS",
+      "sublabel": "25 tablas",
+      "stage": 2,
+      "row": 0,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "tiles",
+      "type": "database",
+      "label": "Teselas",
+      "sublabel": "Ortofoto z14–18",
+      "stage": 2,
+      "row": 1,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API REST",
+      "sublabel": "JWT y roles",
+      "stage": 3,
+      "row": 0,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "vistas",
+      "type": "backend",
+      "label": "Vistas SQL",
+      "sublabel": "Indicadores",
+      "stage": 3,
+      "row": 1,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "geovisor",
+      "type": "frontend",
+      "label": "Geovisor",
+      "sublabel": "6 componentes",
+      "stage": 4,
+      "row": 0,
+      "width": 140,
+      "height": 66
+    },
+    {
+      "id": "reportes",
+      "type": "frontend",
+      "label": "Reportes",
+      "sublabel": "CSV · Excel · PDF",
+      "stage": 4,
+      "row": 1,
+      "width": 140,
+      "height": 66
+    }
+  ],
+  "flows": [
+    {
+      "id": "campo-form",
+      "from": "campo",
+      "to": "formularios",
+      "label": "registro",
+      "classification": "internal"
+    },
+    {
+      "id": "insumos-import",
+      "from": "insumos",
+      "to": "importacion",
+      "label": "capas",
+      "classification": "internal"
+    },
+    {
+      "id": "form-db",
+      "from": "formularios",
+      "to": "postgis",
+      "label": "INSERT",
+      "classification": "internal",
+      "variant": "emphasis"
+    },
+    {
+      "id": "import-tiles",
+      "from": "importacion",
+      "to": "tiles",
+      "label": "gdal2tiles",
+      "classification": "internal",
+      "variant": "dashed"
+    },
+    {
+      "id": "db-api",
+      "from": "postgis",
+      "to": "api",
+      "label": "consulta",
+      "classification": "internal",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -16
+    },
+    {
+      "id": "db-vistas",
+      "from": "postgis",
+      "to": "vistas",
+      "label": "agrega",
+      "classification": "internal",
+      "labelDy": 16
+    },
+    {
+      "id": "api-geovisor",
+      "from": "api",
+      "to": "geovisor",
+      "label": "capas",
+      "classification": "internal",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -16
+    },
+    {
+      "id": "api-reportes",
+      "from": "api",
+      "to": "reportes",
+      "label": "descargas",
+      "classification": "internal",
+      "labelDy": 16
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "El circuito se cierra",
+      "items": [
+        "Lo registrado en campo entra en PostGIS",
+        "Las vistas leen de la base, no de constantes",
+        "Un registro nuevo cambia los indicadores",
+        "Verificado en producción componente a componente",
+        "El copiloto consume esa misma API"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Sin conexión",
+      "items": [
+        "El registro se guarda en el navegador",
+        "Se envía solo al recuperar internet",
+        "No se pierde trabajo de campo",
+        "Las teselas de la ortofoto se sirven aparte, como fondo del mapa"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Lo que aún no llega",
+      "items": [
+        "Ficorremediación: sin mediciones cargadas",
+        "Campañas 1 a 4 del censo sin datos",
+        "Registro fotográfico por parcela pendiente",
+        "La plataforma los muestra como «sin dato»"
+      ]
+    }
+  ]
+}
