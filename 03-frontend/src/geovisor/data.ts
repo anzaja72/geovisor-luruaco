@@ -118,7 +118,7 @@ export const GOBERNANZA = {
 }
 
 // Componentes (sidebar + transversal)
-export type CompId = 'restauracion' | 'maleza' | 'ficorremediacion' | 'fauna' | 'gobernanza' | 'transversal' | 'reportes'
+export type CompId = 'restauracion' | 'maleza' | 'ficorremediacion' | 'fauna' | 'gobernanza' | 'transversal' | 'reportes' | 'usuarios'
 export const COMPONENTES: [CompId, string, string][] = [
   ['restauracion', 'Restauración Ecológica', 'sprout'],
   ['maleza', 'Vegetación Acuática', 'waves'],
@@ -127,4 +127,5 @@ export const COMPONENTES: [CompId, string, string][] = [
   ['gobernanza', 'Gobernanza Ambiental', 'users'],
   ['transversal', 'Dashboard Transversal', 'grid'],
   ['reportes', 'Descarga de Datos', 'download'],
+  ['usuarios', 'Administración de cuentas', 'shield'],   // solo administrador
 ]

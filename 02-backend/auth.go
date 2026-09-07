@@ -171,7 +171,8 @@ func me(c *fiber.Ctx) error {
 
 func listarUsuarios(c *fiber.Ctx) error {
 	rows, err := db.QueryContext(c.UserContext(),
-		`SELECT id, nombre, email, rol, activo, creado_en, ultimo_acceso
+		`SELECT id, nombre, email, rol, activo, creado_en, ultimo_acceso,
+		        COALESCE(origen,'administrador')
 		 FROM eco_restauracion.usuarios ORDER BY id`)
 	if err != nil {
 		return serverError(c, "Error al listar usuarios", err)
@@ -181,16 +182,16 @@ func listarUsuarios(c *fiber.Ctx) error {
 	for rows.Next() {
 		var (
 			id            int64
-			nombre, email, rol string
+			nombre, email, rol, origen string
 			activo        bool
 			creado        time.Time
 			ultimo        sql.NullTime
 		)
-		if err := rows.Scan(&id, &nombre, &email, &rol, &activo, &creado, &ultimo); err != nil {
+		if err := rows.Scan(&id, &nombre, &email, &rol, &activo, &creado, &ultimo, &origen); err != nil {
 			continue
 		}
 		m := fiber.Map{"id": id, "nombre": nombre, "email": email, "rol": rol,
-			"activo": activo, "creado_en": creado.Format("2006-01-02")}
+			"activo": activo, "creado_en": creado.Format("2006-01-02"), "origen": origen}
 		if ultimo.Valid {
 			m["ultimo_acceso"] = ultimo.Time.Format(time.RFC3339)
 		}

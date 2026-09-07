@@ -96,6 +96,7 @@ func main() {
 
 	// --- Autenticación (público) ---
 	api.Post("/auth/login", login)
+	api.Post("/auth/registro", registroPublico)   // público: crea cuentas de consulta
 	api.Get("/auth/me", requireAuth(), me)
 	api.Put("/auth/password", requireAuth(), cambiarPassword)
 

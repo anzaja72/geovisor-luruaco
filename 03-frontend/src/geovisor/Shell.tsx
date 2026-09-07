@@ -72,27 +72,29 @@ function TopBar({ usuario, onLogout, onCopiloto }: { usuario: Usuario; onLogout:
 }
 
 function Sidebar({
-  active, onNav, onMonitoreo, onImport, onAjustes, onSoporte,
+  active, onNav, onMonitoreo, onImport, onAjustes, onSoporte, esAdmin,
 }: { active: CompId; onNav: (c: CompId) => void; onMonitoreo?: () => void; onImport?: () => void
-     onAjustes: () => void; onSoporte: () => void }) {
+     onAjustes: () => void; onSoporte: () => void; esAdmin: boolean }) {
   return (
     <aside className="side">
       <div className="sh"><b>Gestión Ambiental</b><span>Ciénaga de Luruaco</span></div>
       <nav className="nav">
         <div className="sep">Componentes</div>
-        {COMPONENTES.filter(([id]) => id !== 'reportes').map(([id, label, ic]) => (
+        {COMPONENTES.filter(([id]) => id !== 'reportes' && id !== 'usuarios').map(([id, label, ic]) => (
           <a key={id} href="#" className={id === active ? 'active' : ''}
             onClick={(e) => { e.preventDefault(); onNav(id) }}>
             <Icon id={ic} /> {label}
           </a>
         ))}
         <div className="sep">Herramientas</div>
-        {COMPONENTES.filter(([id]) => id === 'reportes').map(([id, label, ic]) => (
-          <a key={id} href="#" className={id === active ? 'active' : ''}
-            onClick={(e) => { e.preventDefault(); onNav(id) }}>
-            <Icon id={ic} /> {label}
-          </a>
-        ))}
+        {COMPONENTES
+          .filter(([id]) => id === 'reportes' || (id === 'usuarios' && esAdmin))
+          .map(([id, label, ic]) => (
+            <a key={id} href="#" className={id === active ? 'active' : ''}
+              onClick={(e) => { e.preventDefault(); onNav(id) }}>
+              <Icon id={ic} /> {label}
+            </a>
+          ))}
       </nav>
       <div className="foot">
         <button className="btn-primary" onClick={onMonitoreo} disabled={!onMonitoreo}>
@@ -131,7 +133,7 @@ export default function Shell({
       <TopBar usuario={usuario} onLogout={onLogout} onCopiloto={onCopiloto} />
       <div className="shell">
         <Sidebar active={active} onNav={onNav} onMonitoreo={onMonitoreo} onImport={onImport}
-          onAjustes={onAjustes} onSoporte={onSoporte} />
+          onAjustes={onAjustes} onSoporte={onSoporte} esAdmin={usuario.rol === 'administrador'} />
         <main className="main">{children}</main>
       </div>
     </>

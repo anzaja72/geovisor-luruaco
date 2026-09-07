@@ -40,7 +40,7 @@ Este proyecto es una aplicación web completa para monitorear y visualizar proye
 ### Infraestructura
 - **Docker** - Contenedores
 - **Nginx** - Reverse proxy
-- **Supabase** - PostgreSQL local
+- **PostGIS en Docker** - base de datos local
 
 ## 📦 Instalación
 

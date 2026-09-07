@@ -7,6 +7,7 @@ import FaunaView from './FaunaView'
 import GobernanzaView from './GobernanzaView'
 import TransversalView from './TransversalView'
 import ReportesView from './ReportesView'
+import AdminUsuariosView from './AdminUsuariosView'
 import { useGeoData } from '../hooks/useGeoData'
 import MonitoreoModal from '../components/MonitoreoModal'
 import Copiloto from '../components/Copiloto'
@@ -82,6 +83,7 @@ export default function Geovisor({ usuario, onLogout }: { usuario: Usuario; onLo
         {active === 'gobernanza' && <GobernanzaView />}
         {active === 'transversal' && <TransversalView onNav={setActive} />}
         {active === 'reportes' && <ReportesView />}
+        {active === 'usuarios' && usuario.rol === 'administrador' && <AdminUsuariosView usuario={usuario} />}
       </Shell>
 
       {ajustesOpen && <AjustesModal onClose={() => setAjustesOpen(false)} usuario={usuario} />}

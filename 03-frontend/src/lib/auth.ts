@@ -47,6 +47,24 @@ export async function login(email: string, password: string): Promise<Usuario> {
   return data.usuario as Usuario
 }
 
+/** Crea una cuenta de consulta desde la página de inicio y deja la sesión abierta.
+ *  El rol lo fija el servidor: nunca se envía desde aquí. */
+export async function registrarse(
+  nombre: string,
+  email: string,
+  password: string,
+): Promise<Usuario> {
+  const res = await fetch(`${API_URL}/api/auth/registro`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre, email, password }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`)
+  setSesion(data.token as string, data.usuario as Usuario)
+  return data.usuario as Usuario
+}
+
 /** true si el rol puede cargar/editar datos. */
 export function puedeEditar(u: Usuario | null): boolean {
   return u != null && (u.rol === 'administrador' || u.rol === 'tecnico')

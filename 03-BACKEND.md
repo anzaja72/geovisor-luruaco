@@ -14,7 +14,7 @@ backend/
 ├── main.go          # Código fuente principal
 ├── go.mod           # Módulos Go
 ├── .env             # Variables de entorno local
-├── .env.supabase    # Config para Supabase
+├── .env             # Configuración local (no se versiona)
 ├── railway.json     # Config despliegue Railway
 ├── run.sh           # Script de ejecución
 └── luruaco-api      # Binario compilado
