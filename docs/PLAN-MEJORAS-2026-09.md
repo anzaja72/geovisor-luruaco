@@ -144,6 +144,21 @@ Para que exista una categoría hace falta un umbral por variable. Recomendación
 - **Agua → adoptar el ICA del IDEAM**, no el ICAM. El ICAM es para aguas marinas y costeras; la ciénaga de Luruaco es agua dulce continental. El ICA del IDEAM es el índice oficial colombiano para ese caso, tiene la misma estructura de 5 categorías y la misma presentación que le gustó a Darío. Se calcula con 6 variables: oxígeno disuelto (% saturación), sólidos suspendidos totales, DQO, conductividad, pH y relación nitrógeno total/fósforo total.
   - **De esas 6, el proyecto ya mide 4** (OD, SST, pH, N total y P total). **Faltan conductividad y DQO** — hay que pedirlas al laboratorio; hoy se mide DBO5, que no sustituye a la DQO en la fórmula.
   - Las curvas de sub-índice deben tomarse de la hoja metodológica del IDEAM, no de memoria. Es el insumo #1 a confirmar.
+#### A.5.1 Oxígeno disuelto: de mg/L a % de saturación
+
+El ICA no usa el OD en mg/L sino en porcentaje de saturación. **Decisión tomada: lo calcula la plataforma**, no el laboratorio, a partir de lo que ya se reporta.
+
+```
+OD% = 100 · OD_medido / OD_saturación(T, P)
+```
+
+`OD_saturación` sale de la ecuación de Benson–Krause (APHA 4500-O G), que solo necesita la **temperatura**, ya presente en el plan de análisis. La corrección por presión atmosférica depende de la altitud, y la ciénaga de Luruaco está en llanura costera, unos 10 m s. n. m.: el factor de corrección es inferior al 0,2 %, por debajo de la incertidumbre del propio método de laboratorio. Se aplica de todos modos, con la altitud como constante documentada.
+
+Dos condiciones para que esto sea defendible ante la interventoría:
+
+- La temperatura debe venir **de la misma muestra** que el OD. Si el laboratorio reporta OD sin temperatura pareada, la conversión no se puede hacer y la variable queda sin calificar, no estimada.
+- La ficha metodológica del visor debe declarar la fórmula, la fuente y la altitud usada, visible junto al índice. No puede ser un cálculo oculto.
+
 - **Sedimentos →** metales pesados y plaguicidas se califican contra guías de calidad de sedimentos (ISQG/PEL). No hay norma colombiana específica; hay que decidir la referencia con Darío.
 - **Biota →** no se califica con una escala de calidad. Se presenta como **riqueza y abundancia por grupo** (fitoplancton, zooplancton, ictioplancton, macroinvertebrados bentónicos, perifiton, ictiofauna), en dos gráficos de barras, con serie por campaña y matriz de especies en ventana. Es exactamente el mismo tratamiento que Osman pide para fauna en el `.docx`, y conviene que se vean iguales.
 
@@ -306,12 +321,12 @@ Conviene hacerlo **primero**: desbloquea B.2, C.1, C.2, D.7 y A.7 de una vez.
 | # | Pregunta | Para quién | Bloquea |
 |---|---|---|---|
 | H.1 | **Las ortofotos vienen en ECW.** GDAL en su versión libre no lee ECW, así que hoy no se pueden tilear. ¿Se pueden reentregar en GeoTIFF, o conviertes tú desde QGIS/ERDAS? | Brandon | B.1, C.3, A.7, F.1 |
-| H.2 | **Umbrales de calificación del agua.** Darío confirmó que el laboratorio sí reporta **DQO y conductividad**, así que las 6 variables del ICA del IDEAM están cubiertas. Falta que apruebe adoptar el ICA y enviar la hoja metodológica con las curvas de sub-índice. Ojo: el ICA usa el OD en **% de saturación**, no en mg/L | Darío | Todo el bloque A |
+| H.2 | **Umbrales de calificación del agua.** Las 6 variables del ICA del IDEAM están cubiertas (Darío confirmó DQO y conductividad). La conversión del OD a % de saturación **la calcula la plataforma** (ver §A.5.1). Queda pendiente solo que apruebe adoptar el ICA y remita la hoja metodológica con las curvas de sub-índice | Darío | Todo el bloque A |
 | H.3 | **Umbrales de sedimentos.** ¿Contra qué guía se califican metales y plaguicidas? | Darío / laboratorio | A.5 |
 | H.4 | **Formato del CSV de ficorremediación** (ancho o largo, nombres de columnas, cómo se identifica el punto) | Darío | F.3 |
 | H.5 | **Excel de restauración:** ¿«Formato» (193 registros) o «Sin repetir» (82)? | Yurani | G.3 |
 | H.6 | **Maleza removida:** ¿40,247 ha o 40.247 ha? | Yurani | C.6 |
 | H.7 | **Fechas de fauna:** monitoreo 2 (marzo) y 3 (agosto), ¿2027? | Osman | D.14 |
-| H.8 | **Puntos de mamíferos.** Osman envió herpetos y aves (ya estaban en el repositorio, idénticos) y un `.rar` con **5 cámaras trampa** (C2–C7, sin C1 ni C6), que sí eran nuevas y quedaron integradas. Falta confirmar si las cámaras *son* el monitoreo de mamíferos o si hay una capa aparte, y por qué faltan dos códigos | Osman | D.8 |
+| H.8 | **Puntos de mamíferos.** Osman envió herpetos y aves (ya estaban en el repositorio, idénticos) y un `.rar` con **5 cámaras trampa** (C2–C7, sin C1 ni C6), que sí eran nuevas y quedaron integradas. **Decisión tomada:** las cámaras se tratan como puntos de monitoreo y quedan nombradas según la convención del documento (grupo · punto de muestreo · coordenada). Queda por aclarar por qué faltan C1 y C6 | Osman | D.8 |
 | H.9 | **Acceso a la carpeta de Drive** con las ortofotos actualizadas | Brandon | Fase 6 |
 | H.10 | **Restauración, «quitar las demás capas»:** se entiende que son los mapas base alternativos (lo marcado en rojo). ¿Se confirma que las coberturas Corine se quedan? | Valeria | B.2 |

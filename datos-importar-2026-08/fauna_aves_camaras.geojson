@@ -17,7 +17,10 @@
     "visibility": -1,
     "id2": 2.0,
     "Tipo1": "Aves",
-    "COD": "A2"
+    "COD": "A2",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #2",
+    "coordenada": "10.605082, -75.166727"
    },
    "geometry": {
     "type": "Point",
@@ -37,7 +40,10 @@
     "visibility": -1,
     "id2": 3.0,
     "Tipo1": "Aves",
-    "COD": "A3"
+    "COD": "A3",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #3",
+    "coordenada": "10.605613, -75.170447"
    },
    "geometry": {
     "type": "Point",
@@ -57,7 +63,10 @@
     "visibility": -1,
     "id2": 4.0,
     "Tipo1": "Aves",
-    "COD": "A4"
+    "COD": "A4",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #4",
+    "coordenada": "10.607541, -75.168208"
    },
    "geometry": {
     "type": "Point",
@@ -77,7 +86,10 @@
     "visibility": -1,
     "id2": 1.0,
     "Tipo1": "Aves",
-    "COD": "A1"
+    "COD": "A1",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #1",
+    "coordenada": "10.603169, -75.170264"
    },
    "geometry": {
     "type": "Point",
@@ -97,7 +109,10 @@
     "visibility": -1,
     "id2": 5.0,
     "Tipo1": "Aves",
-    "COD": "A5"
+    "COD": "A5",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #5",
+    "coordenada": "10.607544, -75.170517"
    },
    "geometry": {
     "type": "Point",
@@ -117,7 +132,10 @@
     "visibility": -1,
     "id2": 6.0,
     "Tipo1": "Aves",
-    "COD": "A6"
+    "COD": "A6",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #6",
+    "coordenada": "10.608102, -75.166071"
    },
    "geometry": {
     "type": "Point",
@@ -137,7 +155,10 @@
     "visibility": -1,
     "id2": 7.0,
     "Tipo1": "Aves",
-    "COD": "A7"
+    "COD": "A7",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #7",
+    "coordenada": "10.610065, -75.167078"
    },
    "geometry": {
     "type": "Point",
@@ -157,7 +178,10 @@
     "visibility": -1,
     "id2": 2.0,
     "Tipo1": "Camara",
-    "COD": "C2"
+    "COD": "C2",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #2",
+    "coordenada": "10.607680, -75.165990"
    },
    "geometry": {
     "type": "Point",
@@ -176,7 +200,10 @@
     "visibility": -1,
     "id2": 3.0,
     "Tipo1": "Camara",
-    "COD": "C3"
+    "COD": "C3",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #3",
+    "coordenada": "10.610540, -75.165830"
    },
    "geometry": {
     "type": "Point",
@@ -195,7 +222,10 @@
     "visibility": -1,
     "id2": 4.0,
     "Tipo1": "Camara",
-    "COD": "C4"
+    "COD": "C4",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #4",
+    "coordenada": "10.602936, -75.169541"
    },
    "geometry": {
     "type": "Point",
@@ -214,7 +244,10 @@
     "visibility": -1,
     "id2": 5.0,
     "Tipo1": "Camara",
-    "COD": "C5"
+    "COD": "C5",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #5",
+    "coordenada": "10.604469, -75.168549"
    },
    "geometry": {
     "type": "Point",
@@ -233,7 +266,10 @@
     "visibility": -1,
     "id2": 7.0,
     "Tipo1": "Camara",
-    "COD": "C7"
+    "COD": "C7",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #7",
+    "coordenada": "10.603314, -75.170997"
    },
    "geometry": {
     "type": "Point",

@@ -1,14 +1,222 @@
 {
-"type": "FeatureCollection",
-"name": "herpetos",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
-"features": [
-{"type":"Feature","properties":{"id":"herpetos.1","tessellate":-1,"extrude":0,"visibility":-1,"id2":1.0,"Clase":"Herpetos","Codigo":"H1"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.170027029775298,10.604334786880001],[-75.170036518035701,10.6047867668184]]]}},
-{"type":"Feature","properties":{"id":"herpetos.2","tessellate":-1,"extrude":0,"visibility":-1,"id2":2.0,"Clase":"Herpetos","Codigo":"H2"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.166370539708893,10.6105524046094],[-75.166373722701593,10.611004471944]]]}},
-{"type":"Feature","properties":{"id":"herpetos.3","tessellate":-1,"extrude":0,"visibility":-1,"id2":3.0,"Clase":"Herpetos","Codigo":"H3"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.165724457307306,10.6042859214296],[-75.165727637428702,10.6047379891377]]]}},
-{"type":"Feature","properties":{"id":"herpetos.4","tessellate":-1,"extrude":0,"visibility":-1,"id2":4.0,"Clase":"Herpetos","Codigo":"H4"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.171598294701198,10.602515243835599],[-75.171601482899007,10.6029673098285]]]}},
-{"type":"Feature","properties":{"id":"herpetos.5","tessellate":-1,"extrude":0,"visibility":-1,"id2":5.0,"Clase":"Herpetos","Codigo":"H5"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.167054508645194,10.604617073511101],[-75.1670576908204,10.6050691408104]]]}},
-{"type":"Feature","properties":{"id":"herpetos.6","tessellate":-1,"extrude":0,"visibility":-1,"id2":6.0,"Clase":"Herpetos","Codigo":"H6"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.168191849130693,10.6063426010016],[-75.168195033505199,10.6067946679096]]]}},
-{"type":"Feature","properties":{"id":"herpetos.7","tessellate":-1,"extrude":0,"visibility":-1,"id2":7.0,"Clase":"Herpetos","Codigo":"H7"},"geometry":{"type":"MultiLineString","coordinates":[[[-75.167804215506806,10.608361701964901],[-75.1678073999323,10.608813768931499]]]}}
-]
+ "type": "FeatureCollection",
+ "name": "herpetos",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+  }
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.1",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 1.0,
+    "Clase": "Herpetos",
+    "Codigo": "H1",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #1",
+    "coordenada": "10.604335, -75.170027"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1700270297753,
+       10.60433478688
+      ],
+      [
+       -75.1700365180357,
+       10.6047867668184
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.2",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 2.0,
+    "Clase": "Herpetos",
+    "Codigo": "H2",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #2",
+    "coordenada": "10.610552, -75.166371"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1663705397089,
+       10.6105524046094
+      ],
+      [
+       -75.1663737227016,
+       10.611004471944
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.3",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 3.0,
+    "Clase": "Herpetos",
+    "Codigo": "H3",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #3",
+    "coordenada": "10.604286, -75.165724"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1657244573073,
+       10.6042859214296
+      ],
+      [
+       -75.1657276374287,
+       10.6047379891377
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.4",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 4.0,
+    "Clase": "Herpetos",
+    "Codigo": "H4",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #4",
+    "coordenada": "10.602515, -75.171598"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1715982947012,
+       10.6025152438356
+      ],
+      [
+       -75.171601482899,
+       10.6029673098285
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.5",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 5.0,
+    "Clase": "Herpetos",
+    "Codigo": "H5",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #5",
+    "coordenada": "10.604617, -75.167055"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1670545086452,
+       10.6046170735111
+      ],
+      [
+       -75.1670576908204,
+       10.6050691408104
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.6",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 6.0,
+    "Clase": "Herpetos",
+    "Codigo": "H6",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #6",
+    "coordenada": "10.606343, -75.168192"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1681918491307,
+       10.6063426010016
+      ],
+      [
+       -75.1681950335052,
+       10.6067946679096
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "herpetos.7",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 7.0,
+    "Clase": "Herpetos",
+    "Codigo": "H7",
+    "grupo": "Herpetos",
+    "punto": "Punto de muestreo #7",
+    "coordenada": "10.608362, -75.167804"
+   },
+   "geometry": {
+    "type": "MultiLineString",
+    "coordinates": [
+     [
+      [
+       -75.1678042155068,
+       10.6083617019649
+      ],
+      [
+       -75.1678073999323,
+       10.6088137689315
+      ]
+     ]
+    ]
+   }
+  }
+ ]
 }
