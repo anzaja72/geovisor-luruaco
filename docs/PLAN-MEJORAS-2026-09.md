@@ -12,7 +12,7 @@
 |---|---|---|
 | `Mejoras Geovisor de Restauración Ecológica.pdf` | Valeria Esquea · 9-sep-2026 | 18 observaciones sobre 5 componentes + importación de archivos |
 | `Ejemplo geovisor ficorremediación (1).pdf` | Darío · 12-sep-2026 | **La referencia visual**: 5 capturas de los geovisores del INVEMAR (ICAM y SIGMA) |
-| `Actividades contempladas (1).docx` | Darío | Rediseño del componente de fauna (puntos, formulario, gráficos, línea de tiempo) |
+| `Actividades contempladas (1).docx` | Osman Aragón · 9-sep-2026 | Rediseño del componente de fauna (puntos, formulario, gráficos, línea de tiempo) |
 | `Datos de campo-Comunitario.xlsx` | Yurani | Censo de línea base **corregido** que reemplaza al actual |
 | Carpeta de Drive (ortofotos) | Brandon | Ortofotos actualizadas: predio, limpiezas y laboratorio |
 | Captura de WhatsApp | Yurani · martes | Individuos sembrados 17.565 → **9.605**; reemplazar datos anteriores |
@@ -145,7 +145,7 @@ Para que exista una categoría hace falta un umbral por variable. Recomendación
   - **De esas 6, el proyecto ya mide 4** (OD, SST, pH, N total y P total). **Faltan conductividad y DQO** — hay que pedirlas al laboratorio; hoy se mide DBO5, que no sustituye a la DQO en la fórmula.
   - Las curvas de sub-índice deben tomarse de la hoja metodológica del IDEAM, no de memoria. Es el insumo #1 a confirmar.
 - **Sedimentos →** metales pesados y plaguicidas se califican contra guías de calidad de sedimentos (ISQG/PEL). No hay norma colombiana específica; hay que decidir la referencia con Darío.
-- **Biota →** no se califica con una escala de calidad. Se presenta como **riqueza y abundancia por grupo** (fitoplancton, zooplancton, ictioplancton, macroinvertebrados bentónicos, perifiton, ictiofauna), en dos gráficos de barras, con serie por campaña y matriz de especies en ventana. Es exactamente el mismo tratamiento que Darío pide para fauna en el `.docx`, y conviene que se vean iguales.
+- **Biota →** no se califica con una escala de calidad. Se presenta como **riqueza y abundancia por grupo** (fitoplancton, zooplancton, ictioplancton, macroinvertebrados bentónicos, perifiton, ictiofauna), en dos gráficos de barras, con serie por campaña y matriz de especies en ventana. Es exactamente el mismo tratamiento que Osman pide para fauna en el `.docx`, y conviene que se vean iguales.
 
 ### A.6 Presentación de las variables biológicas
 
@@ -204,7 +204,7 @@ Dos barras horizontales lado a lado —una de riqueza, una de abundancia—, amb
 | D.5 | Puntos muestreados y cámaras trampa no se ven en el mapa | Los contadores están escritos a mano en `0` y los símbolos cuadrado/triángulo/círculo de la leyenda no se usan en el mapa. Calcularlos del dato y usar los mismos símbolos | `FaunaView.tsx:186-190, 197-202` |
 | D.6 | Tipografía en itálica difícil de leer | Quitar `font-style: italic` (7 apariciones) salvo en nombres científicos, donde es convención | `geovisor.css:344,356,375,382,440,476`, `dashboard.css:1132` |
 
-### Del `.docx` de Darío
+### Del `.docx` de Osman
 
 | # | Pedido | Cambio |
 |---|---|---|
@@ -311,7 +311,7 @@ Conviene hacerlo **primero**: desbloquea B.2, C.1, C.2, D.7 y A.7 de una vez.
 | H.4 | **Formato del CSV de ficorremediación** (ancho o largo, nombres de columnas, cómo se identifica el punto) | Darío | F.3 |
 | H.5 | **Excel de restauración:** ¿«Formato» (193 registros) o «Sin repetir» (82)? | Yurani | G.3 |
 | H.6 | **Maleza removida:** ¿40,247 ha o 40.247 ha? | Yurani | C.6 |
-| H.7 | **Fechas de fauna:** monitoreo 2 (marzo) y 3 (agosto), ¿2027? | Darío | D.14 |
-| H.8 | **KML de puntos de mamíferos** — fue enviado por WhatsApp, no está en el repositorio | Darío | D.8 |
+| H.7 | **Fechas de fauna:** monitoreo 2 (marzo) y 3 (agosto), ¿2027? | Osman | D.14 |
+| H.8 | **KML de puntos de mamíferos** — el `.docx` dice que se envió por WhatsApp; no llegó al repositorio ni está en disco | Osman | D.8 |
 | H.9 | **Acceso a la carpeta de Drive** con las ortofotos actualizadas | Brandon | Fase 6 |
 | H.10 | **Restauración, «quitar las demás capas»:** se entiende que son los mapas base alternativos (lo marcado en rojo). ¿Se confirma que las coberturas Corine se quedan? | Valeria | B.2 |
