@@ -1129,7 +1129,6 @@
   border-top: 1px solid var(--line);
   font-size: 11px;
   color: var(--muted);
-  font-style: italic;
 }
 
 /* Etiqueta con el nombre de la técnica al pasar el cursor sobre la capa */

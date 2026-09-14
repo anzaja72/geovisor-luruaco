@@ -171,7 +171,8 @@ a{color:inherit}
 .sh.sq{width:12px;height:12px;border:2px solid var(--secondary);border-radius:2px}
 .sh.tri{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:11px solid var(--secondary)}
 .sh.ci{width:12px;height:12px;border:2px solid var(--secondary);border-radius:50%}
-.sh.dash{width:24px;height:0;border-top:2px dashed var(--primary)}
+.sh.dash{width:28px;height:3px;border-radius:1px;
+  background:repeating-linear-gradient(90deg,var(--primary) 0 6px,transparent 6px 11px)}
 
 /* Conteo de puntos bajo el mapa */
 .pt-count{display:flex;gap:18px;justify-content:center;padding:9px 0 2px;font-size:12.5px;color:var(--ink)}
@@ -353,7 +354,7 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
   border:1px solid var(--line);border-left:3px solid var(--secondary);border-radius:9px;padding:8px 12px;
   box-shadow:0 4px 14px rgba(15,23,42,.12)}
 .f3d-card b{display:block;font-size:12.5px;color:var(--ink)}
-.f3d-card small{font-size:11px;color:var(--muted);font-style:italic}
+.f3d-card small{font-size:11px;color:var(--muted)}
 .f3d-estado{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:9px;
   font-size:12px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.55)}
 .f3d-spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--secondary);
@@ -372,14 +373,14 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 
 .f3d-ficha{display:flex;flex-direction:column;gap:10px;min-width:0}
 .f3d-ficha .cab b{font-size:14px;color:var(--ink)}
-.f3d-ficha .cab small{display:block;font-size:11px;color:var(--muted);font-style:italic}
+.f3d-ficha .cab small{display:block;font-size:11px;color:var(--muted)}
 .f3d-ficha .datos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .f3d-ficha .datos div{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:7px 9px}
 .f3d-ficha .datos em{font-style:normal;display:block;font-size:9.5px;letter-spacing:.3px;
   text-transform:uppercase;color:var(--muted);font-weight:700}
 .f3d-ficha .datos b{font-size:13px;font-weight:800;color:var(--ink)}
 .f3d-ficha p{font-size:11.5px;color:var(--muted);line-height:1.5}
-.f3d-ficha .dato{border-top:1px solid var(--line);padding-top:8px;font-size:11px;color:var(--muted);font-style:italic}
+.f3d-ficha .dato{border-top:1px solid var(--line);padding-top:8px;font-size:11px;color:var(--muted)}
 .f3d-chips{display:flex;flex-wrap:wrap;gap:5px}
 .f3d-chips button{font-size:10.5px;font-weight:600;border:1px solid var(--line);background:var(--card);
   color:var(--muted);border-radius:999px;padding:3px 9px;display:flex;align-items:center;gap:5px}
@@ -437,7 +438,7 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 .cop-acciones button{font-size:11.5px;font-weight:700;color:var(--tertiary);background:var(--tert-c);
   border:1px solid #b6e6f2;border-radius:999px;padding:5px 11px}
 .cop-acciones button:hover{background:#c9eef7}
-.cop-nota{margin-top:8px;font-size:10.5px;color:var(--warn);font-style:italic}
+.cop-nota{margin-top:8px;font-size:10.5px;color:var(--warn)}
 
 .cop-cargando{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
 .cop-cargando span{width:5px;height:5px;border-radius:50%;background:var(--tertiary);
@@ -473,7 +474,7 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 .aj-error{font-size:12.5px;color:var(--poor)}
 .aj-ok{font-size:12.5px;color:var(--secondary);font-weight:700}
 .aj-tabla{width:100%}
-.aj-nota{margin-top:10px;font-size:11.5px;color:var(--muted);font-style:italic}
+.aj-nota{margin-top:10px;font-size:11.5px;color:var(--muted)}
 .info .ib h4:first-child{margin-top:0;padding-top:0;border-top:0}
 .sop-ans{display:flex;flex-direction:column;gap:3px;background:var(--sec-c);border:1px solid #cfe89a;
   border-radius:10px;padding:12px 14px;margin-bottom:14px}
