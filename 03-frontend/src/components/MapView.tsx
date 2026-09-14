@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   CircleMarker,
   GeoJSON,
+  ImageOverlay,
   LayerGroup,
   LayersControl,
   MapContainer,
@@ -22,12 +23,26 @@ import TematicasOverlays from './TematicasOverlays'
 import IgacOverlays from './IgacOverlays'
 import { CoordsControl, MapToolbar } from './MapTools'
 import limpiezaMensual from '../geovisor/limpiezaMensual.json'
+import { ORTOS_MALEZA } from '../geovisor/ortofotosMaleza'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
-// Límites de la ortofoto del predio (dron): vista por defecto de todos los mapas.
+// Límites de la ortofoto del predio (vuelo de septiembre de 2026, «Ortofoto #1.1»).
+// El encuadre anterior abarcaba 311 ha para un predio de 90: era la huella del vuelo
+// antiguo, no la del predio. Este ajusta al aislamiento externo con ~40 m de margen.
 const PREDIO_BOUNDS: [[number, number], [number, number]] = [
-  [10.596738552237106, -75.18083778075173],
-  [10.612784062684298, -75.16481760326494],
+  [10.6013802, -75.1735691],
+  [10.6119370, -75.1652677],
+]
+// Borde de la ciénaga intervenido: envolvente de los cinco polígonos de limpieza
+// (enero, febrero, mayo, junio y julio). Área de interés de Vegetación Acuática.
+const CIENAGA_BOUNDS: [[number, number], [number, number]] = [
+  [10.5960, -75.1640],
+  [10.6135, -75.1430],
+]
+// Puntos de ficorremediación (FICO-1…FICO-5) con margen alrededor.
+const FICOR_BOUNDS: [[number, number], [number, number]] = [
+  [10.5965, -75.1665],
+  [10.6180, -75.1460],
 ]
 
 // Símbolo de punto de control topográfico (crosshair morado).
@@ -61,7 +76,40 @@ interface Props extends GeovisorMapProps {
   componente: ComponenteGeovisor
   /** Claves de cobertura visibles (ver claseCobertura). undefined = todas visibles. */
   coberturasActivas?: Set<string>
+  /** Mes de limpieza activo (Vegetación Acuática): filtra polígonos y ortofotos.
+   *  undefined o 'Todos' = se muestran todos los meses. */
+  mesLimpieza?: string
+  /** Encuadre pedido desde la vista (p. ej. el polígono del mes elegido). Manda
+   *  sobre el encuadre automático, pero no sobre el elemento seleccionado. */
+  focus?: [[number, number], [number, number]] | null
   className?: string
+}
+
+/** Cómo se comporta el mapa en cada componente. Antes los cuatro compartían el mismo
+ *  mapa: la ortofoto del predio salía encendida en todos, el mapa base siempre
+ *  arrancaba en satelital y la vista por defecto siempre era el predio, de modo que
+ *  Vegetación Acuática y Ficorremediación abrían mirando a otro lado. */
+interface ConfigComponente {
+  /** Mapa base activo al abrir el componente (id de BASEMAPS). */
+  basemap: string
+  /** Mapas base ofrecidos. Sin definir = todos los del catálogo. */
+  basemaps?: string[]
+  /** Si se superpone la ortofoto del dron del predio de restauración. */
+  ortofotoPredio: boolean
+  /** Encuadre por defecto cuando no hay nada seleccionado. */
+  aoi: [[number, number], [number, number]]
+  /** Si se dibujan las coberturas Corine del levantamiento. */
+  coberturas: boolean
+}
+
+const CONFIG_COMPONENTE: Record<ComponenteGeovisor, ConfigComponente> = {
+  // Solo el satelital: el resto de mapas base satura y no aporta sobre la ortofoto.
+  restauracion: { basemap: 's2', basemaps: ['s2'], ortofotoPredio: true, aoi: PREDIO_BOUNDS, coberturas: true },
+  maleza: { basemap: 's2', ortofotoPredio: false, aoi: CIENAGA_BOUNDS, coberturas: false },
+  // Calles (OSM) por pedido expreso: el contexto urbano ubica los puntos de muestreo.
+  ficorremediacion: { basemap: 'calles', ortofotoPredio: false, aoi: FICOR_BOUNDS, coberturas: false },
+  // El monitoreo de fauna se lee contra las coberturas del área de restauración.
+  fauna: { basemap: 's2', ortofotoPredio: false, aoi: PREDIO_BOUNDS, coberturas: true },
 }
 
 // Capas importadas (capas_geograficas) pertinentes por componente. curvas_nivel se omite
@@ -172,13 +220,18 @@ function FeatureLayer({
   )
 }
 
-/** Ajusta la vista al feature seleccionado (o a todo el conjunto). */
+/** Ajusta la vista, por orden de prioridad: elemento seleccionado → encuadre pedido
+ *  por la vista → conjunto de datos dibujados → área de interés del componente. */
 function FitController({
   selected,
   all,
+  aoi,
+  focus,
 }: {
   selected: GeoFeature | null
   all: GeoFeature[]
+  aoi: [[number, number], [number, number]]
+  focus?: [[number, number], [number, number]] | null
 }) {
   const map = useMap()
   useEffect(() => {
@@ -188,6 +241,14 @@ function FitController({
       try {
         const b = fc([selected]).getBounds()
         if (b.isValid()) map.flyToBounds(b, { padding: [60, 60], maxZoom: 15 })
+        return
+      } catch {
+        /* noop */
+      }
+    }
+    if (focus) {
+      try {
+        map.flyToBounds(focus, { padding: [50, 50], maxZoom: 17 })
         return
       } catch {
         /* noop */
@@ -204,13 +265,14 @@ function FitController({
         /* noop */
       }
     }
-    // Sin datos pertinentes: encuadrar la ortofoto del predio (nunca heredar otra vista).
+    // Sin datos pertinentes: encuadrar el área de interés del componente
+    // (nunca heredar la vista de otro componente).
     try {
-      map.fitBounds(PREDIO_BOUNDS, { padding: [20, 20], animate: false })
+      map.fitBounds(aoi, { padding: [20, 20], animate: false })
     } catch {
       map.setView(LURUACO_CENTER, 13)
     }
-  }, [selected, all, map])
+  }, [selected, all, aoi, focus, map])
   return null
 }
 
@@ -270,9 +332,12 @@ export default function MapView({
   selected,
   onSelect,
   coberturasActivas,
+  mesLimpieza,
+  focus,
   className = 'map',
 }: Props) {
-  // Solo Restauración tiene aislamiento/predio (zonas) y coberturas Corine.
+  const cfg = CONFIG_COMPONENTE[componente]
+  // Solo Restauración tiene aislamiento/predio (zonas).
   const zonasRel = componente === 'restauracion' ? zonas : []
   // Restauración muestra todas sus parcelas; Ficorremediación solo sus propios puntos
   // georreferenciados (tipo_monitoreo='ficorremediacion').
@@ -282,7 +347,7 @@ export default function MapView({
       : componente === 'ficorremediacion'
         ? puntos.filter((p) => p.properties?.tipo_monitoreo === 'ficorremediacion')
         : []
-  const coberturasRel = componente === 'restauracion' ? coberturas : []
+  const coberturasRel = cfg.coberturas ? coberturas : []
   // Estratos/malezas son datos de muestra (origen='muestra') — nunca se muestran.
   // Técnicas/validación son reales y pertinentes solo a Restauración.
   const tematicasRel: Tematicas =
@@ -305,6 +370,27 @@ export default function MapView({
     }
     return Array.from(m.entries())
   }, [capas, componente])
+
+  // Mapas base ofrecidos en este componente (ver ConfigComponente.basemaps).
+  const basemapsRel = useMemo(
+    () => (cfg.basemaps ? BASEMAPS.filter((b) => cfg.basemaps!.includes(b.id)) : BASEMAPS),
+    [cfg.basemaps],
+  )
+
+  // Limpieza de maleza: polígonos y ortofotos del mes activo ('Todos' = todos).
+  const todosLosMeses = !mesLimpieza || mesLimpieza === 'Todos'
+  const limpiezaRel = useMemo(() => {
+    const fc = limpiezaMensual as { features: { properties: { mes?: string } }[] }
+    const features = todosLosMeses
+      ? fc.features
+      : fc.features.filter((f) => f.properties?.mes === mesLimpieza)
+    return { type: 'FeatureCollection', features } as unknown as GeoJSON.GeoJsonObject
+  }, [mesLimpieza, todosLosMeses])
+  const ortosRel = useMemo(
+    () =>
+      ORTOS_MALEZA.filter((o) => o.despues && (todosLosMeses || o.mes === mesLimpieza)),
+    [mesLimpieza, todosLosMeses],
+  )
 
   // Todo lo que este geovisor muestra realmente — usado para encuadrar la vista inicial.
   const all = useMemo(
@@ -333,8 +419,8 @@ export default function MapView({
     <MapContainer key={componente} center={LURUACO_CENTER} zoom={13} className={className}>
       <SearchControl />
       <LayersControl position="topright">
-        {BASEMAPS.map((b, i) => (
-          <LayersControl.BaseLayer key={b.id} checked={i === 0} name={b.nombre}>
+        {basemapsRel.map((b) => (
+          <LayersControl.BaseLayer key={b.id} checked={b.id === cfg.basemap} name={b.nombre}>
             <TileLayer
               url={b.url}
               attribution={b.attribution}
@@ -345,20 +431,20 @@ export default function MapView({
           </LayersControl.BaseLayer>
         ))}
 
-        {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod) */}
-        <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
-          <TileLayer
-            url="/tiles/ortofoto/{z}/{x}/{y}.png"
-            minNativeZoom={13}
-            maxNativeZoom={20}
-            maxZoom={22}
-            bounds={[
-              [10.596738552237106, -75.18083778075173],
-              [10.612784062684298, -75.16481760326494],
-            ]}
-            attribution="Ortofoto © dronticom — Entregables predio 50 Ha"
-          />
-        </LayersControl.Overlay>
+        {/* Ortofoto del dron servida como tiles XYZ (/tiles en dev y prod). Es del
+            predio de restauración: solo se superpone donde corresponde. */}
+        {cfg.ortofotoPredio && (
+          <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
+            <TileLayer
+              url="/tiles/ortofoto/{z}/{x}/{y}.png"
+              minNativeZoom={13}
+              maxNativeZoom={20}
+              maxZoom={22}
+              bounds={PREDIO_BOUNDS}
+              attribution="Ortofoto © dronticom — Entregables predio 50 Ha"
+            />
+          </LayersControl.Overlay>
+        )}
 
         {zonasRel.length > 0 && (
           <LayersControl.Overlay checked name="Predio / Aislamiento">
@@ -479,11 +565,21 @@ export default function MapView({
           </LayersControl.Overlay>
         )}
 
+        {/* Ortofotos posteriores a la limpieza, por mes — solo Vegetación Acuática.
+            Se dibujan bajo los polígonos para que el borde intervenido quede encima. */}
+        {componente === 'maleza' &&
+          ortosRel.map((o) => (
+            <LayersControl.Overlay checked key={`orto-${o.mes}`} name={`🛩 Ortofoto ${o.mes} (después)`}>
+              <ImageOverlay url={o.despues!} bounds={o.despuesBounds ?? o.antesBounds} />
+            </LayersControl.Overlay>
+          ))}
+
         {/* Polígonos de limpieza por mes (capa estática) — solo Vegetación Acuática */}
         {componente === 'maleza' && (
           <LayersControl.Overlay checked name="🟩 Polígonos de limpieza">
             <GeoJSON
-              data={limpiezaMensual as unknown as GeoJSON.GeoJsonObject}
+              key={`limpieza-${mesLimpieza ?? 'todos'}`}
+              data={limpiezaRel}
               style={{ color: '#15803d', weight: 2.5, fillColor: '#22c55e', fillOpacity: 0.3 }}
               onEachFeature={(f, layer) => {
                 const p = (f.properties || {}) as Record<string, unknown>
@@ -550,7 +646,7 @@ export default function MapView({
       <MeasureTool modo={medir} onModo={setMedir} />
       <CoordsControl />
       <MapToolbar onDownload={descargarGeoJSON} />
-      <FitController selected={selected} all={all} />
+      <FitController selected={selected} all={all} aoi={cfg.aoi} focus={focus} />
     </MapContainer>
   )
 }
