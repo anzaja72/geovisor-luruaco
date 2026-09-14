@@ -1,0 +1,47 @@
+{
+ "type": "FeatureCollection",
+ "name": "Poligono Laboratorio",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+  }
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "nombre": "Laboratorio de Microalgas",
+    "area": "0.2727 ha",
+    "perimetro": "209.2 m"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -75.09581703248676,
+       10.520912382981676
+      ],
+      [
+       -75.09543563104836,
+       10.520704954129204
+      ],
+      [
+       -75.09571666368718,
+       10.520253294531082
+      ],
+      [
+       -75.09608133699234,
+       10.520484142770123
+      ],
+      [
+       -75.09581703248676,
+       10.520912382981676
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
