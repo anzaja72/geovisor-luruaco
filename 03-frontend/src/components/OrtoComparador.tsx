@@ -2,38 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { GeoJSON, ImageOverlay, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import type { LatLngBoundsExpression, Map as LeafletMap } from 'leaflet'
 import type { GeoFeature } from '../lib/types'
-
-// Ortofotos del dron por mes (georreferenciadas como ImageOverlay). Bounds = wgs84Extent
-// del GeoTIFF original. Febrero y Mayo aún no tienen imagen "después".
-type B = [[number, number], [number, number]]
-interface OrtoMes {
-  antes: string
-  antesBounds: B
-  despues?: string
-  despuesBounds?: B
-}
-
-const ORTOS: Record<string, OrtoMes> = {
-  Enero: {
-    antes: '/ortofotos/enero-antes.webp',
-    antesBounds: [[10.607696, -75.151478], [10.612049, -75.146292]],
-    despues: '/ortofotos/enero-despues.webp',
-    despuesBounds: [[10.607694, -75.151507], [10.612060, -75.146269]],
-  },
-  Febrero: {
-    antes: '/ortofotos/febrero-antes.webp',
-    antesBounds: [[10.604965, -75.152265], [10.608986, -75.144497]],
-    despues: '/ortofotos/febrero-despues.webp',
-    despuesBounds: [[10.6052965, -75.1522944], [10.6090092, -75.1449155]],
-  },
-  Mayo: {
-    antes: '/ortofotos/mayo-antes.webp',
-    antesBounds: [[10.602133, -75.151200], [10.606596, -75.144456]],
-    despues: '/ortofotos/mayo-despues.webp',
-    despuesBounds: [[10.6021329, -75.1512003], [10.6065957, -75.1437571]],
-  },
-}
-const MESES = Object.keys(ORTOS)
+import { MESES_LIMPIEZA, ortoDe, type Bounds as B } from '../geovisor/ortofotosMaleza'
 
 /** Registra el mapa y propaga sus movimientos al mapa hermano (misma vista). */
 function Sync({
@@ -118,16 +87,30 @@ function Lado({
   )
 }
 
-/** Comparativo antes/después de las intervenciones con las ortofotos del dron. */
-export default function OrtoComparador({ poligonos }: { poligonos: GeoFeature[] }) {
-  const [mes, setMes] = useState('Enero')
-  const orto = ORTOS[mes]
+/** Comparativo antes/después de las intervenciones con las ortofotos del dron.
+ *  `mes` y `onMes` lo sincronizan con la línea de tiempo de la vista: si arriba se
+ *  elige un monitoreo, el comparativo lo sigue, y al revés. */
+export default function OrtoComparador({
+  poligonos,
+  mes,
+  onMes,
+}: {
+  poligonos: GeoFeature[]
+  mes?: string
+  onMes?: (m: string) => void
+}) {
+  // La línea de tiempo puede estar en «Todos», que no es un mes comparable: en ese
+  // caso el comparativo conserva su propia selección.
+  const [interno, setInterno] = useState(MESES_LIMPIEZA[0])
+  const activo = mes && MESES_LIMPIEZA.includes(mes) ? mes : interno
+  const elegir = (m: string) => { setInterno(m); onMes?.(m) }
+  const orto = ortoDe(activo)!
   const mapA = useRef<LeafletMap | null>(null)
   const mapB = useRef<LeafletMap | null>(null)
   const lockRef = useRef(false)
   const polys = useMemo(
-    () => poligonos.filter((p) => String((p.properties as unknown as Record<string, unknown>)?.mes ?? '') === mes),
-    [poligonos, mes],
+    () => poligonos.filter((p) => String((p.properties as unknown as Record<string, unknown>)?.mes ?? '') === activo),
+    [poligonos, activo],
   )
 
   return (
@@ -135,22 +118,22 @@ export default function OrtoComparador({ poligonos }: { poligonos: GeoFeature[] 
       <div className="filters" style={{ margin: '4px 12px 10px' }}>
         <div className="fl">
           <span className="lab">Mes</span>
-          <select value={mes} onChange={(e) => setMes(e.target.value)}>
-            {MESES.map((m) => (
+          <select value={activo} onChange={(e) => elegir(e.target.value)}>
+            {MESES_LIMPIEZA.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
         <span className="badge-soft">Mueve o acerca un mapa y el otro lo sigue</span>
       </div>
-      <div className="compare-wrap" key={mes}>
+      <div className="compare-wrap" key={activo}>
         <Lado
           titulo="ANTES"
           img={orto.antes}
           bounds={orto.antesBounds}
           fit={orto.antesBounds}
           polys={polys}
-          pdf={`/salidas/${mes.toLowerCase()}-antes.pdf`}
+          pdf={`/salidas/${activo.toLowerCase()}-antes.pdf`}
           selfRef={mapA}
           otherRef={mapB}
           lockRef={lockRef}
@@ -161,7 +144,7 @@ export default function OrtoComparador({ poligonos }: { poligonos: GeoFeature[] 
           bounds={orto.despuesBounds ?? orto.antesBounds}
           fit={orto.antesBounds}
           polys={polys}
-          pdf={`/salidas/${mes.toLowerCase()}-despues.pdf`}
+          pdf={`/salidas/${activo.toLowerCase()}-despues.pdf`}
           selfRef={mapB}
           otherRef={mapA}
           lockRef={lockRef}
