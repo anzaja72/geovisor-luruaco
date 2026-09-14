@@ -69,9 +69,14 @@ export const MALEZA = {
 // Ficorremediación — variables a medir (Variables Calidad de aguas.xlsx /
 // Variables Calidad de sedimentos.xlsx). Sin resultados aún: estructura lista
 // para poblarse desde ficor_calidad_agua / ficor_calidad_sedimentos / ficor_biota.
+// Las seis primeras son las que entran en el ICA del IDEAM (índice oficial para
+// agua dulce continental). Darío confirmó que el laboratorio sí reporta DQO y
+// conductividad, que no estaban en este catálogo.
 export const FICOR_AGUA: [string, string][] = [
   ['pH', 'pH'],
   ['Oxígeno Disuelto', 'mg/L'],
+  ['Conductividad', 'µS/cm'],
+  ['DQO', 'mg O2/L'],
   ['DBO5', 'mg O2/L'],
   ['Sólidos Suspendidos Totales', 'mg/L'],
   ['Fósforo Reactivo Disuelto', 'mg P-PO4/L'],

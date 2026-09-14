@@ -306,12 +306,12 @@ Conviene hacerlo **primero**: desbloquea B.2, C.1, C.2, D.7 y A.7 de una vez.
 | # | Pregunta | Para quién | Bloquea |
 |---|---|---|---|
 | H.1 | **Las ortofotos vienen en ECW.** GDAL en su versión libre no lee ECW, así que hoy no se pueden tilear. ¿Se pueden reentregar en GeoTIFF, o conviertes tú desde QGIS/ERDAS? | Brandon | B.1, C.3, A.7, F.1 |
-| H.2 | **Umbrales de calificación del agua.** ¿Se adopta el ICA del IDEAM (6 variables)? Si sí, faltan **conductividad** y **DQO** en el plan de laboratorio | Darío | Todo el bloque A |
+| H.2 | **Umbrales de calificación del agua.** Darío confirmó que el laboratorio sí reporta **DQO y conductividad**, así que las 6 variables del ICA del IDEAM están cubiertas. Falta que apruebe adoptar el ICA y enviar la hoja metodológica con las curvas de sub-índice. Ojo: el ICA usa el OD en **% de saturación**, no en mg/L | Darío | Todo el bloque A |
 | H.3 | **Umbrales de sedimentos.** ¿Contra qué guía se califican metales y plaguicidas? | Darío / laboratorio | A.5 |
 | H.4 | **Formato del CSV de ficorremediación** (ancho o largo, nombres de columnas, cómo se identifica el punto) | Darío | F.3 |
 | H.5 | **Excel de restauración:** ¿«Formato» (193 registros) o «Sin repetir» (82)? | Yurani | G.3 |
 | H.6 | **Maleza removida:** ¿40,247 ha o 40.247 ha? | Yurani | C.6 |
 | H.7 | **Fechas de fauna:** monitoreo 2 (marzo) y 3 (agosto), ¿2027? | Osman | D.14 |
-| H.8 | **KML de puntos de mamíferos** — el `.docx` dice que se envió por WhatsApp; no llegó al repositorio ni está en disco | Osman | D.8 |
+| H.8 | **Puntos de mamíferos.** Osman envió herpetos y aves (ya estaban en el repositorio, idénticos) y un `.rar` con **5 cámaras trampa** (C2–C7, sin C1 ni C6), que sí eran nuevas y quedaron integradas. Falta confirmar si las cámaras *son* el monitoreo de mamíferos o si hay una capa aparte, y por qué faltan dos códigos | Osman | D.8 |
 | H.9 | **Acceso a la carpeta de Drive** con las ortofotos actualizadas | Brandon | Fase 6 |
 | H.10 | **Restauración, «quitar las demás capas»:** se entiende que son los mapas base alternativos (lo marcado en rojo). ¿Se confirma que las coberturas Corine se quedan? | Valeria | B.2 |
