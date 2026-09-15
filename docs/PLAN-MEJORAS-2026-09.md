@@ -329,8 +329,8 @@ Conviene hacerlo **primero**: desbloquea B.2, C.1, C.2, D.7 y A.7 de una vez.
 | # | Pregunta | Para quién | Bloquea |
 |---|---|---|---|
 | H.1 | **Las ortofotos vienen en ECW.** GDAL en su versión libre no lee ECW, así que hoy no se pueden tilear. ¿Se pueden reentregar en GeoTIFF, o conviertes tú desde QGIS/ERDAS? | Brandon | B.1, C.3, A.7, F.1 |
-| H.2 | **Umbrales de calificación del agua.** Falta (a) aprobar el ICA del IDEAM y remitir la hoja metodológica con las curvas de sub-índice, y (b) **la conductividad**: no está en la matriz del laboratorio pese a haberse confirmado. Sin ella el ICA no se calcula. El OD en % de saturación lo calcula la plataforma (§A.5.1) | Darío | Todo el bloque A |
-| H.3 | **Umbrales de sedimentos.** Las variables quedaron confirmadas por la matriz (6 metales + 4 plaguicidas, idénticas a las ya previstas). Falta solo la guía de calificación (¿ISQG/PEL?) y las unidades, que la matriz no trae | Darío / laboratorio | A.5 |
+| H.2 | **Umbrales del agua** — *definido*. Se adoptó el **ICA del IDEAM de seis variables**, con las ecuaciones de la hoja metodológica GCI-OE-F002 v03 (10/07/2025) implementadas en `lib/ica.ts`. Queda por **ratificar con Darío**, no por decidir. Sigue faltando la **conductividad** en la matriz del laboratorio: es una de las seis y sin ella el índice no se calcula | Darío (ratificar) | — |
+| H.3 | **Umbrales de sedimentos** — *definido*. Se adoptaron las guías **CCME para sedimento de agua dulce** (ISQG y PEL), en `lib/sedimentos.ts`, con tres niveles: bajo, ocasional y frecuente. Los plaguicidas no tienen guía publicada y se reportan sin calificar. Queda por ratificar | Darío (ratificar) | — |
 | H.4 | **Formato del CSV** ✔ resuelto por la matriz del laboratorio: formato **ancho**, una fila por variable y una columna por punto (`Punto 1`…`Punto 5`), con el nombre de la variable y su unidad en la primera columna. El importador se construye contra ese formato | — | F.3 |
 | H.5 | **Excel de restauración:** ¿«Formato» (193 registros) o «Sin repetir» (82)? | Yurani | G.3 |
 | H.6 | **Maleza removida:** ¿40,247 ha o 40.247 ha? | Yurani | C.6 |

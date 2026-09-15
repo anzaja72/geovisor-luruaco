@@ -480,3 +480,78 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
   border-radius:10px;padding:12px 14px;margin-bottom:14px}
 .sop-ans b{font-size:14px;color:var(--on-sec-c)}
 .sop-ans span{font-size:12.5px;color:var(--ink);line-height:1.5}
+
+/* ── Ficorremediación: índice de calidad del agua ─────────────────────────── */
+.ica-escala{display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.ica-escala div{padding:5px 10px;font-size:9.5px;font-weight:800;letter-spacing:.06em;
+  opacity:.45;transition:opacity .15s}
+.ica-escala div.on{opacity:1;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+@media(max-width:820px){.ica-escala div{padding:5px 6px;font-size:8.5px}}
+
+.aviso-demo{display:block;margin:0 0 14px;padding:11px 14px;border-radius:9px;font-size:12.5px;
+  line-height:1.55;color:#7a5c00;background:#fdf6e0;border:1px solid #f0dda0;border-left:4px solid var(--cra-ambar)}
+.aviso-demo b{color:#5c4600}
+
+.ica-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) minmax(0,1.1fr);gap:14px}
+@media(max-width:1180px){.ica-grid{grid-template-columns:1fr}}
+.ica-col{display:flex;flex-direction:column}
+
+.ica-medidor-caja{padding:10px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:9px}
+.ica-medidor{width:100%;max-width:230px;height:auto}
+.ica-medidor-v{font-size:25px;font-weight:800;font-family:inherit}
+.ica-medidor-e{font-size:8.5px;fill:var(--muted)}
+.ica-cat{font-size:11px;font-weight:800;letter-spacing:.08em;padding:4px 14px;border-radius:999px}
+.ica-tiles{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}
+.ica-tiles div{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:6px 9px}
+.ica-tiles em{display:block;font-style:normal;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ica-tiles b{font-size:14px;font-weight:800;color:var(--ink)}
+.ica-nota{font-size:10.5px;color:var(--muted);line-height:1.5;text-align:center;margin:2px 0 0}
+
+.ica-pager{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:600}
+.ica-pager button{width:22px;height:22px;border:1px solid var(--line);background:var(--card);
+  border-radius:6px;cursor:pointer;color:var(--primary);font-size:14px;line-height:1;padding:0}
+.ica-pager button:hover{background:var(--bg)}
+
+.ica-ficha{padding:12px 14px 14px}
+.ica-ficha .cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.ica-ficha .cab b{font-size:16px;color:var(--ink)}
+.ica-ficha .cab span{font-size:10.5px;font-weight:800;letter-spacing:.05em;padding:4px 10px;border-radius:999px}
+.ica-ficha .vars{display:flex;flex-direction:column;gap:4px}
+.ica-ficha .var{display:grid;grid-template-columns:9px minmax(0,1fr) auto 38px;gap:9px;align-items:center;
+  width:100%;text-align:left;padding:7px 9px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);cursor:pointer;font-size:12px}
+.ica-ficha .var:hover{background:var(--bg)}
+.ica-ficha .var.on{border-color:var(--secondary);background:#f2faf3;box-shadow:inset 3px 0 0 var(--secondary)}
+.ica-ficha .var i{width:9px;height:9px;border-radius:50%;display:block}
+.ica-ficha .var .n{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ica-ficha .var .v{color:var(--ink);font-weight:700;white-space:nowrap}
+.ica-ficha .var .v small{color:var(--muted);font-weight:500}
+.ica-ficha .var .s{text-align:right;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+
+.ica-hist{margin-bottom:12px}
+.ica-hist .t{font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.ica-hist .t small{color:var(--muted);font-weight:500}
+.ica-hist .barras{display:flex;gap:10px;align-items:flex-end;height:110px}
+.ica-hist .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%}
+.ica-hist .b em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--ink)}
+.ica-hist .b i{width:100%;border-radius:5px 5px 0 0;display:block;min-height:6px}
+.ica-hist .b span{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.25}
+.ica-detalle{font-size:10.5px;color:var(--muted);line-height:1.5;margin:0;padding-top:8px;border-top:1px solid var(--line)}
+
+.celda-cal{display:inline-block;min-width:52px;text-align:center;padding:2px 7px;border-radius:6px;
+  border:2px solid var(--line);font-variant-numeric:tabular-nums;font-weight:600}
+.celda-cal.fuerte{border:0;font-weight:800}
+.fila-total td{background:var(--bg);border-top:2px solid var(--line)}
+
+.leyenda-sed{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:11px 14px 0;font-size:11px}
+.leyenda-sed span{display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:600;letter-spacing:.03em}
+.leyenda-sed i{width:11px;height:11px;border-radius:3px;display:block}
+.leyenda-sed small{color:var(--muted);font-weight:400;letter-spacing:0}
+
+.biota-barras .t{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.biota-barras .fila{display:grid;grid-template-columns:minmax(0,1fr) minmax(70px,1.5fr) auto;gap:10px;
+  align-items:center;margin-bottom:7px;font-size:11.5px}
+.biota-barras .lab{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.biota-barras .pista{height:9px;border-radius:5px;background:var(--line);overflow:hidden;display:block}
+.biota-barras .pista i{display:block;height:100%;border-radius:5px}
+.biota-barras b{font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
