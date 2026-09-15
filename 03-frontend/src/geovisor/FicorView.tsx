@@ -183,16 +183,15 @@ export default function FicorView(map: GeovisorMapProps) {
   const sub: SubindiceCalculado | undefined = res?.subindices[iVar]
 
   /** Serie de la variable seleccionada, a través de las campañas. */
-  const serieVar = useMemo(() => {
-    if (!sub) return []
-    return CAMPANAS_DEMO.map((c) => {
+  const serieVar = useMemo(
+    () => CAMPANAS_DEMO.map((c) => {
       const l = AGUA_DEMO[c.nombre]?.[punto]
       if (!l) return { campana: c.nombre, valor: null, sub: null }
-      const r = calcularICA(l)
-      const s = r.subindices[iVar]
+      const s = calcularICA(l).subindices[iVar]
       return { campana: c.nombre, valor: s.valor, sub: s.subindice }
-    })
-  }, [sub, punto, iVar])
+    }),
+    [punto, iVar],
+  )
 
   /** Serie del índice completo, a través de las campañas. */
   const serieICA = useMemo(
