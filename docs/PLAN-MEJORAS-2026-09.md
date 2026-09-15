@@ -144,6 +144,14 @@ Para que exista una categoría hace falta un umbral por variable. Recomendación
 - **Agua → adoptar el ICA del IDEAM**, no el ICAM. El ICAM es para aguas marinas y costeras; la ciénaga de Luruaco es agua dulce continental. El ICA del IDEAM es el índice oficial colombiano para ese caso, tiene la misma estructura de 5 categorías y la misma presentación que le gustó a Darío. Se calcula con 6 variables: oxígeno disuelto (% saturación), sólidos suspendidos totales, DQO, conductividad, pH y relación nitrógeno total/fósforo total.
   - **De esas 6, el proyecto ya mide 4** (OD, SST, pH, N total y P total). **Faltan conductividad y DQO** — hay que pedirlas al laboratorio; hoy se mide DBO5, que no sustituye a la DQO en la fórmula.
   - Las curvas de sub-índice deben tomarse de la hoja metodológica del IDEAM, no de memoria. Es el insumo #1 a confirmar.
+#### A.5.0 Lo que impone la matriz del laboratorio
+
+La matriz del muestreo 1 llegó con valores de relleno —Darío advirtió que el laboratorio aún no entrega resultados— pero fija la estructura, y de ahí salen tres exigencias para el modelo de datos:
+
+- **Valores por debajo del límite de detección.** La matriz trae `<10`, `<1,5`, `<0,01`, `<1,8`. Un `NUMERIC` no los guarda, y redondearlos a cero o al límite falsea el dato. `ficor_calidad_agua` necesita un campo para el operador (`<`, `>`, `=`) junto al valor, y la pantalla debe mostrar «< 10 mg/L», no «10».
+- **Estado de acreditación por variable.** La matriz marca cada una como `(AC)` acreditada, `NO (ACR)` no acreditada u `(OTRO)`. Salinidad y fosfatos no están acreditadas, y **nitrógeno total figura como (OTRO)** — que es variable del ICA. Hay que guardar ese estado y declararlo junto al índice: calificar con una variable no acreditada es observable en interventoría.
+- **Separador decimal mezclado.** Conviven `8.96` y `<1,5`. El importador normaliza ambos.
+
 #### A.5.1 Oxígeno disuelto: de mg/L a % de saturación
 
 El ICA no usa el OD en mg/L sino en porcentaje de saturación. **Decisión tomada: lo calcula la plataforma**, no el laboratorio, a partir de lo que ya se reporta.
@@ -321,9 +329,9 @@ Conviene hacerlo **primero**: desbloquea B.2, C.1, C.2, D.7 y A.7 de una vez.
 | # | Pregunta | Para quién | Bloquea |
 |---|---|---|---|
 | H.1 | **Las ortofotos vienen en ECW.** GDAL en su versión libre no lee ECW, así que hoy no se pueden tilear. ¿Se pueden reentregar en GeoTIFF, o conviertes tú desde QGIS/ERDAS? | Brandon | B.1, C.3, A.7, F.1 |
-| H.2 | **Umbrales de calificación del agua.** Las 6 variables del ICA del IDEAM están cubiertas (Darío confirmó DQO y conductividad). La conversión del OD a % de saturación **la calcula la plataforma** (ver §A.5.1). Queda pendiente solo que apruebe adoptar el ICA y remita la hoja metodológica con las curvas de sub-índice | Darío | Todo el bloque A |
-| H.3 | **Umbrales de sedimentos.** ¿Contra qué guía se califican metales y plaguicidas? | Darío / laboratorio | A.5 |
-| H.4 | **Formato del CSV de ficorremediación** (ancho o largo, nombres de columnas, cómo se identifica el punto) | Darío | F.3 |
+| H.2 | **Umbrales de calificación del agua.** Falta (a) aprobar el ICA del IDEAM y remitir la hoja metodológica con las curvas de sub-índice, y (b) **la conductividad**: no está en la matriz del laboratorio pese a haberse confirmado. Sin ella el ICA no se calcula. El OD en % de saturación lo calcula la plataforma (§A.5.1) | Darío | Todo el bloque A |
+| H.3 | **Umbrales de sedimentos.** Las variables quedaron confirmadas por la matriz (6 metales + 4 plaguicidas, idénticas a las ya previstas). Falta solo la guía de calificación (¿ISQG/PEL?) y las unidades, que la matriz no trae | Darío / laboratorio | A.5 |
+| H.4 | **Formato del CSV** ✔ resuelto por la matriz del laboratorio: formato **ancho**, una fila por variable y una columna por punto (`Punto 1`…`Punto 5`), con el nombre de la variable y su unidad en la primera columna. El importador se construye contra ese formato | — | F.3 |
 | H.5 | **Excel de restauración:** ¿«Formato» (193 registros) o «Sin repetir» (82)? | Yurani | G.3 |
 | H.6 | **Maleza removida:** ¿40,247 ha o 40.247 ha? | Yurani | C.6 |
 | H.7 | **Fechas de fauna:** monitoreo 2 (marzo) y 3 (agosto), ¿2027? | Osman | D.14 |

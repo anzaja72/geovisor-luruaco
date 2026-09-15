@@ -69,27 +69,37 @@ export const MALEZA = {
 // Ficorremediación — variables a medir (Variables Calidad de aguas.xlsx /
 // Variables Calidad de sedimentos.xlsx). Sin resultados aún: estructura lista
 // para poblarse desde ficor_calidad_agua / ficor_calidad_sedimentos / ficor_biota.
-// Las seis primeras son las que entran en el ICA del IDEAM (índice oficial para
-// agua dulce continental). Darío confirmó que el laboratorio sí reporta DQO y
-// conductividad, que no estaban en este catálogo.
+// Variables de calidad de agua, en el orden del informe de laboratorio
+// («Matriz Calidad de aguas Muestreo 1- Luruaco.xlsx»). Antes esta lista era una
+// previsión; ahora refleja lo que el laboratorio realmente reporta.
+//
+// La CONDUCTIVIDAD no aparece en esa matriz, pero se deja declarada: es una de
+// las seis variables del ICA del IDEAM y sin ella el índice no se puede calcular.
+// Mientras no llegue se verá como «sin dato», que es justamente lo que hay que ver.
 export const FICOR_AGUA: [string, string][] = [
-  ['pH', 'pH'],
+  ['pH', 'Und. de H+'],
+  ['Temperatura', 'ºC'],
   ['Oxígeno Disuelto', 'mg/L'],
   ['Conductividad', 'µS/cm'],
+  ['Salinidad', '%'],
   ['DQO', 'mg O2/L'],
   ['DBO5', 'mg O2/L'],
   ['Sólidos Suspendidos Totales', 'mg/L'],
-  ['Fósforo Reactivo Disuelto', 'mg P-PO4/L'],
+  ['Sólidos Totales', 'mg/L'],
+  ['Grasas y Aceites', 'mg/L'],
+  ['Surfactantes Aniónicos', 'mg SAAM/L'],
+  ['Fósforo Reactivo Total', 'mg P-PO4/L'],
   ['Fósforo Total', 'mg P/L'],
-  ['Nitritos', 'mg NO3-N/L'],
+  ['Fosfatos', 'mg PO4/L'],
   ['Nitratos', 'mg NO3-N/L'],
+  ['Nitritos', 'mg NO2-N/L'],
   ['Nitrógeno Amoniacal', 'mg NH3-N/L'],
   ['Nitrógeno Total', 'mg N/L'],
-  ['Clorofila A', 'mg/m3'],
-  ['Temperatura', 'ºC'],
+  ['Sulfatos', 'mg SO4/L'],
+  ['Alcalinidad Total', 'mg CaCO3/L'],
+  ['Dureza Total', 'mg CaCO3/L'],
   ['Coliformes Totales', 'NMP/100 mL'],
   ['Coliformes Termotolerantes', 'NMP/100 mL'],
-  ['Cianotoxinas', '—'],
 ]
 
 export const FICOR_SEDIMENTOS: { categoria: string; variables: [string, string][] }[] = [
