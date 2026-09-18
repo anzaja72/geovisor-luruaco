@@ -6,7 +6,7 @@
 - **Proveedor:** Hostinger
 - **IP:** 2.24.97.152
 - **Hostname:** srv1668992.hstgr.cloud
-- **Ruta del proyecto:** `/opt/geodatabase` · se levanta con `docker-compose.vps.yml` (Traefik + nginx)
+- **Ruta del proyecto:** `/opt/geovisor` (clon de `main`) · se levanta con `docker-compose.vps.yml` (Traefik + nginx)
 
 > El dominio `geodatabase.mcconsultorias.com.co` resuelve a **2.24.97.152** (verificado el
 > 2026-09-18). Esta sección decía antes `187.77.4.10` (srv1334142), que es otro servidor:

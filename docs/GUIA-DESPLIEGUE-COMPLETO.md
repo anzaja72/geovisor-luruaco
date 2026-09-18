@@ -113,8 +113,8 @@ docker compose version
 
 ```bash
 # Crear directorio de la app
-mkdir -p /opt/geodatabase
-cd /opt/geodatabase
+mkdir -p /opt/geovisor
+cd /opt/geovisor
 
 # Clonar el repo (reemplaza <tu-usuario> y <nombre-repo> con los reales)
 git clone https://github.com/<tu-usuario>/geovisor-luruaco.git .
@@ -127,7 +127,7 @@ ls -la
 ### 4. Crear el archivo `.env` con las credenciales
 
 ```bash
-cd /opt/geodatabase
+cd /opt/geovisor
 
 # Crear el archivo .env en la raíz del proyecto
 cat > .env <<'EOF'
@@ -170,7 +170,7 @@ openssl rand -base64 24
 ### 5. Compilar e iniciar los contenedores
 
 ```bash
-cd /opt/geodatabase
+cd /opt/geovisor
 
 # Construir las imágenes (backend Go + frontend estático)
 docker compose -f docker-compose.vps.yml build
@@ -198,7 +198,7 @@ sleep 10
 docker exec geodb-postgis pg_isready -U eco_admin -d restauracion_ecologica
 
 # Ejecutar cada migración en orden
-for f in /opt/geodatabase/04-base-de-datos/0*.sql; do
+for f in /opt/geovisor/04-base-de-datos/0*.sql; do
   echo "Aplicando $f..."
   docker exec -i geodb-postgis psql -U eco_admin -d restauracion_ecologica < "$f"
 done
@@ -351,11 +351,11 @@ Una vez que el deploy termina en verde, abrir la URL temporal en el navegador:
 Si hay errores CORS:
 ```bash
 # En el VPS, verificar el .env
-cat /opt/geodatabase/.env | grep CORS
+cat /opt/geovisor/.env | grep CORS
 
 # Debe incluir: CORS_ALLOW_ORIGINS=https://geodatabase.mcconsultorias.com.co
 # Si está en otro valor, corregir y reiniciar:
-cd /opt/geodatabase
+cd /opt/geovisor
 docker compose -f docker-compose.vps.yml restart backend
 ```
 
@@ -427,7 +427,7 @@ curl -I https://geodatabase.mcconsultorias.com.co/tiles/14/8623/12031.png
 docker logs -f geodb-backend
 
 # Reiniciar el backend (después de cambiar .env)
-cd /opt/geodatabase
+cd /opt/geovisor
 docker compose -f docker-compose.vps.yml restart backend
 
 # Ver uso de disco
@@ -450,7 +450,7 @@ gunzip -c /opt/backups/db-20260702-120000.sql.gz | \
 
 ```bash
 # Crear el script de backup
-cat > /opt/geodatabase/scripts/backup_db.sh <<'EOF'
+cat > /opt/geovisor/scripts/backup_db.sh <<'EOF'
 #!/bin/bash
 set -e
 BACKUP_DIR="/opt/backups"
@@ -462,10 +462,10 @@ docker exec geodb-postgis pg_dump -U eco_admin restauracion_ecologica \
 find "$BACKUP_DIR" -name "db-*.sql.gz" -mtime +14 -delete
 EOF
 
-chmod +x /opt/geodatabase/scripts/backup_db.sh
+chmod +x /opt/geovisor/scripts/backup_db.sh
 
 # Programar ejecución diaria a las 03:00
-echo "0 3 * * * root /opt/geodatabase/scripts/backup_db.sh" \
+echo "0 3 * * * root /opt/geovisor/scripts/backup_db.sh" \
   | sudo tee /etc/cron.d/geodatabase-backup
 ```
 
@@ -484,7 +484,7 @@ Si alguno falla 2 veces consecutivas, envía alerta por email/SMS.
 
 ```bash
 # === Backend (en el VPS) ===
-cd /opt/geodatabase
+cd /opt/geovisor
 git pull origin main
 docker compose -f docker-compose.vps.yml build backend
 docker compose -f docker-compose.vps.yml up -d backend
@@ -505,7 +505,7 @@ git push origin main
 # === DESPLEGAR POR PRIMERA VEZ ===
 ssh root@srv1668992.hstgr.cloud
 apt update && apt install -y docker.io docker-compose-v2 git
-mkdir -p /opt/geodatabase && cd /opt/geodatabase
+mkdir -p /opt/geovisor && cd /opt/geovisor
 git clone https://github.com/<user>/geovisor-luruaco.git .
 nano .env   # configurar secretos
 docker compose -f docker-compose.vps.yml up -d --build
@@ -518,7 +518,7 @@ curl -s https://geodatabase.mcconsultorias.com.co/health
 docker compose -f docker-compose.vps.yml ps
 
 # === ACTUALIZAR BACKEND ===
-cd /opt/geodatabase && git pull
+cd /opt/geovisor && git pull
 docker compose -f docker-compose.vps.yml up -d --build backend
 
 # === BACKUP ===
