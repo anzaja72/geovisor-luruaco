@@ -217,7 +217,7 @@ export default function RestauracionView(map: MapProps) {
 
       <div className="note"><b>{live && !sinMediciones ? 'Datos en vivo' : 'Datos reales'}</b> del censo <i>arboles_resumen.xlsx</i> — Línea base: 75 árboles, 136 fustes, 12 especies, 15 parcelas.
         {' '}<b>Fórmulas:</b> Densidad = N ÷ área muestreada · Área basal = Σ[π·(DAP/200)²] ÷ área muestreada · Riqueza = especies distintas · Shannon H′ = −Σ(pᵢ·ln pᵢ).
-        {' '}<b>Supuesto:</b> parcela = 0,1 ha (→ 1,5 ha); confirmar con Yurani. <b>Individuos sembrados:</b> {R.sembrados.toLocaleString('es-CO')} plántulas recibidas del vivero (no hace parte del censo). Monitoreos 1–4 aún sin mediciones de campo.</div>
+        {' '}<b>Supuesto:</b> parcela = 0,1 ha (→ 1,5 ha); confirmar con Yurani. <b>Individuos sembrados:</b> {R.sembrados.toLocaleString('es-CO')} reportados en campo (no hacen parte del censo). Monitoreos 1–4 aún sin mediciones de campo.</div>
 
       <Footer />
 

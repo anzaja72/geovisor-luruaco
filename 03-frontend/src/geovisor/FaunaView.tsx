@@ -155,7 +155,7 @@ export default function FaunaView(map: GeovisorMapProps) {
           <div className="f3d-ficha">
             <div className="cab">
               <b>{ficha.nombre}</b>
-              <small>{ficha.clase} · modelo: {ficha.especieModelo}</small>
+              <small>{ficha.clase} · modelo: <i>{ficha.especieModelo}</i></small>
             </div>
             <div className="datos">
               <div><em>Riqueza</em><b>{ficha.riqueza}</b></div>

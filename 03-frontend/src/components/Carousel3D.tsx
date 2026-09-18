@@ -41,13 +41,18 @@ const FACE_W = 320
 // sea cual sea el número de fotos.
 const PERSPECTIVA = 2.6
 
+// Sensibilidad del giro. Con el valor anterior (0.05 en arrastre e inercia) el
+// cilindro salía disparado y las fotos pasaban demasiado rápido para verlas.
+const SENS_ARRASTRE = 0.022
+const SENS_INERCIA = 0.015
+
 const Cilindro = memo(function Cilindro({
   handleClick,
   controls,
   cards,
   isCarouselActive,
 }: {
-  handleClick: (foto: Foto) => void
+  handleClick: (i: number) => void
   controls: ReturnType<typeof useAnimation>
   cards: Foto[]
   isCarouselActive: boolean
@@ -76,12 +81,12 @@ const Cilindro = memo(function Cilindro({
           display: 'flex', height: '100%', transformOrigin: 'center', justifyContent: 'center',
           cursor: 'grab', transform, rotateY: rotation, width: cylinderWidth, transformStyle: 'preserve-3d',
         }}
-        onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * 0.05)}
+        onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * SENS_ARRASTRE)}
         onDragEnd={(_, info) =>
           isCarouselActive &&
           controls.start({
-            rotateY: rotation.get() + info.velocity.x * 0.05,
-            transition: { type: 'spring', stiffness: 100, damping: 30, mass: 0.1 },
+            rotateY: rotation.get() + info.velocity.x * SENS_INERCIA,
+            transition: { type: 'spring', stiffness: 60, damping: 42, mass: 0.3 },
           })
         }
         animate={controls}
@@ -98,7 +103,7 @@ const Cilindro = memo(function Cilindro({
               backfaceVisibility: 'hidden',
               transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
             }}
-            onClick={() => handleClick(foto)}
+            onClick={() => handleClick(i)}
           >
             <div style={{ width: '100%' }}>
               <motion.img
@@ -135,7 +140,8 @@ export default function Carousel3D({
   images: (string | Foto)[]
   height?: number
 }) {
-  const [activa, setActiva] = useState<Foto | null>(null)
+  // Índice, no la foto: la vista ampliada necesita saber cuál sigue y cuál viene antes.
+  const [activa, setActiva] = useState<number | null>(null)
   const [isActive, setIsActive] = useState(true)
   const controls = useAnimation()
   const cards = useMemo<Foto[]>(
@@ -143,38 +149,66 @@ export default function Carousel3D({
     [images],
   )
 
-  const handleClick = (foto: Foto) => { setActiva(foto); setIsActive(false); controls.stop() }
+  const handleClick = (i: number) => { setActiva(i); setIsActive(false); controls.stop() }
   const handleClose = () => { setActiva(null); setIsActive(true) }
+  const ir = (d: number) =>
+    setActiva((s) => (s == null ? s : (s + d + cards.length) % cards.length))
+
+  // Flechas y Escape: antes había que cerrar la foto y volver a abrir otra para
+  // seguir viendo el registro.
+  useEffect(() => {
+    if (activa == null) return
+    const teclas = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); ir(1) }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); ir(-1) }
+      else if (e.key === 'Escape') handleClose()
+    }
+    window.addEventListener('keydown', teclas)
+    return () => window.removeEventListener('keydown', teclas)
+    // `ir` usa setState funcional, así que solo necesita el número de fotos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activa == null, cards.length])
+
+  const foto = activa == null ? null : cards[activa]
 
   return (
     <motion.div layout style={{ position: 'relative' }}>
       <AnimatePresence mode="sync">
-        {activa && (
+        {foto && (
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
-            layoutId={`img-container-${activa.src}`}
             layout="position"
             onClick={handleClose}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', display: 'flex',
               flexDirection: 'column', gap: 12,
               alignItems: 'center', justifyContent: 'center', zIndex: 1000, margin: '2.5rem',
-              borderRadius: 24, willChange: 'opacity', cursor: 'zoom-out',
+              borderRadius: 24, willChange: 'opacity',
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
           >
-            <motion.img
-              layoutId={`img-${activa.src}`}
-              src={activa.src}
-              alt={activa.label ?? 'Fotografía de la actividad'}
-              style={{ maxWidth: '100%', maxHeight: activa.label ? '86%' : '100%', borderRadius: 12, boxShadow: '0 10px 40px rgba(0,0,0,.5)' }}
-              initial={{ scale: 0.5 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+            <button className="foto-close" onClick={handleClose} aria-label="Cerrar">×</button>
+            <button
+              className="foto-nav prev"
+              onClick={(e) => { e.stopPropagation(); ir(-1) }}
+              aria-label="Foto anterior"
+            >‹</button>
+            <img
+              key={foto.src}
+              src={foto.src}
+              alt={foto.label ?? `Fotografía ${(activa ?? 0) + 1} del registro de actividades`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '100%', maxHeight: foto.label ? '82%' : '90%', borderRadius: 12, boxShadow: '0 10px 40px rgba(0,0,0,.5)' }}
             />
-            {activa.label && <div className="carousel3d-cap lg">{activa.label}</div>}
+            <button
+              className="foto-nav next"
+              onClick={(e) => { e.stopPropagation(); ir(1) }}
+              aria-label="Foto siguiente"
+            >›</button>
+            {foto.label && <div className="carousel3d-cap lg">{foto.label}</div>}
+            <span className="foto-count">{(activa ?? 0) + 1} / {cards.length}</span>
           </motion.div>
         )}
       </AnimatePresence>

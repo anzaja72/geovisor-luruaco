@@ -11,7 +11,7 @@ export const RESTAURACION = {
   pasivaHa: 6.28,
   individuos: 75,
   fustes: 136,
-  sembrados: 17565, // plántulas recibidas del vivero y plantadas en campo
+  sembrados: 9605, // individuos efectivamente sembrados y reportados en campo
   alturaMedia: 5.5,
   shannon: 1.81,
   // Densidad por parcela (ind/ha) — solo BD1/BR1 tienen árboles en línea base
@@ -51,36 +51,55 @@ export const PASIVA_TXT =
   'de eliminación de tensionantes (tala, quemas, cultivos) y aislamiento con cerca de púas y cerca viva.'
 
 export const SEMBRADOS_TXT =
-  'En total se recibieron 17.565 plántulas en campo por parte del vivero, las cuales se plantaron en las ' +
-  'coberturas de Tierras desnudas y degradadas y en Mosaico de cultivos, empleando la HMP de Sistema ' +
-  'agroforestal con franjas de restauración.'
+  'Se reportan 9.605 individuos sembrados en las coberturas de Tierras desnudas y degradadas y en ' +
+  'Mosaico de cultivos, empleando la HMP de Sistema agroforestal con franjas de restauración.'
 
-// Maleza acuática: hectáreas removidas acumuladas por monitoreo (datos reales).
+// Maleza acuática: hectáreas removidas acumuladas por monitoreo. Sale de los
+// cinco polígonos de limpieza levantados con dron (ENCLOSED_A de cada shapefile):
+// enero 4,103 · febrero 9,103 · mayo 9,162 · junio 8,885 · julio 8,994 ha.
+// La suma da 40,247 ha, que es exactamente la cifra reportada a julio de 2026.
 export const MALEZA = {
-  acumulado: 19.0,
-  serie: [['Mar', 6.06], ['Abr', 15.71], ['May', 19.0]] as [string, number][],
+  acumulado: 40.247,
+  serie: [
+    ['Ene', 4.103], ['Feb', 13.206], ['May', 22.368], ['Jun', 31.253], ['Jul', 40.247],
+  ] as [string, number][],
   poligonos: 5,
 }
 
 // Ficorremediación — variables a medir (Variables Calidad de aguas.xlsx /
 // Variables Calidad de sedimentos.xlsx). Sin resultados aún: estructura lista
 // para poblarse desde ficor_calidad_agua / ficor_calidad_sedimentos / ficor_biota.
+// Variables de calidad de agua, en el orden del informe de laboratorio
+// («Matriz Calidad de aguas Muestreo 1- Luruaco.xlsx»). Antes esta lista era una
+// previsión; ahora refleja lo que el laboratorio realmente reporta.
+//
+// La CONDUCTIVIDAD no aparece en esa matriz, pero se deja declarada: es una de
+// las seis variables del ICA del IDEAM y sin ella el índice no se puede calcular.
+// Mientras no llegue se verá como «sin dato», que es justamente lo que hay que ver.
 export const FICOR_AGUA: [string, string][] = [
-  ['pH', 'pH'],
+  ['pH', 'Und. de H+'],
+  ['Temperatura', 'ºC'],
   ['Oxígeno Disuelto', 'mg/L'],
+  ['Conductividad', 'µS/cm'],
+  ['Salinidad', '%'],
+  ['DQO', 'mg O2/L'],
   ['DBO5', 'mg O2/L'],
   ['Sólidos Suspendidos Totales', 'mg/L'],
-  ['Fósforo Reactivo Disuelto', 'mg P-PO4/L'],
+  ['Sólidos Totales', 'mg/L'],
+  ['Grasas y Aceites', 'mg/L'],
+  ['Surfactantes Aniónicos', 'mg SAAM/L'],
+  ['Fósforo Reactivo Total', 'mg P-PO4/L'],
   ['Fósforo Total', 'mg P/L'],
-  ['Nitritos', 'mg NO3-N/L'],
+  ['Fosfatos', 'mg PO4/L'],
   ['Nitratos', 'mg NO3-N/L'],
+  ['Nitritos', 'mg NO2-N/L'],
   ['Nitrógeno Amoniacal', 'mg NH3-N/L'],
   ['Nitrógeno Total', 'mg N/L'],
-  ['Clorofila A', 'mg/m3'],
-  ['Temperatura', 'ºC'],
+  ['Sulfatos', 'mg SO4/L'],
+  ['Alcalinidad Total', 'mg CaCO3/L'],
+  ['Dureza Total', 'mg CaCO3/L'],
   ['Coliformes Totales', 'NMP/100 mL'],
   ['Coliformes Termotolerantes', 'NMP/100 mL'],
-  ['Cianotoxinas', '—'],
 ]
 
 export const FICOR_SEDIMENTOS: { categoria: string; variables: [string, string][] }[] = [

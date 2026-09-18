@@ -56,15 +56,6 @@ export default function GobernanzaView() {
   const promedio = eventos > 0 ? Math.round((participantes / eventos) * 10) / 10 : 0
   const maxParticipantes = Math.max(...actividades.map((a) => a.participantes), 1)
 
-  // Agrupación por ubicación: # de actividades y participantes por sitio.
-  const porUbicacion = new Map<string, { eventos: number; participantes: number }>()
-  for (const a of actividades) {
-    const u = porUbicacion.get(a.ubicacion) ?? { eventos: 0, participantes: 0 }
-    u.eventos += a.cantidad
-    u.participantes += a.participantes
-    porUbicacion.set(a.ubicacion, u)
-  }
-
   return (
     <>
       <div className="page-title">
@@ -80,40 +71,22 @@ export default function GobernanzaView() {
         <div className="kpi"><div className="top"><span className="chip"><Icon id="trend" /></span><span className="lab">Promedio por evento</span></div><div className="val">{promedio}</div></div>
       </div>
 
-      <div className="grid2">
-        <div className="panel chart-b">
-          <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="activity" /> Participantes por tipo de actividad</h3></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-            {actividades.map((a, i) => (
-              <div key={a.actividad} title={`${a.actividad}: ${a.participantes} participantes`}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                  <span style={{ color: 'var(--ink)' }}>{a.actividad}</span>
-                  <b style={{ color: 'var(--ink)' }}>{a.participantes}</b>
-                </div>
-                <div style={{ height: 8, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.max(4, (a.participantes / maxParticipantes) * 100)}%`, background: COLORES[i % COLORES.length], borderRadius: 4 }} />
-                </div>
+      {/* La tabla de «Actividades por ubicación» se retiró: repetía lo que ya dice
+          esta gráfica y le quitaba espacio al registro fotográfico. */}
+      <div className="panel chart-b">
+        <div className="ph" style={{ padding: '0 0 8px', border: 0 }}><h3><Icon id="activity" /> Participantes por tipo de actividad</h3></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+          {actividades.map((a, i) => (
+            <div key={a.actividad} title={`${a.actividad}: ${a.participantes} participantes`}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+                <span style={{ color: 'var(--ink)' }}>{a.actividad}</span>
+                <b style={{ color: 'var(--ink)' }}>{a.participantes}</b>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="panel">
-          <div className="ph"><h3><Icon id="pin" /> Actividades por ubicación</h3></div>
-          <div className="chart-b" style={{ padding: 0 }}>
-            <table className="fauna-table">
-              <thead><tr><th>Ubicación</th><th>Eventos</th><th>Participantes</th></tr></thead>
-              <tbody>
-                {[...porUbicacion.entries()].map(([ubic, v]) => (
-                  <tr key={ubic}>
-                    <td><span className="grp"><Icon id="pin" /> {ubic}</span></td>
-                    <td>{v.eventos}</td>
-                    <td>{v.participantes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              <div style={{ height: 8, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.max(4, (a.participantes / maxParticipantes) * 100)}%`, background: COLORES[i % COLORES.length], borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -121,7 +94,7 @@ export default function GobernanzaView() {
         <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de actividades</h3>
           <span className="badge-soft">{fotos.length} fotos · arrastra para girar · clic para ampliar</span></div>
         <div style={{ padding: '14px 8px 8px' }}>
-          <Carousel3D images={fotos} height={560} />
+          <Carousel3D images={fotos} height={640} />
         </div>
       </div>
 

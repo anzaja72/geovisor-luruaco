@@ -33,10 +33,10 @@ const SPRITE = `
 <symbol id="camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3.2"/></symbol>
 <symbol id="trend" viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-4-4L2 19"/><path d="M16 7h6v6"/></symbol>
 <symbol id="scale" viewBox="0 0 24 24"><path d="M7 21h10M12 3v18M3 7h4c2 0 5-1 8-1s6 1 8 1"/><path d="M2 14 5 8l3 6c-1.7 1.3-4.3 1.3-6 0Z"/><path d="M16 14l3-6 3 6c-1.7 1.3-4.3 1.3-6 0Z"/></symbol>
-<symbol id="bird" viewBox="0 0 24 24"><path d="M16 7h.01"/><path d="M20 7c0 9-7 13-7 13l-2-4-4-2s4-7 13-7Z"/><path d="M9 14 3 20"/></symbol>
+<symbol id="bird" viewBox="0 0 24 24"><path d="M16 4.4a2.6 2.6 0 0 0-2.6 2.6c0 1.7-.9 2.7-2.3 3.6C8.4 12.1 6.9 13.8 6.9 16.3c0 1.9 1.5 3.1 3.7 3.1 4.7 0 8.4-3.8 8.4-8.4V6.9"/><path d="m18.5 5.5 3.5-.6-3.4 2.2"/><path d="m6.9 16.3-4.4 2.9"/><path d="M11.3 19.3 10.8 22M14.6 18.5l.2 2.8"/><path d="M16.2 6.6h.01"/></symbol>
 <symbol id="logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
-<symbol id="frog" viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="7" ry="5"/><circle cx="7.5" cy="8" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="7.5" cy="8" r=".4"/><circle cx="16.5" cy="8" r=".4"/><path d="M8 19l-2 2M16 19l2 2"/></symbol>
-<symbol id="snake" viewBox="0 0 24 24"><path d="M4 19c0-3 3-3 3-6s-3-3-3-6 3-3 6-3 3 3 6 3 3-3 5-1"/><circle cx="19.2" cy="6.2" r=".6"/></symbol>
+<symbol id="frog" viewBox="0 0 24 24"><path d="M4.6 13.5c0-3.6 3.3-6.1 7.4-6.1s7.4 2.5 7.4 6.1-3.3 5.8-7.4 5.8-7.4-2.2-7.4-5.8Z"/><path d="M7.7 13.9c2.7 2 6 2 8.7 0"/><circle cx="8" cy="7.6" r="2.5"/><circle cx="16" cy="7.6" r="2.5"/><path d="M8 7.3h.01M16 7.3h.01"/><path d="m6.6 18.5-2.1 2.9M17.4 18.5l2.1 2.9"/></symbol>
+<symbol id="snake" viewBox="0 0 24 24"><path d="M3 19.7c3.9.5 6.1-1 6.5-2.9.4-1.8-.8-3.2-2.4-3.5-1.5-.3-2.8.5-3 1.8-.2 1 .5 1.9 1.6 2.1 3.6.7 6.8-2 7.6-6.2.9-4.3 3.7-6.6 7.4-5.9"/><path d="M19 5.7h.01"/><path d="m20.9 5.1 1.7-.4"/><path d="m22.6 4.7 1 .5M22.6 4.7l.6-1.1"/></symbol>
 `
 
 export function Sprite() {

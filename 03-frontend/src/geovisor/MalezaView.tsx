@@ -3,15 +3,19 @@ import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoComparador from '../components/OrtoComparador'
 import { MALEZA as M } from './data'
+import { boundsDelMes, MESES_LIMPIEZA } from './ortofotosMaleza'
 import { fetchMalezaLimpiezas } from '../lib/api'
 
+// Monitoreos que se pueden ver en el mapa: los que tienen vuelo de dron o polígono
+// de limpieza. «Todos» muestra el borde intervenido completo.
+const MONITOREOS = ['Todos', ...MESES_LIMPIEZA]
+
 export default function MalezaView(map: GeovisorMapProps) {
-  const [fecha, setFecha] = useState('Mayo')
+  const [mes, setMes] = useState('Todos')
   // Jornadas de limpieza leídas de la geodatabase; si no responde, se conservan
   // las de la línea base para no dejar la vista en blanco.
   const [serie, setSerie] = useState<[string, number][]>(M.serie)
   const [acumulado, setAcumulado] = useState(M.acumulado)
-  const [bordeKm, setBordeKm] = useState<number | null>(null)
   const [enVivo, setEnVivo] = useState(false)
 
   useEffect(() => {
@@ -21,12 +25,14 @@ export default function MalezaView(map: GeovisorMapProps) {
         if (ac.signal.aborted || !d.jornadas?.length) return
         setSerie(d.jornadas.map((j) => [j.fecha, j.area_ha] as [string, number]))
         setAcumulado(d.acumulado_ha)
-        if (d.borde_km > 0) setBordeKm(d.borde_km)
         setEnVivo(true)
       })
       .catch(() => { /* sin backend se conserva la línea base */ })
     return () => ac.abort()
   }, [])
+
+  // Al elegir un monitoreo el mapa se acerca a su área de intervención.
+  const focus = useMemo(() => (mes === 'Todos' ? null : boundsDelMes(mes)), [mes])
 
   const maxV = Math.max(...serie.map((s) => s[1]), 1)
 
@@ -46,23 +52,22 @@ export default function MalezaView(map: GeovisorMapProps) {
       <div className="filters">
         <span className="lab" style={{ alignSelf: 'center' }}>Monitoreo</span>
         <div className="tl">
-          {['Línea base', 'Marzo', 'Abril', 'Mayo'].map((f) => (
-            <button key={f} className={fecha === f ? 'on' : ''} onClick={() => setFecha(f)}>{f}</button>
+          {MONITOREOS.map((m) => (
+            <button key={m} className={mes === m ? 'on' : ''} onClick={() => setMes(m)}>{m}</button>
           ))}
         </div>
+        <span className="badge-soft">
+          {mes === 'Todos' ? 'Todo el borde intervenido' : `El mapa se acerca al área intervenida en ${mes.toLowerCase()}`}
+        </span>
         {(enVivo || polys.length > 0) && <span className="badge-soft" style={{ background: 'var(--sec-c)', color: 'var(--on-sec-c)', borderColor: '#cfe89a' }}>● Datos en vivo (geodatabase)</span>}
       </div>
 
-      <div className="kpis k4" style={{ marginBottom: 18 }}>
+      <div className="kpis k3" style={{ marginBottom: 18 }}>
         <div className="kpi blue"><div className="top"><span className="chip"><Icon id="trash" /></span><span className="lab">Maleza removida (acum.)</span></div>
           <div className="val num">{acumulado.toLocaleString('es-CO', { minimumFractionDigits: 1 })} <small>ha</small></div>
           {serie.length > 1 && (
             <div className="trend up">+{(serie[serie.length - 1][1] - serie[serie.length - 2][1]).toLocaleString('es-CO', { maximumFractionDigits: 2 })} ha vs. {serie[serie.length - 2][0].toLowerCase()}</div>
           )}</div>
-        <div className="kpi blue"><div className="top"><span className="chip"><Icon id="droplet" /></span><span className="lab">Borde de laguna intervenido</span></div>
-          <div className={bordeKm ? 'val num' : 'val num'}>
-            {bordeKm ? bordeKm.toLocaleString('es-CO', { maximumFractionDigits: 2 }) : '~3,1'} <small>km</small></div>
-          {!bordeKm && <div className="trend">estimado · pendiente de medición</div>}</div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="layers" /></span><span className="lab">Polígonos de limpieza</span></div>
           <div className="val num">{nPolys}</div></div>
         <div className="kpi"><div className="top"><span className="chip"><Icon id="scale" /></span><span className="lab">Biomasa retirada</span></div>
@@ -72,12 +77,12 @@ export default function MalezaView(map: GeovisorMapProps) {
       <div className="panel">
         <div className="ph"><h3><Icon id="layers" /> Geovisor de Vegetación Acuática</h3>
           <div className="tools"><Icon id="search" /><Icon id="layers" /></div></div>
-        <MapView {...map} componente="maleza" />
+        <MapView {...map} componente="maleza" mesLimpieza={mes} focus={focus} />
       </div>
 
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="trend" /> Visor comparativo antes / después (ortofotos del dron)</h3></div>
-        <OrtoComparador poligonos={polys} />
+        <OrtoComparador poligonos={polys} mes={mes} onMes={setMes} />
       </div>
 
       <div className="grid3">
@@ -106,7 +111,8 @@ export default function MalezaView(map: GeovisorMapProps) {
       </div>
 
       <div className="note"><b>Datos reales</b>: {nPolys} polígonos de limpieza cargados en la geodatabase; remoción reportada <b>Marzo 6,06 ha · Abril 15,71 ha · Mayo 19,0 ha</b> (acumulado).
-        <b>*</b> Volumen de biomasa retirada pendiente; imágenes satelitales por fecha pendientes de cargar.</div>
+        Sobre el mapa se superponen las ortofotos del dron posteriores a cada limpieza ({MESES_LIMPIEZA.join(' · ')}).
+        <b>*</b> Volumen de biomasa retirada pendiente.</div>
       <Footer />
     </>
   )

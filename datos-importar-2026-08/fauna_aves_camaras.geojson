@@ -1,14 +1,283 @@
 {
-"type": "FeatureCollection",
-"name": "monitoreo_aves_y_camaras",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
-"features": [
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.2","tessellate":-1,"extrude":0,"visibility":-1,"id2":2.0,"Tipo1":"Aves","COD":"A2"},"geometry":{"type":"Point","coordinates":[-75.166726765108393,10.605081649116,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.3","tessellate":-1,"extrude":0,"visibility":-1,"id2":3.0,"Tipo1":"Aves","COD":"A3"},"geometry":{"type":"Point","coordinates":[-75.170447296010295,10.6056131308942,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.4","tessellate":-1,"extrude":0,"visibility":-1,"id2":4.0,"Tipo1":"Aves","COD":"A4"},"geometry":{"type":"Point","coordinates":[-75.168208279836705,10.607541401365699,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.1","tessellate":-1,"extrude":0,"visibility":-1,"id2":1.0,"Tipo1":"Aves","COD":"A1"},"geometry":{"type":"Point","coordinates":[-75.170263802455494,10.603168879438799,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.5","tessellate":-1,"extrude":0,"visibility":-1,"id2":5.0,"Tipo1":"Aves","COD":"A5"},"geometry":{"type":"Point","coordinates":[-75.170517226924204,10.6075440439391,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.6","tessellate":-1,"extrude":0,"visibility":-1,"id2":6.0,"Tipo1":"Aves","COD":"A6"},"geometry":{"type":"Point","coordinates":[-75.166071183025295,10.608101713084,0.0]}},
-{"type":"Feature","properties":{"id":"monitoreo_aves_y_camaras.7","tessellate":-1,"extrude":0,"visibility":-1,"id2":7.0,"Tipo1":"Aves","COD":"A7"},"geometry":{"type":"Point","coordinates":[-75.167078294786904,10.610065178732601,0.0]}}
-]
+ "type": "FeatureCollection",
+ "name": "monitoreo_aves_y_camaras",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+  }
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.2",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 2.0,
+    "Tipo1": "Aves",
+    "COD": "A2",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #2",
+    "coordenada": "10.605082, -75.166727"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1667267651084,
+     10.605081649116,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.3",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 3.0,
+    "Tipo1": "Aves",
+    "COD": "A3",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #3",
+    "coordenada": "10.605613, -75.170447"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1704472960103,
+     10.6056131308942,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.4",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 4.0,
+    "Tipo1": "Aves",
+    "COD": "A4",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #4",
+    "coordenada": "10.607541, -75.168208"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1682082798367,
+     10.6075414013657,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.1",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 1.0,
+    "Tipo1": "Aves",
+    "COD": "A1",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #1",
+    "coordenada": "10.603169, -75.170264"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1702638024555,
+     10.6031688794388,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.5",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 5.0,
+    "Tipo1": "Aves",
+    "COD": "A5",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #5",
+    "coordenada": "10.607544, -75.170517"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1705172269242,
+     10.6075440439391,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.6",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 6.0,
+    "Tipo1": "Aves",
+    "COD": "A6",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #6",
+    "coordenada": "10.608102, -75.166071"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1660711830253,
+     10.608101713084,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.7",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 7.0,
+    "Tipo1": "Aves",
+    "COD": "A7",
+    "grupo": "Aves",
+    "punto": "Punto de muestreo #7",
+    "coordenada": "10.610065, -75.167078"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1670782947869,
+     10.6100651787326,
+     0.0
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.C2",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 2.0,
+    "Tipo1": "Camara",
+    "COD": "C2",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #2",
+    "coordenada": "10.607680, -75.165990"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.165990253776,
+     10.6076798616534
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.C3",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 3.0,
+    "Tipo1": "Camara",
+    "COD": "C3",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #3",
+    "coordenada": "10.610540, -75.165830"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.165830353199,
+     10.6105402240971
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.C4",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 4.0,
+    "Tipo1": "Camara",
+    "COD": "C4",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #4",
+    "coordenada": "10.602936, -75.169541"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1695413777554,
+     10.6029355433286
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.C5",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 5.0,
+    "Tipo1": "Camara",
+    "COD": "C5",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #5",
+    "coordenada": "10.604469, -75.168549"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1685491607773,
+     10.6044690178099
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "monitoreo_aves_y_camaras.C7",
+    "tessellate": -1,
+    "extrude": 0,
+    "visibility": -1,
+    "id2": 7.0,
+    "Tipo1": "Camara",
+    "COD": "C7",
+    "grupo": "Cámaras trampa",
+    "punto": "Punto de muestreo #7",
+    "coordenada": "10.603314, -75.170997"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -75.1709971312563,
+     10.6033135193436
+    ]
+   }
+  }
+ ]
 }
