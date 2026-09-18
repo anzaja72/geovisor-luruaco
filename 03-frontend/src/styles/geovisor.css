@@ -555,3 +555,37 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 .biota-barras .pista{height:9px;border-radius:5px;background:var(--line);overflow:hidden;display:block}
 .biota-barras .pista i{display:block;height:100%;border-radius:5px}
 .biota-barras b{font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+
+/* ── Registros de fauna: agrupados y filtrables ───────────────────────────── */
+.reg-barra{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;
+  padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.reg-barra .cuenta b{color:var(--ink)}
+.reg-barra .acciones{display:flex;gap:6px}
+.reg-barra button{font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);
+  color:var(--primary);border-radius:7px;padding:5px 10px;cursor:pointer}
+.reg-barra button:hover{background:var(--bg)}
+.reg-barra button.limpiar{color:#9a3412;border-color:#fed7aa;background:#fff7ed}
+
+/* Altura acotada con encabezado fijo: aunque se despliegue todo, la tabla no
+   empuja el resto de la página. */
+.reg-scroll{max-height:560px;overflow:auto}
+.reg-tabla{min-width:1180px}
+.reg-tabla thead th{position:sticky;background:var(--card);z-index:2}
+.reg-tabla thead tr:first-child th{top:0}
+.reg-tabla thead tr.reg-filtros th{top:31px;padding:5px 5px 8px;border-bottom:2px solid var(--line)}
+.reg-filtros input,.reg-filtros select{width:100%;min-width:64px;font:inherit;font-size:11.5px;font-weight:500;
+  text-transform:none;letter-spacing:0;color:var(--ink);padding:4px 6px;border:1px solid var(--line);
+  border-radius:6px;background:var(--bg)}
+.reg-filtros input.on,.reg-filtros select.on{border-color:var(--secondary);background:#f2faf3;box-shadow:0 0 0 1px var(--secondary)}
+
+.reg-cab td{padding:0;background:var(--bg);border-bottom:1px solid var(--line)}
+.reg-cab button{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border:0;
+  background:transparent;cursor:pointer;font:inherit;font-size:12.5px;color:var(--ink);text-align:left}
+.reg-cab button:hover:not(:disabled){background:#eef4f8}
+.reg-cab button:disabled{cursor:default}
+.reg-cab .i{width:16px;height:16px;stroke:var(--secondary)}
+.reg-cab .chev{display:inline-block;width:12px;font-size:16px;line-height:1;color:var(--muted);transition:transform .15s}
+.reg-cab .chev.on{transform:rotate(90deg)}
+.reg-cab .meta{font-size:11.5px;color:var(--muted);font-weight:500}
+.reg-grupo.vacio .reg-cab button{opacity:.5}
+.reg-tabla td.num{text-align:right;font-variant-numeric:tabular-nums}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import FaunaViewer3D from '../components/FaunaViewer3D'
+import RegistrosFauna from '../components/RegistrosFauna'
 import { FICHAS_FAUNA, type GrupoFaunaId } from './faunaFichas'
 import { fetchFaunaObservaciones, type FaunaObservacion } from '../lib/api'
 
@@ -255,31 +256,7 @@ export default function FaunaView(map: GeovisorMapProps) {
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="bird" /> Registros de fauna (observaciones)</h3>
           <span className="badge-soft">{obs.length} registro(s)</span></div>
-        <div className="chart-b" style={{ padding: 0, overflowX: 'auto' }}>
-          {obs.length === 0 ? (
-            <div className="empty" style={{ padding: 24 }}><Icon id="bird" /><b>Sin registros aún</b>
-              <p>Usa «Registrar Monitoreo» → pestaña Fauna para agregar avistamientos.</p></div>
-          ) : (
-            <table className="fauna-table">
-              <thead><tr>
-                <th>Grupo</th><th>Nombre común</th><th>Científico</th><th>Ind.</th><th>Cobertura</th>
-                <th>Percha</th><th>Hábito</th><th>Comportamiento</th><th>Fecha</th><th>Hora</th><th>Observación</th>
-              </tr></thead>
-              <tbody>
-                {obs.map((o) => (
-                  <tr key={o.id}>
-                    <td className="cap">{o.grupo || '—'}</td>
-                    <td>{o.nombre_comun || '—'}</td><td><i>{o.nombre_cientifico || '—'}</i></td>
-                    <td>{o.n_individuos || '—'}</td><td>{o.cobertura_vegetal || '—'}</td>
-                    <td>{o.lugar_percha || '—'}</td><td>{o.habito || '—'}</td>
-                    <td>{o.comportamiento || '—'}</td><td>{o.fecha || '—'}</td>
-                    <td>{o.hora || '—'}</td><td>{o.observacion || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <RegistrosFauna registros={obs} grupos={GRUPOS_FAUNA} />
       </div>
 
       <div className="note"><b>Estructura lista para poblarse.</b> Las tarjetas, la tabla de abundancias, el mapa de puntos y las curvas de diversidad (Q0, Q1, Q2) ya están conectadas al modelo de datos
