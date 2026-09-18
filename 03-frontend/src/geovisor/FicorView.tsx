@@ -153,14 +153,16 @@ export default function FicorView(map: GeovisorMapProps) {
   const [punto, setPunto] = useState<string>(PUNTOS_DEMO[0])
   const [iVar, setIVar] = useState(0)
   const [matriz, setMatriz] = useState<'agua' | 'sedimentos' | 'biota'>('agua')
-  const [enVivo, setEnVivo] = useState(false)
-
-  // Si la geodatabase ya tiene mediciones, los datos de demostración se descartan.
+  // Esta pantalla todavía calcula SOLO sobre los datos de demostración: leer las
+  // mediciones reales requiere que la geodatabase guarde punto y campaña por
+  // registro (migración pendiente). Por eso el aviso no depende de la API. Si ya
+  // hay mediciones cargadas, se dice explícitamente que no son las que se ven.
+  const [hayReales, setHayReales] = useState(false)
   useEffect(() => {
     const ac = new AbortController()
     fetchFicorMediciones(ac.signal)
-      .then((d) => { if (!ac.signal.aborted && !d.sin_datos) setEnVivo(true) })
-      .catch(() => { /* sin backend seguimos en demostración */ })
+      .then((d) => { if (!ac.signal.aborted && !d.sin_datos) setHayReales(true) })
+      .catch(() => { /* sin backend: solo demostración */ })
     return () => ac.abort()
   }, [])
 
@@ -215,13 +217,13 @@ export default function FicorView(map: GeovisorMapProps) {
         <EscalaCalificacion activa={res?.categoria.key} />
       </div>
 
-      {!enVivo && (
-        <div className="aviso-demo">
-          <b>Datos de demostración.</b> El laboratorio aún no entrega los resultados del muestreo.
-          Lo que se ve aquí son valores construidos para revisar la pantalla, no mediciones: no están
-          en la geodatabase y desaparecen en cuanto lleguen los reales.
-        </div>
-      )}
+      <div className="aviso-demo">
+        <b>Datos de demostración.</b> Lo que se ve aquí son valores construidos para revisar la
+        pantalla, no mediciones de laboratorio, y no están en la geodatabase.
+        {hayReales
+          ? ' Ya hay mediciones reales registradas, pero esta pantalla todavía no las lee: los valores de abajo siguen siendo de demostración.'
+          : ' El laboratorio aún no entrega los resultados del muestreo.'}
+      </div>
 
       <div className="filters">
         <span className="lab" style={{ alignSelf: 'center' }}>Campaña</span>

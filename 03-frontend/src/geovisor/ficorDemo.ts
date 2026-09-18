@@ -7,7 +7,8 @@
 // REGLAS QUE NO SE PUEDEN ROMPER
 //   1. Nada de esto se escribe en la geodatabase. Vive solo en el navegador.
 //   2. La vista muestra un aviso permanente mientras esté leyendo de aquí.
-//   3. En cuanto /api/ficor/mediciones devuelva datos reales, estos se descartan.
+//   3. La vista aún no lee mediciones reales (falta guardar punto y campaña por
+//      registro); mientras tanto el aviso de demostración es permanente.
 //
 // Los valores son plausibles para una ciénaga costera del Atlántico y están
 // construidos para que se vea la progresión que buscaría el proyecto: de MALO en
