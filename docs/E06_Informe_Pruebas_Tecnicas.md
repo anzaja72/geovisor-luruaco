@@ -263,7 +263,23 @@ que se eliminó al terminar.
 
 ### 9.3 Verificación posterior al despliegue
 
-_Se completa al publicar las correcciones en producción._
+Publicadas las correcciones el 22 de septiembre de 2026 y comprobadas sobre el ambiente
+productivo. La migración se aplicó tras un respaldo, verificado restaurable.
+
+| Caso | Comprobación | Resultado |
+|---|---|---|
+| V-01 | Disponibilidad tras el despliegue | `/` y `/health` en 200 |
+| V-02 | Cabeceras de seguridad | `nosniff`, `Referrer-Policy`, HSTS y `frame-ancestors` limitado al sitio de la C.R.A. |
+| V-03 | Bloqueo por intentos fallidos | 10 respuestas 401 y la 11.ª, 429 |
+| V-04 | Capas sensibles en la geodatabase | 19 de 19 entidades de fauna marcadas |
+| V-05 | Lo que recibe una cuenta de consulta recién creada | 8 entidades; ninguna cámara trampa ni transecto |
+| V-06 | Registro público con `"rol":"administrador"` | El servidor asigna `consulta` |
+| V-07 | Permisos de consulta | zonas 200 · reportes 403 · importación 403 · monitoreos 403 · usuarios 403 |
+| V-08 | Peso de las capas por sesión | 6.738 KB sin filtro → 30 KB con el filtro que usa el visor |
+| V-09 | Desactivación inmediata | Con el mismo token: 200 con la cuenta activa, 401 «Cuenta desactivada o inexistente» tras desactivarla |
+| V-10 | Ficorremediación desde la geodatabase | 288 mediciones en 3 campañas y 5 puntos, todas marcadas como demostración |
+| V-11 | Código publicado | Sin claves ni datos de demostración incrustados; el visor pide las capas filtradas |
+| V-12 | Cuentas en producción | Solo las tres del proyecto; eliminadas las de verificación |
 
 ### Anexo · Reproducción de las pruebas
 
