@@ -1,7 +1,7 @@
 # Requerimientos, arquitectura y esquema de roles
 
 **Plataforma:** Geodatabase y geovisor de restauración ecológica — Ciénaga de Luruaco
-**Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
+**Contrato:** 324 de 2025 · Unión Temporal Restauración Luruaco
 **Entregable:** cláusula 5.2, literal e) — *«Entregar documento de requerimientos, diagrama de arquitectura y esquema de roles»*
 **Elaboró:** MC Consultorías & Capacitación S.A.S.
 

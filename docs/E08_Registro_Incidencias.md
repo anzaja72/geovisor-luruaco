@@ -1,7 +1,7 @@
 # Registro de incidencias y procedimiento de soporte
 
 **Plataforma:** Geodatabase y geovisor de restauración ecológica — Ciénaga de Luruaco
-**Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
+**Contrato:** 324 de 2025 · Unión Temporal Restauración Luruaco
 **Entregable:** cláusula 5.6 — soporte y mantenimiento post-implementación, literales a) a d)
 **Vigencia del soporte:** durante la ejecución del contrato **y un año más**
 

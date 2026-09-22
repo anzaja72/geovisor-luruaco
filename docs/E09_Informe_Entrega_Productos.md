@@ -1,6 +1,6 @@
 # Informe de entrega de productos
 
-**Contrato:** UTL-001 de 2026 — Servicio tecnológico para la creación y diseño de Geodatabase y realización de 4 talleres de capacitación
+**Contrato:** 324 de 2025 — Servicio tecnológico para la creación y diseño de Geodatabase y realización de 4 talleres de capacitación
 **Contratante:** Unión Temporal Restauración Luruaco · NIT 901.991.300-4
 **Contratista:** MC Consultorías & Capacitación S.A.S. · NIT 900.614.837-8
 **Dirección del proyecto:** Sonia Natalia Vásquez Díaz
@@ -27,7 +27,7 @@ el numeral 5, separando las que dependen de información que aún no se ha entre
 que están en desarrollo.
 
 Antes de este informe se hizo una revisión completa del ambiente productivo. Se
-encontraron y corrigieron once defectos, entre ellos uno de protección de datos: las
+encontraron y corrigieron doce defectos, entre ellos uno de protección de datos: las
 ubicaciones de las cámaras trampa quedaban visibles para el rol de consulta tras una
 reimportación. El detalle está en el [informe de pruebas](E06_Informe_Pruebas_Tecnicas.md), numeral 9.
 
@@ -107,9 +107,11 @@ prototipos en `03-frontend/public/mockup/`
   transversal.
 - Cada componente abre con su propio mapa base, su ortofoto y su área de interés.
 - Ficorremediación con tablero de calidad del agua: **ICA del IDEAM** (seis variables,
-  hoja metodológica GCI-OE-F002 v03) y guías **CCME** para sedimento de agua dulce. Mientras
-  el laboratorio no entregue resultados, el tablero trabaja con datos de demostración
-  rotulados como tales (ver numeral 5).
+  hoja metodológica GCI-OE-F002 v03) y guías **CCME** para sedimento de agua dulce. Lee la
+  geodatabase: campañas, puntos y mediciones salen de las tablas `ficor_*`, y lo que un
+  técnico registra por el formulario aparece en el tablero. Mientras el laboratorio no
+  entregue resultados, las tablas contienen una siembra de demostración **marcada como
+  tal en la propia base**, que la pantalla advierte y que se borra con una orden (ver 5.1).
 - Seguridad de acceso: bloqueo temporal tras intentos fallidos de inicio de sesión, efecto
   inmediato al desactivar una cuenta o cambiarle el rol, y protección de las capas
   sensibles aplicada por la propia geodatabase.
@@ -123,7 +125,7 @@ prototipos en `03-frontend/public/mockup/`
 
 52 casos ejecutados sobre el ambiente productivo —servicios, control de acceso,
 funcionalidad e infraestructura—, todos conformes. En la revisión del 22 de septiembre se
-encontraron once defectos, corregidos y verificados. Plataforma publicada y URL operativa.
+encontraron doce defectos, corregidos y verificados. Plataforma publicada y URL operativa.
 
 **Soporte:** [E06 · Informe de pruebas técnicas](E06_Informe_Pruebas_Tecnicas.md)
 
@@ -197,7 +199,7 @@ registros**, porque la información no ha sido entregada:
 | `monitoreos` | Sin registros | Equipos de campo |
 | `fotografias` (registro fotográfico por parcela) | Sin registros | Equipos de campo |
 | Sitios de validación (metas y cumplimiento) | Sin registros | Dirección del Proyecto |
-| Ficorremediación: calidad de agua, sedimentos y biota | Sin mediciones; el laboratorio no ha entregado el muestreo 1. Falta además la **conductividad**, una de las seis variables del ICA | Darío · laboratorio |
+| Ficorremediación: calidad de agua, sedimentos y biota | Sin mediciones de laboratorio; el muestreo 1 no ha sido entregado. Falta además la **conductividad**, una de las seis variables del ICA. Las tablas contienen una siembra de demostración marcada con `es_demostracion`, que el tablero advierte en pantalla y se elimina con una sola orden al llegar los resultados | Darío · laboratorio |
 | Campañas Monitoreo 1 a 4 del censo forestal | Filas previstas, sin mediciones de campo | Yurani |
 
 La plataforma las representa como «sin dato» y no las sustituye por ceros, para no inducir
@@ -215,13 +217,12 @@ Además, quedan pendientes de decisión o de archivo cuatro observaciones de sep
 El detalle de cada entrega figura en
 [INFORMACION-PENDIENTE-POR-COMPONENTE.md](INFORMACION-PENDIENTE-POR-COMPONENTE.md).
 
-### 5.2 · En desarrollo
+### 5.2 · Ajustes de septiembre en curso
 
 | Observación | Estado |
 |---|---|
-| Tablero de ficorremediación conectado a la geodatabase | Construido sobre datos de demostración, rotulados en pantalla. Pasa a leer la geodatabase cuando haya mediciones reales; requiere guardar campaña, punto y límite de detección por medición |
-| Formulario de fauna: punto de muestreo en lugar de cobertura, y fotografía JPG | Pendiente |
-| Importación de shapefile (.zip), GeoTIFF y CSV del laboratorio desde la interfaz | Pendiente. Hoy la interfaz acepta GeoJSON y CSV de puntos; shapefile y GeoTIFF se cargan en el servidor con los scripts documentados |
+| Formulario de fauna: punto de muestreo en lugar de cobertura vegetal, y fotografía JPG | En ejecución dentro del acompañamiento de la cláusula 5.6 |
+| Importación de shapefile (.zip) y GeoTIFF desde la interfaz | En ejecución. Hoy ambos se cargan en el servidor con los scripts entregados y documentados; la interfaz acepta GeoJSON y CSV |
 
 ### 5.3 · Supuesto de cálculo por confirmar
 

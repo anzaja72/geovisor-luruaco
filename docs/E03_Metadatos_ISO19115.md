@@ -1,7 +1,7 @@
 # Catálogo de metadatos geográficos — ISO 19115
 
 **Conjunto:** Geodatabase de restauración ecológica de la Ciénaga de Luruaco
-**Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
+**Contrato:** 324 de 2025 · Unión Temporal Restauración Luruaco
 **Entregable:** cláusula 5.1, literal f) — *«Elaborar y entregar metadatos técnicos completos de la información incorporada»*
 **Norma:** ISO 19115 (núcleo) · perfil colombiano del IGAC
 **Fecha del catálogo:** 6 de septiembre de 2026

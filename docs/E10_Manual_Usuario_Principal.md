@@ -99,9 +99,16 @@ del Agua (ICA) del IDEAM**:
   sedimento de agua dulce— y biota, presentada como riqueza y abundancia por grupo.
 - Ortofoto del **laboratorio de microalgas** con su área de interés.
 
-> **Mientras el laboratorio no entregue resultados, lo que se ve son datos de
-> demostración**, y la pantalla lo advierte en un recuadro. Sirven para conocer el
-> tablero; no son mediciones y no deben citarse como tales.
+Todo sale de la geodatabase: las campañas, los puntos y cada valor. Lo que registre un
+técnico desde **Registrar Monitoreo** aparece aquí.
+
+> **Mientras el laboratorio no entregue resultados**, las tablas contienen una siembra de
+> demostración, marcada como tal en la base, y la pantalla lo advierte en un recuadro.
+> Sirve para conocer el tablero; no son mediciones y no deben citarse como tales. Al
+> cargarse los resultados reales, el aviso desaparece solo.
+
+Si una campaña no tiene las seis variables del índice en un punto, ese punto aparece sin
+calificar en lugar de calificado a medias.
 
 ### 3.4 Monitoreo de Fauna
 

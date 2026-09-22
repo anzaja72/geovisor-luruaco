@@ -1,7 +1,7 @@
 # Plan de capacitación
 
 **Plataforma:** Geodatabase y geovisor de restauración ecológica — Ciénaga de Luruaco
-**Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
+**Contrato:** 324 de 2025 · Unión Temporal Restauración Luruaco
 **Entregable:** cláusula 5.7 — *«Realizar cuatro (4) talleres de capacitación en el uso, administración y consulta de la Geodatabase y la plataforma digital»* y *«Entregar material de apoyo y memorias»*
 
 ---

@@ -73,6 +73,13 @@ disparador `trg_capa_sensible` marca `sensible = TRUE` en toda fila de `capas_ge
 de esa capa, al insertarla o actualizarla, venga de donde venga. Contiene
 `fauna_aves_camaras` y `herpetos`.
 
+### Ficorremediación: campaña y marca de demostración (mig. 19)
+Las tres tablas `ficor_calidad_agua`, `ficor_calidad_sedimentos` y `ficor_biota` llevan
+**campana** (agrupa la medición: «Línea base», «Muestreo 1»…) y **es_demostracion**
+BOOLEAN. El tablero del ICA agrupa por campaña y punto; con `es_demostracion` distingue la
+siembra de prueba de los resultados de laboratorio y lo advierte en pantalla. Para
+retirarla cuando lleguen los resultados: `DELETE … WHERE es_demostracion`.
+
 ### usuarios (mig. 06)
 id PK · nombre · **email UNIQUE** · password_hash (bcrypt) ·
 **rol** (administrador · tecnico · consulta) · activo · creado_en · ultimo_acceso ·

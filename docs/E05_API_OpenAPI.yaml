@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 # =============================================================================
 # API de la Geodatabase de Restauración Ecológica — Ciénaga de Luruaco
-# Entregable de la cláusula 5.4.c del contrato UTL-001 de 2026.
+# Entregable de la cláusula 5.4.c del contrato 324 de 2025.
 # Generada a partir del código fuente del backend (02-backend/*.go).
 # =============================================================================
 
@@ -12,7 +12,7 @@ info:
   description: |
     API REST de la plataforma de gestión y visualización de información geográfica
     y alfanumérica del proyecto de restauración ecológica de la Ciénaga de Luruaco
-    (Contrato UTL-001 de 2026, Unión Temporal Restauración Luruaco).
+    (Contrato 324 de 2025, Unión Temporal Restauración Luruaco).
 
     ## Autenticación
 
@@ -41,11 +41,13 @@ info:
 
     Las capas se entregan como `FeatureCollection` de GeoJSON (RFC 7946) en
     **EPSG:4326**. Las geometrías provienen de PostGIS mediante `ST_AsGeoJSON`.
+
+    ## Uso
+
+    Privativo del CONTRATANTE, conforme a la cláusula séptima del contrato 324 de 2025.
   contact:
     name: MC Consultorías & Capacitación S.A.S.
     email: info@mcconsultorias.com.co
-  license:
-    name: Uso privativo del CONTRATANTE (cláusula séptima del contrato)
 
 servers:
   - url: https://geodatabase.mcconsultorias.com.co
@@ -550,9 +552,43 @@ paths:
               schema:
                 type: object
                 properties:
-                  agua:       { type: array, items: { type: object } }
-                  sedimentos: { type: array, items: { type: object } }
-                  biota:      { type: array, items: { type: object } }
+                  agua:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        campana:         { type: string, example: Muestreo 1 }
+                        punto:           { type: string, example: FICO-3, description: código del punto de muestreo }
+                        fecha:           { type: string, format: date }
+                        variable:        { type: string, example: Conductividad }
+                        valor:           { type: number, format: double }
+                        unidad:          { type: string, example: µS/cm }
+                        sin_valor:       { type: boolean }
+                        es_demostracion: { type: boolean, description: "true si es siembra de prueba, no resultado de laboratorio" }
+                  sedimentos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        campana:         { type: string }
+                        punto:           { type: string }
+                        fecha:           { type: string, format: date }
+                        categoria:       { type: string, enum: [metal_pesado, plaguicida] }
+                        variable:        { type: string, example: Hg }
+                        valor:           { type: number, format: double }
+                        unidad:          { type: string, example: mg/kg }
+                        es_demostracion: { type: boolean }
+                  biota:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        campana:         { type: string }
+                        fecha:           { type: string, format: date }
+                        grupo:           { type: string, example: fitoplancton }
+                        abundancia:      { type: integer }
+                        riqueza:         { type: integer }
+                        es_demostracion: { type: boolean }
                   sin_datos:  { type: boolean, description: true si las tres están vacías }
         "401": { $ref: "#/components/responses/NoAutenticado" }
 
@@ -764,13 +800,23 @@ paths:
           application/json:
             schema:
               type: object
-              required: [tipo, fecha]
+              required: [tipo, fecha, campana]
               properties:
                 tipo:
                   type: string
                   enum: [agua, sedimento, biota]
                 fecha: { type: string, format: date }
-                variable: { type: string, example: Oxígeno Disuelto }
+                campana:
+                  type: string
+                  example: Muestreo 1
+                  description: Campaña de muestreo. El tablero del ICA agrupa por ella.
+                punto:
+                  type: string
+                  example: FICO-3
+                  description: |
+                    Código del punto de muestreo (`FICO-1`…`FICO-5`). Obligatorio para
+                    agua y sedimentos; la biota se reporta por campaña, sin punto.
+                variable: { type: string, example: Oxígeno disuelto }
                 categoria:
                   type: string
                   enum: [metal_pesado, plaguicida]

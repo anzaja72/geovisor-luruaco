@@ -1,7 +1,7 @@
 # Índice de entregables documentales
 
 **Plataforma:** Geodatabase y geovisor de restauración ecológica — Ciénaga de Luruaco
-**Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
+**Contrato:** 324 de 2025 · Unión Temporal Restauración Luruaco
 **Contratista:** MC Consultorías & Capacitación S.A.S.
 **Actualizado:** 7 de septiembre de 2026
 
@@ -63,8 +63,9 @@ que la sustenta.
 
 1. **Información de campo pendiente.** Las tablas `monitoreos`, `fotografias` y de
    validación están construidas y operativas, pero sin registros; el componente de
-   ficorremediación carece de mediciones y su tablero del ICA muestra datos de
-   demostración, rotulados como tales. La plataforma las representa como «sin dato».
+   ficorremediación carece de mediciones de laboratorio: su tablero del ICA lee la
+   geodatabase, donde hay por ahora una siembra de demostración marcada como tal y
+   advertida en pantalla. La plataforma las representa como «sin dato».
    No es una obligación pendiente del contratista: depende de la entrega de esa
    información por los equipos técnicos del proyecto.
 

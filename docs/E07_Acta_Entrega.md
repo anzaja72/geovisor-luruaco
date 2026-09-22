@@ -1,6 +1,6 @@
 # Acta de entrega de productos
 
-**Contrato:** UTL-001 de 2026
+**Contrato:** 324 de 2025
 **Objeto:** Servicio tecnológico para la creación y diseño de Geodatabase y realización de cuatro (4) talleres de capacitación en el uso de la Geodatabase
 **Lugar y fecha:** Barranquilla, ____ de __________ de 2026
 
@@ -104,8 +104,9 @@ programación que defina la Dirección del Proyecto.
 **construidas y operativas pero sin registros**, por no haberse recibido la información de
 campo correspondiente: `monitoreos`, `fotografias`, sitios de validación y las tres tablas
 del componente de ficorremediación, así como las campañas Monitoreo 1 a 4 del censo
-forestal. Mientras el laboratorio no entregue resultados, el tablero de ficorremediación
-opera con datos de demostración rotulados en pantalla. Esta situación no es imputable al
+forestal. El tablero de ficorremediación lee la geodatabase; mientras el laboratorio no
+entregue resultados, sus tablas contienen una siembra de demostración marcada como tal en
+la base y advertida en pantalla. Esta situación no es imputable al
 CONTRATISTA y se detalla en el numeral 5.1 del informe de entrega (E09).
 
 **5.3.1** De las observaciones de septiembre del equipo técnico, quedan abiertas las que

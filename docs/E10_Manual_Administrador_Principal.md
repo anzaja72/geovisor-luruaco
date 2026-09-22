@@ -136,6 +136,21 @@ nuevo queda guardada y se puede descargar por la API, pero no aparece en ningún
 hasta que se le asigne componente y se despliegue el frontend. Los productos del dron se
 catalogan en `insumos_dron`.
 
+### Resultados de ficorremediación
+
+El tablero del ICA lee las tablas `ficor_*`. Hoy contienen una siembra de demostración
+(288 filas marcadas con `es_demostracion`), que la pantalla advierte. Cuando el
+laboratorio entregue el muestreo, se retira con una orden:
+
+```bash
+docker exec geodb-postgis psql -U eco_admin -d restauracion_ecologica -c "DELETE FROM eco_restauracion.ficor_calidad_agua WHERE es_demostracion; DELETE FROM eco_restauracion.ficor_calidad_sedimentos WHERE es_demostracion; DELETE FROM eco_restauracion.ficor_biota WHERE es_demostracion;"
+```
+
+El aviso de la pantalla desaparece solo: depende de esa marca, no de una configuración.
+Los resultados se cargan por **Registrar Monitoreo → Ficorremediación**, indicando campaña
+(«Muestreo 1») y punto (`FICO-1`…`FICO-5`); el índice necesita las seis variables del ICA
+en un punto para calificarlo.
+
 ### Capas sensibles
 
 Las ubicaciones de cámaras trampa y transectos de fauna no se entregan al rol de
