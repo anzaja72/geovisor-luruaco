@@ -11,6 +11,7 @@ import {
   fetchValidacion,
   fetchZonas,
 } from '../lib/api'
+import { CAPAS_VISOR } from '../lib/capasVisor'
 import { periodosDe, resumenLocal } from '../lib/aggregate'
 import type { FeatureCollection, GeoFeature, Resumen } from '../lib/types'
 
@@ -61,7 +62,7 @@ export function useGeoData(): GeoData {
       fetchZonas(ac.signal),
       fetchLotes(ac.signal),
       fetchPuntos(ac.signal),
-      fetchCapas(ac.signal),
+      fetchCapas(ac.signal, CAPAS_VISOR),
       fetchCoberturas(ac.signal),
       fetchEstratos(ac.signal),
       fetchMalezas(ac.signal),

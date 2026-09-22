@@ -66,6 +66,10 @@ export const MALEZA = {
   poligonos: 5,
 }
 
+/** «Ene 4,103 → Feb 13,206 → … ha»: la serie acumulada, tal como la dibuja la gráfica. */
+export const serieMalezaTexto = (sep = ' → ') =>
+  MALEZA.serie.map(([m, v]) => `${m} ${v.toLocaleString('es-CO', { maximumFractionDigits: 3 })}`).join(sep) + ' ha'
+
 // Ficorremediación — variables a medir (Variables Calidad de aguas.xlsx /
 // Variables Calidad de sedimentos.xlsx). Sin resultados aún: estructura lista
 // para poblarse desde ficor_calidad_agua / ficor_calidad_sedimentos / ficor_biota.

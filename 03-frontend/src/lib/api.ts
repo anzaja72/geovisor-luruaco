@@ -87,8 +87,10 @@ export function fetchPuntos(signal?: AbortSignal): Promise<FeatureCollection> {
   return getJSON<FeatureCollection>('/api/puntos', signal)
 }
 
-export function fetchCapas(signal?: AbortSignal): Promise<FeatureCollection> {
-  return getJSON<FeatureCollection>('/api/capas/geojson', signal)
+/** Capas importadas. Con `capas`, solo esas: el visor no necesita las curvas de nivel. */
+export function fetchCapas(signal?: AbortSignal, capas?: string[]): Promise<FeatureCollection> {
+  const q = capas?.length ? `?capas=${capas.map(encodeURIComponent).join(',')}` : ''
+  return getJSON<FeatureCollection>(`/api/capas/geojson${q}`, signal)
 }
 
 export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection> {

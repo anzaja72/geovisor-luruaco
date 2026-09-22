@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Footer, Icon } from './Shell'
-import { fetchGobernanza, fetchIndicadoresRestauracion, fetchMalezaLimpiezas,
+import { fetchFaunaObservaciones, fetchGobernanza, fetchIndicadoresRestauracion, fetchMalezaLimpiezas,
   type IndicadoresRestauracion } from '../lib/api'
-import { MALEZA, GOBERNANZA } from './data'
+import { MALEZA, GOBERNANZA, serieMalezaTexto } from './data'
 import type { CompId } from './data'
 
 const fmt = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -14,6 +14,7 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
   // las constantes quedan solo como respaldo si el backend no responde.
   const [gob, setGob] = useState<{ eventos: number; participantes: number; tipos: number } | null>(null)
   const [maleza, setMaleza] = useState<{ acumulado: number; jornadas: number } | null>(null)
+  const [fauna, setFauna] = useState<{ especies: number; registros: number; grupos: number } | null>(null)
 
   useEffect(() => {
     const ac = new AbortController()
@@ -26,6 +27,16 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
     fetchMalezaLimpiezas(ac.signal)
       .then((d) => { if (!ac.signal.aborted && d.jornadas?.length) setMaleza({ acumulado: d.acumulado_ha, jornadas: d.jornadas.length }) })
       .catch(() => { /* respaldo en constantes */ })
+    fetchFaunaObservaciones(ac.signal)
+      .then((d) => {
+        if (ac.signal.aborted || !d.length) return
+        setFauna({
+          especies: new Set(d.map((o) => o.nombre_cientifico || o.nombre_comun).filter(Boolean)).size,
+          registros: d.length,
+          grupos: new Set(d.map((o) => o.grupo).filter(Boolean)).size,
+        })
+      })
+      .catch(() => { /* sin dato */ })
     return () => ac.abort()
   }, [])
 
@@ -66,19 +77,19 @@ export default function TransversalView({ onNav }: { onNav: (c: CompId) => void 
           <div className="h"><span className="ic" style={{ background: '#dbe7fb', color: 'var(--primary)' }}><Icon id="waves" /></span><div><b>Vegetación Acuática</b><span>Remoción en el borde de la laguna</span></div></div>
           <div className="mini"><span><b>{malezaAcum.toLocaleString('es-CO')} ha</b>removidas</span><span><b>{MALEZA.poligonos}</b>polígonos</span><span><b>{malezaJornadas}</b>jornadas</span></div>
           <div className="progress"><i style={{ width: '55%', background: 'var(--primary)' }} /></div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Mar 6,06 → Abr 15,71 → May 19 ha</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>{serieMalezaTexto()}</div>
         </a>
         <a className="comp-card" href="#" onClick={go('ficorremediacion')} style={{ textDecoration: 'none' }}>
           <div className="h"><span className="ic" style={{ background: 'var(--tert-c)', color: 'var(--tertiary)' }}><Icon id="flask" /></span><div><b>Ficorremediación</b><span>Inoculación · calidad del agua</span></div></div>
           <div className="mini"><span><b>1</b>punto</span><span><b>11</b>fotos</span><span><b>s/d</b>parámetros</span></div>
           <div className="progress"><i style={{ width: '18%', background: 'var(--tertiary)' }} /></div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Estructura lista · datos en captura</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Tablero del ICA listo · a la espera de resultados del laboratorio</div>
         </a>
         <a className="comp-card" href="#" onClick={go('fauna')} style={{ textDecoration: 'none' }}>
           <div className="h"><span className="ic" style={{ background: '#eceff2', color: 'var(--muted)' }}><Icon id="paw" /></span><div><b>Monitoreo de Fauna</b><span>Avistamientos · cámaras trampa</span></div></div>
-          <div className="mini"><span><b>s/d</b>especies</span><span><b>s/d</b>cámaras</span></div>
+          <div className="mini"><span><b>{fauna?.especies ?? 's/d'}</b>especies</span><span><b>{fauna?.registros ?? 's/d'}</b>registros</span><span><b>{fauna?.grupos ?? 's/d'}</b>grupos</span></div>
           <div className="progress"><i style={{ width: '8%', background: '#9aa6b0' }} /></div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>En definición con Darío</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>{fauna ? 'Línea base preliminar · anexo de fauna' : 'Sin registros cargados'}</div>
         </a>
         <a className="comp-card" href="#" onClick={go('gobernanza')} style={{ textDecoration: 'none' }}>
           <div className="h"><span className="ic" style={{ background: '#dbe7fb', color: 'var(--primary)' }}><Icon id="users" /></span><div><b>Gobernanza Ambiental</b><span>Socializaciones · talleres · capacitaciones</span></div></div>

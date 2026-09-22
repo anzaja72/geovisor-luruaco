@@ -24,6 +24,7 @@ import IgacOverlays from './IgacOverlays'
 import { CoordsControl, MapToolbar } from './MapTools'
 import limpiezaMensual from '../geovisor/limpiezaMensual.json'
 import { ORTOS_MALEZA } from '../geovisor/ortofotosMaleza'
+import { CAPAS_POR_COMPONENTE } from '../lib/capasVisor'
 
 const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 // Límites de la ortofoto del predio (vuelo de septiembre de 2026, «Ortofoto #1.1»).
@@ -110,16 +111,6 @@ const CONFIG_COMPONENTE: Record<ComponenteGeovisor, ConfigComponente> = {
   ficorremediacion: { basemap: 'calles', ortofotoPredio: false, aoi: FICOR_BOUNDS, coberturas: false },
   // El monitoreo de fauna se lee contra las coberturas del área de restauración.
   fauna: { basemap: 's2', ortofotoPredio: false, aoi: PREDIO_BOUNDS, coberturas: true },
-}
-
-// Capas importadas (capas_geograficas) pertinentes por componente. curvas_nivel se omite
-// siempre (satura el mapa). "aislamiento_interno" es de Restauración; "maleza_acuatica" de Maleza.
-const CAPAS_POR_COMPONENTE: Record<ComponenteGeovisor, string[]> = {
-  restauracion: ['aislamiento_interno'],
-  maleza: ['maleza_acuatica'],
-  ficorremediacion: [],
-  // Cámaras trampa y transectos: la API solo las entrega a técnico y administrador.
-  fauna: ['fauna_aves_camaras', 'herpetos'],
 }
 
 const CAPA_LABEL: Record<string, string> = {

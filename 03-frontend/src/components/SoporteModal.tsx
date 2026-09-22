@@ -1,8 +1,8 @@
 // Soporte: acuerdo de nivel de servicio, canal de reporte y datos de la versión
 // desplegada. Cubre el acompañamiento técnico de la cláusula 5.6 del contrato.
 
-/** Buzón de soporte. Provisional: se sustituirá por la cuenta institucional del proyecto. */
-export const CORREO_SOPORTE = 'angelzambranojaraba@gmail.com'
+/** Buzón de soporte del proyecto. Reenvía al equipo técnico de MC Consultorías. */
+export const CORREO_SOPORTE = 'soporte@luruacorenace.online'
 
 /** Tiempo de respuesta comprometido, en horas hábiles desde el envío del correo. */
 const ANS_HORAS = 4

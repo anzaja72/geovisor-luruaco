@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoComparador from '../components/OrtoComparador'
-import { MALEZA as M } from './data'
+import { MALEZA as M, serieMalezaTexto } from './data'
 import { boundsDelMes, MESES_LIMPIEZA } from './ortofotosMaleza'
 import { fetchMalezaLimpiezas } from '../lib/api'
 
@@ -110,7 +110,7 @@ export default function MalezaView(map: GeovisorMapProps) {
         </div>
       </div>
 
-      <div className="note"><b>Datos reales</b>: {nPolys} polígonos de limpieza cargados en la geodatabase; remoción reportada <b>Marzo 6,06 ha · Abril 15,71 ha · Mayo 19,0 ha</b> (acumulado).
+      <div className="note"><b>Datos reales</b>: {nPolys} polígonos de limpieza cargados en la geodatabase; remoción acumulada reportada <b>{serieMalezaTexto(' · ')}</b>.
         Sobre el mapa se superponen las ortofotos del dron posteriores a cada limpieza ({MESES_LIMPIEZA.join(' · ')}).
         <b>*</b> Volumen de biomasa retirada pendiente.</div>
       <Footer />
