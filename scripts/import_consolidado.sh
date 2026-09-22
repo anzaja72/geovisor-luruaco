@@ -8,17 +8,21 @@
 # Uso:  scripts/import_consolidado.sh "/ruta/a/Data Py Geodatabase"
 # Requiere: GDAL (ogr2ogr), Docker con el contenedor postgis-eco-restauracion,
 #           python3 con openpyxl (para el Excel).
+# Entorno:  DB_PASSWORD (obligatoria; exportada o en .env). Opcionales:
+#           DB_HOST, DB_PORT, DB_USER, DB_NAME, PG_CONTAINER. Ver scripts/README.md.
 # ============================================================================
 set -euo pipefail
 export PATH="/opt/homebrew/bin:$PATH"
 
 DATA="${1:-/Users/angelzambrano/Downloads/Data Py Geodatabase}"
-CTN="postgis-eco-restauracion"
-DB="restauracion_ecologica"; USER="eco_admin"; PASS="EcoRest2024!"
-PG="PG:host=localhost port=5432 dbname=${DB} user=${USER} password=${PASS} active_schema=eco_restauracion"
+CTN="${PG_CONTAINER:-postgis-eco-restauracion}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-psql_sql(){ docker exec -i "$CTN" psql -U "$USER" -d "$DB" -v ON_ERROR_STOP=1 "$@"; }
+# Credenciales desde el entorno o el .env — nunca escritas aquí.
+. "$ROOT/scripts/lib/db_env.sh"
+PG="PG:host=${DB_HOST} port=${DB_PORT} dbname=${DB_NAME} user=${DB_USER} active_schema=eco_restauracion"
+
+psql_sql(){ docker exec -i "$CTN" psql -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 "$@"; }
 ogr(){ ogr2ogr -f PostgreSQL "$PG" -t_srs EPSG:4326 -overwrite -lco GEOMETRY_NAME=geom "$@"; }
 
 [ -d "$DATA" ] || { echo "✗ No existe la carpeta: $DATA"; exit 1; }
@@ -28,7 +32,7 @@ echo "▶ Datos: $DATA"
 mkdir -p "$ROOT/backups"
 BK="$ROOT/backups/pre_import_$(date +%Y%m%d_%H%M%S).sql"
 echo "▶ Respaldo → $BK"
-docker exec "$CTN" pg_dump -U "$USER" -d "$DB" > "$BK" && echo "  ✓ respaldo ok ($(du -h "$BK" | cut -f1))"
+docker exec "$CTN" pg_dump -U "$DB_USER" -d "$DB_NAME" > "$BK" && echo "  ✓ respaldo ok ($(du -h "$BK" | cut -f1))"
 
 # 1) Migración tabla de censo ----------------------------------------------
 echo "▶ Migración arboles_monitoreo"
@@ -56,7 +60,7 @@ for r in rows[1:]:
     out.writerow(['' if c is None else c for c in r[:11]])
 PY
   psql_sql -c "TRUNCATE eco_restauracion.arboles_monitoreo RESTART IDENTITY;" >/dev/null
-  docker exec -i "$CTN" psql -U "$USER" -d "$DB" -c \
+  docker exec -i "$CTN" psql -U "$DB_USER" -d "$DB_NAME" -c \
     "\copy eco_restauracion.arboles_monitoreo (fecha,cobertura,id_parcela,id_arbol,especie,nombre_comun,altura_max,n_fustes,dap_eq,area_basal_arbol,categoria_arbol) FROM STDIN WITH (FORMAT csv, HEADER true, NULL '')" < "$CSV"
   echo "  ✓ censo cargado"
 else

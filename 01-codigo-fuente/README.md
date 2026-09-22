@@ -104,7 +104,7 @@ El sistema incluye 2 proyectos de restauración:
 DB_HOST=localhost
 DB_PORT=54322
 DB_USER=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=          # sin valor por defecto: va en el .env, nunca en el repo
 DB_NAME=postgres
 DB_SCHEMA=eco_restauracion
 ```

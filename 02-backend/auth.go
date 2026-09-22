@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,6 +21,50 @@ import (
 var jwtSecret []byte
 
 const tokenTTL = 24 * time.Hour
+
+// Inicios de sesión fallidos por IP. bcrypt hace lento cada intento, pero sin un
+// tope la fuerza bruta en línea sigue siendo viable. Solo cuentan los fallos: quien
+// entra bien no consume cupo.
+const (
+	maxFallosLogin     = 10
+	ventanaFallosLogin = 15 * time.Minute
+)
+
+type intentosFallidos struct {
+	mu     sync.Mutex
+	fallos map[string][]time.Time
+}
+
+var fallosLogin = intentosFallidos{fallos: map[string][]time.Time{}}
+
+// recientes descarta los fallos fuera de la ventana. Quien llama tiene el candado.
+func (f *intentosFallidos) recientes(ip string) []time.Time {
+	corte := time.Now().Add(-ventanaFallosLogin)
+	r := f.fallos[ip][:0]
+	for _, t := range f.fallos[ip] {
+		if t.After(corte) {
+			r = append(r, t)
+		}
+	}
+	if len(r) == 0 {
+		delete(f.fallos, ip)
+	} else {
+		f.fallos[ip] = r
+	}
+	return r
+}
+
+func (f *intentosFallidos) bloqueado(ip string) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return len(f.recientes(ip)) >= maxFallosLogin
+}
+
+func (f *intentosFallidos) fallo(ip string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.fallos[ip] = append(f.recientes(ip), time.Now())
+}
 
 type Claims struct {
 	UserID int64  `json:"uid"`
@@ -106,6 +151,18 @@ func requireAuth(roles ...string) fiber.Handler {
 		if err != nil || !token.Valid {
 			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Token inválido o expirado"})
 		}
+		// El token vale 24 horas, pero desactivar una cuenta o cambiarle el rol debe
+		// surtir efecto en la siguiente petición, no al día siguiente.
+		var activo bool
+		err = db.QueryRowContext(c.UserContext(),
+			`SELECT activo, rol FROM eco_restauracion.usuarios WHERE id = $1`, claims.UserID,
+		).Scan(&activo, &claims.Rol)
+		if err == sql.ErrNoRows || (err == nil && !activo) {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Cuenta desactivada o inexistente"})
+		}
+		if err != nil {
+			return serverError(c, "Error de autenticación", err)
+		}
 		if len(roles) > 0 {
 			ok := false
 			for _, r := range roles {
@@ -133,6 +190,11 @@ func login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil || body.Email == "" || body.Password == "" {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "email y password requeridos"})
 	}
+	ip := c.IP()
+	if fallosLogin.bloqueado(ip) {
+		return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{
+			"error": "Demasiados intentos fallidos. Espere 15 minutos e inténtelo de nuevo."})
+	}
 	var (
 		id     int64
 		nombre, hash, rol string
@@ -143,12 +205,14 @@ func login(c *fiber.Ctx) error {
 		 FROM eco_restauracion.usuarios WHERE lower(email) = lower($1)`, body.Email,
 	).Scan(&id, &nombre, &hash, &rol, &activo)
 	if err == sql.ErrNoRows || (err == nil && !activo) {
+		fallosLogin.fallo(ip)
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Credenciales inválidas"})
 	}
 	if err != nil {
 		return serverError(c, "Error de autenticación", err)
 	}
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte(body.Password)) != nil {
+		fallosLogin.fallo(ip)
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Credenciales inválidas"})
 	}
 	token, err := generarToken(id, body.Email, nombre, rol)

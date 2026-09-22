@@ -10,6 +10,10 @@ Stack: **PostGIS** (Docker) + **backend Go/Fiber** + **frontend React/Vite**.
 ## 1. Base de datos (PostGIS)
 
 ```bash
+# La contraseña del contenedor sale del entorno; elige una y expórtala.
+# (En la primera ejecución queda fijada en el volumen de datos de PostGIS.)
+read -rs -p "DB_PASSWORD: " DB_PASSWORD && export DB_PASSWORD && echo
+
 # Levantar el contenedor
 docker compose -f 04-base-de-datos/docker-compose.yml up -d
 
@@ -19,13 +23,15 @@ docker exec -i postgis-eco-restauracion psql -U eco_admin -d restauracion_ecolog
 docker exec -i postgis-eco-restauracion psql -U eco_admin -d restauracion_ecologica < 04-base-de-datos/03_seed_proyecto.sql
 ```
 
-Credenciales del contenedor: `eco_admin` / `EcoRest2024!` / `restauracion_ecologica` en `:5432`.
+Credenciales del contenedor: usuario `eco_admin`, base `restauracion_ecologica`
+en `:5432`, y la contraseña que hayas definido en `DB_PASSWORD`. **La contraseña
+no se versiona**: va en el entorno o en un `.env` (ver [scripts/README.md](scripts/README.md)).
 
 ## 2. Backend (Go)
 
 ```bash
 cd 02-backend
-cp .env.example .env      # ajusta DB_PASSWORD=EcoRest2024! para el contenedor de arriba
+cp .env.example .env      # pon en DB_PASSWORD la misma contraseña del contenedor
 go build -o luruaco-api .
 ./luruaco-api             # http://localhost:8080
 ```

@@ -64,9 +64,15 @@ export PORT=8080
 export DB_HOST=localhost
 export DB_PORT=5432
 export DB_USER=eco_admin
-export DB_PASSWORD=EcoRest2024!
 export DB_NAME=restauracion_ecologica
+
+# La contraseña se teclea en el prompt: no se escribe en ningún archivo ni
+# queda en el historial de la shell.
+read -rs -p "DB_PASSWORD: " DB_PASSWORD && export DB_PASSWORD && echo
 ```
+
+> El backend no tiene contraseña por defecto: si `DB_PASSWORD` falta, falla al
+> arrancar. Alternativa: ponerla en `02-backend/.env` (ignorado por git).
 
 ## Frontend
 

@@ -18,7 +18,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // ============================================================
@@ -68,6 +68,15 @@ func main() {
 	app := fiber.New(fiber.Config{
 		AppName:   "Luruaco API - Restauración Ecológica",
 		BodyLimit: 50 * 1024 * 1024, // 50 MB para importación de archivos
+
+		// Detrás de Traefik y del nginx del frontend, la conexión siempre llega desde
+		// el contenedor de nginx: sin esto c.IP() es la misma para todos y los límites
+		// por IP (registro, login) se vuelven globales. Traefik descarta el
+		// X-Forwarded-For que mande el cliente, así que el primer valor es fiable.
+		ProxyHeader:             fiber.HeaderXForwardedFor,
+		EnableIPValidation:      true,
+		EnableTrustedProxyCheck: true,
+		TrustedProxies:          []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1", "::1"},
 	})
 
 	// CORS configurable por entorno. Por defecto "*" (cómodo en dev),
@@ -607,9 +616,17 @@ func getCapas(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"capas": out})
 }
 
-// getCapasGeoJSON: features de capas importadas (filtro opcional ?capa=).
+// getCapasGeoJSON: features de capas importadas. Filtros opcionales: ?capa= (una)
+// o ?capas=a,b,c (varias). El visor pide solo las que dibuja: las curvas de nivel
+// pesan 6,6 MB y ningún componente las muestra.
 func getCapasGeoJSON(c *fiber.Ctx) error {
 	capa := c.Query("capa", "")
+	lista := []string{}
+	for _, n := range strings.Split(c.Query("capas", ""), ",") {
+		if n = strings.TrimSpace(n); n != "" {
+			lista = append(lista, n)
+		}
+	}
 	// Las capas con ubicaciones sensibles —cámaras trampa, transectos de fauna—
 	// solo se entregan a quien puede editar; el rol de consulta no las recibe.
 	verSensibles := false
@@ -621,8 +638,9 @@ func getCapasGeoJSON(c *fiber.Ctx) error {
 		FROM eco_restauracion.capas_geograficas
 		WHERE ($1 = '' OR capa = $1)
 		  AND (NOT COALESCE(sensible, false) OR $2)
+		  AND (cardinality($3::text[]) = 0 OR capa = ANY($3))
 		ORDER BY capa, id`
-	rows, err := db.QueryContext(c.UserContext(), query, capa, verSensibles)
+	rows, err := db.QueryContext(c.UserContext(), query, capa, verSensibles, pq.Array(lista))
 	if err != nil {
 		return serverError(c, "Error al consultar capas", err)
 	}

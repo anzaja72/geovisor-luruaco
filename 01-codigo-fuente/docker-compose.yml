@@ -1,12 +1,15 @@
 version: '3.8'
 
+# Requiere DB_PASSWORD en el entorno o en un .env (ver scripts/README.md):
+#   docker compose --env-file .env -f <este-archivo> up -d
+
 services:
   postgis:
     image: postgis/postgis:16-3.4
     container_name: postgis-eco-restauracion
     environment:
       POSTGRES_USER: eco_admin
-      POSTGRES_PASSWORD: EcoRest2024!
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?definir DB_PASSWORD}
       POSTGRES_DB: restauracion_ecologica
     ports:
       - "5432:5432"
