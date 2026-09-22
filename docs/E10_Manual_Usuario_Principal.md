@@ -77,15 +77,31 @@ Debajo del mapa: densidad por parcela, riqueza por parcela y abundancia por espe
 
 ### 3.2 Vegetación Acuática
 
-Comparador **antes / después** con las ortofotos del dron por mes de limpieza, hectáreas
-removidas acumuladas y los polígonos de intervención sobre la laguna. Cada ortofoto se
-puede descargar como salida gráfica en PDF.
+El mapa abre sobre el borde de la ciénaga, con las ortofotos del dron posteriores a cada
+limpieza —enero, febrero, mayo, junio y julio— y los polígonos intervenidos. **La línea de
+tiempo lleva el mapa al área limpiada ese mes.** Arriba, las hectáreas removidas
+acumuladas (40,247 ha a julio de 2026) y su evolución mes a mes.
+
+Debajo, el comparador **antes / después** muestra lado a lado la ortofoto previa y la
+posterior a la limpieza. Cada una se puede descargar como salida gráfica en PDF.
 
 ### 3.3 Ficorremediación
 
-Estructura de las variables de calidad de agua, sedimentos y biota. **Este componente
-está a la espera de los datos de campo**: la plataforma muestra las variables previstas
-y las marca como sin dato mientras no se carguen.
+Tablero de calidad del agua de los cinco puntos de muestreo, con el **Índice de Calidad
+del Agua (ICA) del IDEAM**:
+
+- **Escala de calificación** en cinco categorías, de *pésima* a *óptima*, siempre visible.
+- **Medidor de 0 a 100** con el valor del índice para el punto y la campaña elegidos.
+- **Ficha del punto**: cada variable con su valor y su categoría en color. Las flechas
+  pasan de un punto a otro.
+- **Comportamiento histórico** de cada variable a lo largo de las campañas.
+- **Resultados por matriz**: agua, sedimentos —calificados con las guías CCME para
+  sedimento de agua dulce— y biota, presentada como riqueza y abundancia por grupo.
+- Ortofoto del **laboratorio de microalgas** con su área de interés.
+
+> **Mientras el laboratorio no entregue resultados, lo que se ve son datos de
+> demostración**, y la pantalla lo advierte en un recuadro. Sirven para conocer el
+> tablero; no son mediciones y no deben citarse como tales.
 
 ### 3.4 Monitoreo de Fauna
 
@@ -93,18 +109,23 @@ Abre con los **especímenes 3D** de la línea base: elija un grupo en la columna
 (aves, mamíferos, anfibios, reptiles) y el modelo aparece en el centro.
 
 - Arrastre para girarlo, use la rueda para acercar.
-- Los puntos de colores son especies emblemáticas: púlselos para ver su ficha.
 - Los botones de la esquina pausan el giro y reencuadran.
+- En la ficha del grupo, los botones de colores son sus especies emblemáticas; pase el
+  cursor por encima para leer su descripción.
 
 A la derecha, la ficha del grupo: riqueza, registros, coberturas donde aparece y rol
-ecológico. Debajo, el mapa de puntos con su leyenda, el resumen de abundancias, la curva
-de riqueza de especies y el listado de registros.
+ecológico. Debajo, el mapa de puntos de monitoreo —cada uno rotulado con su grupo y su
+número de punto de muestreo— con su leyenda, el resumen de abundancias, la curva de
+riqueza de especies y los registros, agrupados por grupo y filtrables por columna.
+
+Los 119 registros actuales son los **preliminares** del anexo de fauna de línea base.
 
 ### 3.5 Gobernanza Ambiental
 
-Eventos realizados, participantes y su distribución por tipo de actividad y por
-ubicación. Al final, el registro fotográfico: **arrastre para girar el carrusel y pulse
-una foto para ampliarla**; cada una indica a qué actividad corresponde.
+Eventos realizados, participantes y su distribución por tipo de actividad. Al final, el
+registro fotográfico: **arrastre para girar el carrusel y pulse una foto para ampliarla**;
+cada una indica a qué actividad corresponde. Con la foto ampliada, las flechas ‹ › —o las
+teclas ← →— pasan a la siguiente sin cerrarla, y Esc la cierra.
 
 ### 3.6 Dashboard Transversal
 
@@ -188,6 +209,8 @@ la plataforma y su navegador.
 | Síntoma | Qué hacer |
 |---|---|
 | «Token inválido o expirado» | Vuelva a iniciar sesión: la sesión dura 24 horas. |
+| «Demasiados intentos fallidos» | Tras 10 intentos erróneos, el acceso desde su red se bloquea 15 minutos. Espere, o pida al administrador que le restablezca la contraseña. |
+| «Cuenta desactivada o inexistente» | El administrador desactivó su cuenta. Consulte con él. |
 | No aparece «Registrar Monitoreo», «Importar datos» ni «Descarga de Datos» | Su rol es de consulta; solicite el cambio al administrador. |
 | Faltan puntos de fauna en el mapa | Las ubicaciones de cámaras trampa y transectos no se entregan al rol de consulta. |
 | Una capa no se ve en el mapa | Revise el control de capas, arriba a la derecha. |

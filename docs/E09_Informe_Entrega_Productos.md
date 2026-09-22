@@ -5,7 +5,7 @@
 **Contratista:** MC Consultorías & Capacitación S.A.S. · NIT 900.614.837-8
 **Dirección del proyecto:** Sonia Natalia Vásquez Díaz
 **Suscripción:** 26 de febrero de 2026 · **Plazo:** 22 meses (2 de marzo de 2026 – 2 de enero de 2028)
-**Fecha del informe:** 7 de septiembre de 2026
+**Fecha del informe:** 22 de septiembre de 2026
 **Objeto de este informe:** sustentar el hito de pago de la cláusula tercera, numeral 3.3 — entrega final de los productos y entregables pactados
 
 ---
@@ -21,9 +21,15 @@ De las nueve obligaciones técnicas de la cláusula quinta, **ocho están cumpli
 soportadas documentalmente**. La restante —los cuatro talleres de capacitación— tiene su
 plan elaborado y depende de programación con la Dirección del Proyecto.
 
-Se dejan expresamente señaladas dos situaciones que **no dependen del contratista**: la
-información de campo que aún no ha sido entregada por los equipos técnicos, y la
-consecuente ausencia de datos en el componente de ficorremediación.
+Las observaciones de septiembre del equipo técnico —las 18 de Valeria Esquea y las de
+Darío, Osman Aragón y Yurani— están incorporadas en su mayoría; las que siguen abiertas se detallan en
+el numeral 5, separando las que dependen de información que aún no se ha entregado de las
+que están en desarrollo.
+
+Antes de este informe se hizo una revisión completa del ambiente productivo. Se
+encontraron y corrigieron once defectos, entre ellos uno de protección de datos: las
+ubicaciones de las cámaras trampa quedaban visibles para el rol de consulta tras una
+reimportación. El detalle está en el [informe de pruebas](E06_Informe_Pruebas_Tecnicas.md), numeral 9.
 
 ---
 
@@ -43,15 +49,17 @@ consecuente ausencia de datos en el componente de ficorremediación.
 
 | Conjunto | Volumen |
 |---|---|
-| Esquema `eco_restauracion` | 25 tablas y 10 vistas |
+| Esquema `eco_restauracion` | 26 tablas y 10 vistas |
 | Coberturas vegetales (Corine) | 24 polígonos · 48,01 ha analizadas |
 | Parcelas de monitoreo | 15 parcelas permanentes, más 5 puntos de ficorremediación |
 | Técnicas de restauración aplicadas | 27 polígonos |
-| Capas geográficas importadas | 1.130 entidades (aislamiento, limpieza, curvas de nivel) |
+| Capas geográficas importadas | 1.135 entidades (aislamiento, limpieza, curvas de nivel, puntos y transectos de fauna) |
 | Censo forestal (línea base) | 75 individuos, 12 especies, 136 fustes |
-| Observaciones de fauna | 119 registros |
+| Observaciones de fauna | 119 registros preliminares del anexo de línea base |
+| Individuos sembrados | 9.605, según el reporte del equipo técnico |
+| Vegetación acuática removida | 40,247 ha acumuladas a julio de 2026, en 5 polígonos de limpieza |
 | Gobernanza ambiental | 18 eventos · 517 participantes · 25 fotografías referenciadas |
-| Ortofoto del dron | Teselas publicadas en los niveles de zum 14 a 18 |
+| Ortofotos del dron | Predio en teselas (zum 14 a 18); limpiezas de enero a julio; laboratorio de microalgas |
 
 ---
 
@@ -91,12 +99,20 @@ prototipos en `03-frontend/public/mockup/`
 
 - Backend en Go con la lógica de negocio y los cálculos de indicadores.
 - Autenticación con token, contraseñas cifradas y control de acceso por rol.
-- **API documentada**: 40 operaciones en OpenAPI 3.0, validadas sin errores.
+- **API documentada**: 44 operaciones en OpenAPI 3.0, validadas sin errores.
 - Frontend con interfaces de consulta y administración.
 - Geovisor con capas conmutables, ortofoto propia, cartografía IGAC, consulta por
   elemento, medición y comparación temporal.
 - Módulo de reportes en CSV, Excel y PDF; panel de indicadores por componente y tablero
   transversal.
+- Cada componente abre con su propio mapa base, su ortofoto y su área de interés.
+- Ficorremediación con tablero de calidad del agua: **ICA del IDEAM** (seis variables,
+  hoja metodológica GCI-OE-F002 v03) y guías **CCME** para sedimento de agua dulce. Mientras
+  el laboratorio no entregue resultados, el tablero trabaja con datos de demostración
+  rotulados como tales (ver numeral 5).
+- Seguridad de acceso: bloqueo temporal tras intentos fallidos de inicio de sesión, efecto
+  inmediato al desactivar una cuenta o cambiarle el rol, y protección de las capas
+  sensibles aplicada por la propia geodatabase.
 - Integración verificada entre frontend, backend y geodatabase: lo que se registra por los
   formularios se consulta desde las vistas.
 
@@ -106,7 +122,8 @@ prototipos en `03-frontend/public/mockup/`
 ### 5.5 · Pruebas, implementación y puesta en operación
 
 52 casos ejecutados sobre el ambiente productivo —servicios, control de acceso,
-funcionalidad e infraestructura—, todos conformes. Plataforma publicada y URL operativa.
+funcionalidad e infraestructura—, todos conformes. En la revisión del 22 de septiembre se
+encontraron once defectos, corregidos y verificados. Plataforma publicada y URL operativa.
 
 **Soporte:** [E06 · Informe de pruebas técnicas](E06_Informe_Pruebas_Tecnicas.md)
 
@@ -150,7 +167,7 @@ fotografías de referencia constan en `public/fauna/CREDITS.md`.
 
 | # | Producto | Formato |
 |---|---|---|
-| 1 | Geodatabase en operación (25 tablas, 10 vistas) | PostgreSQL 16 + PostGIS 3.4 |
+| 1 | Geodatabase en operación (26 tablas, 10 vistas) | PostgreSQL 16 + PostGIS 3.4 |
 | 2 | Plataforma web publicada | URL operativa con TLS |
 | 3 | Código fuente completo | Repositorio Git |
 | 4 | Diccionario de datos | E01 |
@@ -168,44 +185,70 @@ fotografías de referencia constan en `public/fauna/CREDITS.md`.
 
 ---
 
-## 5. Situaciones que constan y no dependen del contratista
+## 5. Situaciones que constan
 
-**5.1 · Información de campo pendiente de entrega.** Las siguientes tablas están
-construidas, operativas y accesibles por la API, pero **sin registros**, porque la
-información no ha sido entregada:
+### 5.1 · Dependen de información que no ha sido entregada
 
-| Conjunto | Estado |
-|---|---|
-| `monitoreos` | Sin registros |
-| `fotografias` (registro fotográfico por parcela) | Sin registros |
-| Sitios de validación (metas y cumplimiento) | Sin registros |
-| Ficorremediación: calidad de agua, sedimentos y biota | Variables definidas, sin mediciones |
-| Campañas Monitoreo 1 a 4 del censo forestal | Filas previstas, sin mediciones de campo |
+Las siguientes tablas están construidas, operativas y accesibles por la API, pero **sin
+registros**, porque la información no ha sido entregada:
+
+| Conjunto | Estado | Responsable de la entrega |
+|---|---|---|
+| `monitoreos` | Sin registros | Equipos de campo |
+| `fotografias` (registro fotográfico por parcela) | Sin registros | Equipos de campo |
+| Sitios de validación (metas y cumplimiento) | Sin registros | Dirección del Proyecto |
+| Ficorremediación: calidad de agua, sedimentos y biota | Sin mediciones; el laboratorio no ha entregado el muestreo 1. Falta además la **conductividad**, una de las seis variables del ICA | Darío · laboratorio |
+| Campañas Monitoreo 1 a 4 del censo forestal | Filas previstas, sin mediciones de campo | Yurani |
 
 La plataforma las representa como «sin dato» y no las sustituye por ceros, para no inducir
-a error en la lectura de los indicadores. El detalle y el responsable de cada entrega
-figuran en [INFORMACION-PENDIENTE-POR-COMPONENTE.md](INFORMACION-PENDIENTE-POR-COMPONENTE.md).
+a error en la lectura de los indicadores.
 
-**5.2 · Supuesto de cálculo por confirmar.** Los indicadores de densidad y área basal se
-calculan asumiendo una parcela de 0,1 ha. El valor real debe confirmarlo el equipo técnico;
-al hacerlo, los indicadores se recalculan sin cambios en la plataforma.
+Además, quedan pendientes de decisión o de archivo cuatro observaciones de septiembre:
 
-**5.3 · Talleres de capacitación.** Pendientes de programación con la Dirección del
-Proyecto, según lo indicado en 5.7.
+| Observación | Qué falta | De quién |
+|---|---|---|
+| Reemplazar el censo de línea base por el Excel de campo (193 individuos, 22 especies) | Confirmar cuál hoja es la válida: «Formato» (193 registros) o «Sin repetir» (82) | Yurani |
+| Puntos de monitoreo de mamíferos | El archivo KML, y por qué faltan las cámaras C1 y C6 | Osman |
+| Línea de tiempo de fauna | Confirmar si los monitoreos 2 y 3 son de 2027 | Osman |
+| Ortofoto actualizada del predio | Entrega en GeoTIFF: la ECW no se puede procesar con herramientas libres | Brandon |
+
+El detalle de cada entrega figura en
+[INFORMACION-PENDIENTE-POR-COMPONENTE.md](INFORMACION-PENDIENTE-POR-COMPONENTE.md).
+
+### 5.2 · En desarrollo
+
+| Observación | Estado |
+|---|---|
+| Tablero de ficorremediación conectado a la geodatabase | Construido sobre datos de demostración, rotulados en pantalla. Pasa a leer la geodatabase cuando haya mediciones reales; requiere guardar campaña, punto y límite de detección por medición |
+| Formulario de fauna: punto de muestreo en lugar de cobertura, y fotografía JPG | Pendiente |
+| Importación de shapefile (.zip), GeoTIFF y CSV del laboratorio desde la interfaz | Pendiente. Hoy la interfaz acepta GeoJSON y CSV de puntos; shapefile y GeoTIFF se cargan en el servidor con los scripts documentados |
+
+### 5.3 · Supuesto de cálculo por confirmar
+
+Los indicadores de densidad y área basal se calculan asumiendo una parcela de 0,1 ha. El
+valor real debe confirmarlo el equipo técnico; al hacerlo, los indicadores se recalculan
+sin cambios en la plataforma.
+
+### 5.4 · Talleres de capacitación
+
+Pendientes de programación con la Dirección del Proyecto, según lo indicado en 5.7.
 
 ---
 
 ## 6. Recomendaciones para la operación
 
-1. **Copias de seguridad.** El despliegue en operación no incluye un servicio de respaldo
-   automático. El procedimiento manual y la tarea programada están documentados en el
-   manual del administrador; se recomienda activarla y probar la restauración cada trimestre.
+1. **Copias de seguridad.** El servidor genera una copia completa cada noche y conserva
+   las de los últimos 14 días; la del 22 de septiembre se verificó legible. Esas copias
+   están en el mismo disco que la base: se recomienda sacar una copia fuera del servidor y
+   probar la restauración cada trimestre.
 2. **Vigilancia del certificado.** La renovación es automática; conviene verificarla antes
    de cada vencimiento.
 3. **Monitoreo de disponibilidad.** Se sugiere una comprobación externa periódica del
    endpoint de salud, con aviso por correo ante caída.
 4. **Cuentas.** Revisar periódicamente las cuentas activas y sus roles desde la pantalla de
    administración.
+5. **Cortafuegos.** El servidor no tiene cortafuegos activo; conviene limitar la entrada a
+   los puertos 80, 443 y 22.
 
 ---
 

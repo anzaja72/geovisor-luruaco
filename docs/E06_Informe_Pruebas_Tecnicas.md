@@ -3,7 +3,7 @@
 **Plataforma:** Geodatabase y geovisor de restauración ecológica — Ciénaga de Luruaco
 **Contrato:** UTL-001 de 2026 · Unión Temporal Restauración Luruaco
 **Entregable:** cláusula 5.5, literal d) — *«Entregar informe de pruebas técnicas»*
-**Fecha de ejecución:** 6 de septiembre de 2026
+**Fecha de ejecución:** 6 de septiembre de 2026 · revisión de producción el 22 de septiembre
 **Ejecutado por:** MC Consultorías & Capacitación S.A.S.
 
 ---
@@ -137,7 +137,7 @@ administración se aplica ruta por ruta.
 | F-03 | Restauración: indicadores de riqueza, densidad, área basal e individuos sembrados | Conforme |
 | F-04 | Restauración: línea de tiempo por campaña de monitoreo | Conforme |
 | F-05 | Vegetación acuática | Conforme |
-| F-06 | Ficorremediación | Conforme |
+| F-06 | Ficorremediación | Conforme — con datos de demostración rotulados en pantalla hasta que el laboratorio entregue resultados |
 | F-07 | Fauna: visor 3D de especímenes, 4 grupos | Conforme |
 | F-08 | Fauna: mapa de puntos, leyenda y resumen de abundancias | Conforme |
 | F-09 | Gobernanza: registro fotográfico, 25 fotos con su referencia | Conforme |
@@ -212,7 +212,8 @@ verificarla antes del 14 de noviembre de 2026.
 
 La plataforma se encuentra **publicada en ambiente productivo y operativa**, con
 certificado válido, control de acceso efectivo y todos sus componentes funcionales. Los
-52 casos ejecutados resultaron conformes. Las salvedades registradas corresponden a
+52 casos ejecutados resultaron conformes, y los once defectos encontrados en la revisión
+del 22 de septiembre quedaron corregidos (numeral 9). Las salvedades registradas corresponden a
 información de campo pendiente de entrega, no a defectos del desarrollo.
 
 Se da por cumplido lo previsto en la cláusula 5.5 del contrato: pruebas funcionales y
@@ -221,6 +222,47 @@ productivo (c), el presente informe (d), URL operativa (e) y funcionamiento inte
 sistema (f).
 
 ---
+
+## 9. Revisión de producción · 22 de septiembre de 2026
+
+Revisión completa previa a la entrega. Sobre el ambiente productivo solo se hicieron
+lecturas; las correcciones se probaron en una copia con el mismo esquema de producción,
+que se eliminó al terminar.
+
+### 9.1 Comprobaciones sobre producción
+
+| Caso | Comprobación | Resultado |
+|---|---|---|
+| R-01 | 12 rutas protegidas sin token: lectura, escritura, borrado, usuarios, importación, reportes y copiloto | 401 en las 12 |
+| R-02 | Token falsificado con `alg=none` y rol de administrador | 401 |
+| R-03 | Token con firma inválida | 401 |
+| R-04 | Registro público con correo inválido y con contraseña corta | 400 y 400 |
+| R-05 | Certificado TLS | Let's Encrypt, vigente hasta el 14-nov-2026 |
+| R-06 | Redirección HTTP → HTTPS | 301 |
+| R-07 | Carga: 1.200 peticiones, 40 simultáneas | 1.200 respondidas, ninguna con error |
+| R-08 | Respaldo de la noche anterior | Íntegro: 25 tablas con datos y 10 vistas; sin errores en 14 días |
+| R-09 | Consumo del servidor en 30 días | CPU media 1,2 % (máx. 4,8 %) · RAM máx. 1,5 GB de 8 · disco 22 GB de 100 · sin reinicios |
+| R-10 | Código publicado en el navegador | Sin claves de API ni coordenadas de fauna |
+
+### 9.2 Defectos encontrados y su corrección
+
+| # | Defecto | Corrección | Verificación |
+|---|---|---|---|
+| D-01 | Las cámaras trampa y los transectos de herpetos se reimportaron el 18-sep sin la marca de sensibles: 19 ubicaciones visibles para el rol de consulta, que cualquiera puede crear | Migración 18: catálogo `capas_sensibles` y disparador que marca toda fila de esas capas | 0 → 19 de 19 marcadas; importación nueva marcada; no se pueden desmarcar a mano; capa no catalogada intacta; re-ejecución sin duplicados. Una cuenta de consulta recién creada recibe 8 entidades y ninguna de fauna |
+| D-02 | El límite de 5 registros por hora e IP era global: detrás del proxy, la API veía siempre la misma IP (1.010 peticiones en 72 h desde una sola dirección) | La API toma la IP del visitante de `X-Forwarded-For`, que Traefik sanea | 6.ª alta desde una IP → 429; otra IP → admitida |
+| D-03 | Inicio de sesión sin límite de intentos | 10 fallos por IP en 15 minutos → bloqueo temporal | 11.º intento → 429; otra IP entra con normalidad |
+| D-04 | Desactivar una cuenta o cambiarle el rol no surtía efecto hasta que vencía su token (24 h) | La cuenta se verifica en cada petición | Con el mismo token: al pasar a consulta, reportes → 403; al desactivarla → 401 |
+| D-05 | Cada sesión descargaba 6,7 MB de capas; 6,6 MB eran curvas de nivel que ningún componente dibuja | El visor pide solo las capas que muestra | 6.736 KB → 32 KB por sesión |
+| D-06 | Sin cabeceras de seguridad HTTP | `nosniff`, `Referrer-Policy`, HSTS y `frame-ancestors` limitado al sitio de la C.R.A. | Configuración validada con `nginx -t` |
+| D-07 | Re-ejecutar la migración 17 borraba los puntos de fauna cargados después | Solo siembra si las capas están vacías | 20 entidades antes y después de re-ejecutarla |
+| D-08 | El script de respaldo del repositorio apuntaba a un contenedor inexistente, y el manual pedía crear un segundo respaldo y restaurar con un comando incompatible con el formato real | Script corregido, respaldo diario versionado y manual reescrito | Genera un respaldo restaurable; si falla, conserva los anteriores |
+| D-09 | Vegetación acuática y el tablero transversal mostraban la serie antigua (marzo a mayo) junto a la nueva (enero a julio) | El texto se deriva del mismo dato que la gráfica | Revisión en pantalla |
+| D-10 | La tarjeta de fauna del tablero transversal decía «sin dato» y «En definición con Darío» | Lee los registros de la geodatabase | Revisión en pantalla |
+| D-11 | La contraseña de la base de **desarrollo** figuraba en siete archivos del repositorio público. La de producción es distinta y no estuvo expuesta | Los scripts y los compose la leen del entorno | Ningún archivo del repositorio la contiene |
+
+### 9.3 Verificación posterior al despliegue
+
+_Se completa al publicar las correcciones en producción._
 
 ### Anexo · Reproducción de las pruebas
 

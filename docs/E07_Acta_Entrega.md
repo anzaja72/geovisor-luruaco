@@ -32,7 +32,7 @@ numeral 3.3.
 
 | # | Producto | Descripción | Recibido |
 |---|---|---|:--:|
-| 1 | Geodatabase | PostgreSQL 16 + PostGIS 3.4, esquema `eco_restauracion`: 25 tablas y 10 vistas, en EPSG:4326 | ☐ |
+| 1 | Geodatabase | PostgreSQL 16 + PostGIS 3.4, esquema `eco_restauracion`: 26 tablas y 10 vistas, en EPSG:4326 | ☐ |
 | 2 | Plataforma web publicada | https://geodatabase.mcconsultorias.com.co, con certificado TLS vigente | ☐ |
 | 3 | Geovisor por componentes | Seis componentes con sus capas, indicadores y trazabilidad temporal | ☐ |
 | 4 | Módulo de reportes | Cinco reportes en CSV, Excel y PDF | ☐ |
@@ -104,8 +104,13 @@ programación que defina la Dirección del Proyecto.
 **construidas y operativas pero sin registros**, por no haberse recibido la información de
 campo correspondiente: `monitoreos`, `fotografias`, sitios de validación y las tres tablas
 del componente de ficorremediación, así como las campañas Monitoreo 1 a 4 del censo
-forestal. Esta situación no es imputable al CONTRATISTA y se detalla en el numeral 5 del
-informe de entrega (E09).
+forestal. Mientras el laboratorio no entregue resultados, el tablero de ficorremediación
+opera con datos de demostración rotulados en pantalla. Esta situación no es imputable al
+CONTRATISTA y se detalla en el numeral 5.1 del informe de entrega (E09).
+
+**5.3.1** De las observaciones de septiembre del equipo técnico, quedan abiertas las que
+constan en el numeral 5 del informe de entrega (E09): cuatro a la espera de información o
+decisión del equipo técnico (5.1) y tres en desarrollo (5.2).
 
 **5.4** El CONTRATISTA continúa obligado al soporte y mantenimiento previsto en la
 **cláusula 5.6**, durante la ejecución del contrato y un año más, con el acuerdo de nivel

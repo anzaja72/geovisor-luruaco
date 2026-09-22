@@ -16,7 +16,9 @@ info:
 
     ## Autenticación
 
-    Todos los recursos bajo `/api` exigen un token JWT, salvo `POST /api/auth/login`.
+    Todos los recursos bajo `/api` exigen un token JWT, salvo `POST /api/auth/login` y
+    `POST /api/auth/registro`. En cada petición el servidor comprueba además que la cuenta
+    siga activa y toma su rol de la base, no del token.
     El token se obtiene en el inicio de sesión y se envía en cada petición:
 
         Authorization: Bearer <token>
@@ -126,8 +128,57 @@ paths:
                   token: { type: string, description: JWT HS256 }
                   usuario: { $ref: "#/components/schemas/Usuario" }
         "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "429":
+          description: 10 intentos fallidos desde la misma IP en 15 minutos; bloqueo temporal de esa IP
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
         "401":
           description: Credenciales inválidas o cuenta inactiva
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/auth/registro:
+    post:
+      tags: [Autenticación]
+      operationId: postAuthRegistro
+      summary: Crear una cuenta de consulta (público)
+      description: |
+        Alta pública desde la página de inicio. **El rol lo fija el servidor**: siempre
+        `consulta`, aunque la petición pida otro. Deja la sesión iniciada.
+
+        Límite: 5 altas por hora y dirección IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, email, password]
+              properties:
+                nombre:   { type: string, example: Ana Pérez }
+                email:    { type: string, format: email }
+                password: { type: string, format: password, minLength: 8 }
+      responses:
+        "201":
+          description: Cuenta creada y sesión iniciada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  usuario: { $ref: "#/components/schemas/Usuario" }
+        "400": { $ref: "#/components/responses/SolicitudInvalida" }
+        "409":
+          description: Ya existe una cuenta con ese correo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Se superó el límite de altas por hora para esa IP
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -319,6 +370,20 @@ paths:
         Devuelve las capas cargadas por importación (aislamiento interno, polígonos
         de limpieza de maleza acuática, curvas de nivel y demás). La propiedad
         `capa` identifica a cuál pertenece cada feature.
+
+        Las capas del catálogo `capas_sensibles` (cámaras trampa, transectos de fauna)
+        solo se entregan a los roles `tecnico` y `administrador`.
+      parameters:
+        - name: capa
+          in: query
+          required: false
+          description: Devuelve solo esta capa.
+          schema: { type: string, example: maleza_acuatica }
+        - name: capas
+          in: query
+          required: false
+          description: Lista de capas separadas por coma. El visor la usa para no descargar las curvas de nivel, que no dibuja.
+          schema: { type: string, example: "aislamiento_interno,maleza_acuatica,fauna_aves_camaras,herpetos" }
       responses:
         "200": { $ref: "#/components/responses/ColeccionGeoJSON" }
         "401": { $ref: "#/components/responses/NoAutenticado" }
@@ -389,6 +454,106 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/FaunaObservacion" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/fauna/grupos:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getFaunaGrupos
+      summary: Abundancia y riqueza por grupo taxonómico
+      responses:
+        "200":
+          description: Grupos con su abundancia y riqueza por campaña
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grupos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        grupo:      { type: string, example: Aves }
+                        campana:    { type: string, example: Línea base }
+                        abundancia: { type: integer }
+                        riqueza:    { type: integer }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/gobernanza/actividades:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getGobernanzaActividades
+      summary: Actividades de gobernanza ambiental
+      responses:
+        "200":
+          description: Actividades agrupadas por tipo, con sus totales
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actividades:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        actividad:     { type: string }
+                        cantidad:      { type: integer }
+                        participantes: { type: integer }
+                        ubicacion:     { type: string }
+                  eventos:       { type: integer, description: suma de las cantidades }
+                  participantes: { type: integer }
+                  tipos:         { type: integer, description: número de tipos de actividad }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/maleza/limpiezas:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getMalezaLimpiezas
+      summary: Jornadas de limpieza de vegetación acuática
+      description: |
+        `acumulado_ha` es el mayor valor reportado: `area_ha` se registra como acumulado
+        por campaña, no como incremento.
+      responses:
+        "200":
+          description: Jornadas en orden cronológico
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jornadas:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fecha:   { type: string, format: date }
+                        area_ha: { type: number, format: double }
+                  acumulado_ha: { type: number, format: double, example: 40.247 }
+                  borde_km:     { type: number, format: double }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/ficor/mediciones:
+    get:
+      tags: [Componentes técnicos]
+      operationId: getFicorMediciones
+      summary: Mediciones de ficorremediación
+      description: |
+        Devuelve las tres colecciones aunque estén vacías, para que la vista distinga
+        «sin datos aún» de un error de consulta.
+      responses:
+        "200":
+          description: Calidad de agua, de sedimentos y biota
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agua:       { type: array, items: { type: object } }
+                  sedimentos: { type: array, items: { type: object } }
+                  biota:      { type: array, items: { type: object } }
+                  sin_datos:  { type: boolean, description: true si las tres están vacías }
         "401": { $ref: "#/components/responses/NoAutenticado" }
 
   # ------------------------------------------------------------- Indicadores
@@ -956,6 +1121,8 @@ components:
               value: { error: Token requerido }
             vencido:
               value: { error: Token inválido o expirado }
+            desactivada:
+              value: { error: Cuenta desactivada o inexistente }
     SinPermiso:
       description: El rol del usuario no autoriza la operación
       content:

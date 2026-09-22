@@ -14,11 +14,11 @@ que la sustenta.
 
 | Documento | Contenido | Cláusula |
 |---|---|---|
-| [E01 · Diccionario de datos](E01_Diccionario_Datos_Principal.md) | Las 25 tablas y 10 vistas del esquema `eco_restauracion`, con sus campos, relaciones y sistemas de referencia | 5.1 a–d |
+| [E01 · Diccionario de datos](E01_Diccionario_Datos_Principal.md) | Las 26 tablas y 10 vistas del esquema `eco_restauracion`, con sus campos, relaciones y sistemas de referencia | 5.1 a–d |
 | [E02 · Requerimientos, arquitectura y roles](E02_Requerimientos_Arquitectura_Roles.md) | Requerimientos funcionales y no funcionales, diagrama de arquitectura, flujos y esquema de permisos | 5.2 a–e |
 | [E03 · Metadatos ISO 19115](E03_Metadatos_ISO19115.md) | Catálogo de metadatos del conjunto y de cada capa: linaje, extensión, exactitud y restricciones | 5.1 f |
 | [E04 · Lineamientos gráficos](E04_Lineamientos_Graficos.md) | Identidad institucional aplicada, componentes de interfaz, diseño adaptable y accesibilidad | 5.3 a–d |
-| [E05 · Especificación de la API](E05_API_OpenAPI.yaml) | Las 40 operaciones de la API en OpenAPI 3.0, con seguridad, roles y esquemas | 5.4 c |
+| [E05 · Especificación de la API](E05_API_OpenAPI.yaml) | Las 44 operaciones de la API en OpenAPI 3.0, con seguridad, roles y esquemas | 5.4 c |
 | [E06 · Informe de pruebas técnicas](E06_Informe_Pruebas_Tecnicas.md) | 52 casos ejecutados en producción: servicios, control de acceso, interfaz y entorno | 5.5 d |
 | [E07 · Acta de entrega](E07_Acta_Entrega.md) | Relación de productos entregados, verificación sugerida, constancias y firmas | 5.8 |
 | [E08 · Registro de incidencias](E08_Registro_Incidencias.md) | Acuerdo de nivel de servicio, clasificación, procedimiento y registro | 5.6 a–d |
@@ -63,13 +63,14 @@ que la sustenta.
 
 1. **Información de campo pendiente.** Las tablas `monitoreos`, `fotografias` y de
    validación están construidas y operativas, pero sin registros; el componente de
-   ficorremediación carece de mediciones. La plataforma las representa como «sin dato».
+   ficorremediación carece de mediciones y su tablero del ICA muestra datos de
+   demostración, rotulados como tales. La plataforma las representa como «sin dato».
    No es una obligación pendiente del contratista: depende de la entrega de esa
    información por los equipos técnicos del proyecto.
 
-2. **Copias de seguridad.** El despliegue en operación no incluye un servicio de respaldo
-   automático; el procedimiento manual y la tarea programada están en el manual del
-   administrador.
+2. **Copias de seguridad.** El servidor genera una copia completa cada noche y conserva
+   14 días. Esas copias están en el mismo disco que la base; se recomienda sacar una copia
+   fuera del servidor (manual del administrador, numeral 7).
 
 3. **Copiloto del geovisor.** Es un desarrollo adicional que no figura en la cláusula
    quinta. Se documenta con el resto de la plataforma, dejando constancia de que su

@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Modelo de datos — esquema eco_restauracion",
-    "subtitle": "PostgreSQL 16 + PostGIS 3.4 · EPSG:4326 · 25 tablas y 10 vistas",
+    "subtitle": "PostgreSQL 16 + PostGIS 3.4 · EPSG:4326 · 26 tablas y 10 vistas",
     "output": "modelo-datos.html",
     "quality_profile": "showcase",
     "views": [

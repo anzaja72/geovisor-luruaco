@@ -73,7 +73,7 @@
       "id": "postgis",
       "type": "database",
       "label": "PostGIS",
-      "sublabel": "25 tablas",
+      "sublabel": "26 tablas",
       "stage": 2,
       "row": 0,
       "width": 140,

@@ -1,8 +1,8 @@
 # 📚 Diccionario de Datos — Geodatabase `eco_restauracion`
 
 **Motor:** PostgreSQL 16 + PostGIS 3.4 · **SRID:** 4326 (WGS84) · **Esquema:** `eco_restauracion`
-Scripts fuente (orden de aplicación): `schema-completo.sql` → migraciones `02…15` de `04-base-de-datos/`.
-Actualizado a la migración 15.
+Scripts fuente (orden de aplicación): `schema-completo.sql` → migraciones `02…18` de `04-base-de-datos/`.
+Actualizado a la migración 18: 26 tablas y 10 vistas.
 
 ## Tablas
 
@@ -63,16 +63,26 @@ formato · tamano_bytes · drive_id · drive_url · ruta_local · srid_origen ·
 
 ### capas_geograficas (mig. 04) — capas importadas (GeoJSON/CSV/Shapefile)
 id PK · **capa** (nombre lógico) · nombre · propiedades JSONB · origen ·
-**geom Geometry(4326) GIST** · created_at. *Contiene: curvas_nivel (1106 líneas).*
+**geom Geometry(4326) GIST** · created_at · **sensible** BOOLEAN (mig. 17): la fila no se
+entrega al rol de consulta. *Contiene: curvas_nivel (1.106 líneas), aislamiento interno,
+limpieza de maleza, puntos de aves y cámaras trampa, transectos de herpetos.*
+
+### capas_sensibles (mig. 18) — catálogo de capas reservadas
+**capa** PK · motivo · created_at. Cada capa listada aquí es sensible en su totalidad: el
+disparador `trg_capa_sensible` marca `sensible = TRUE` en toda fila de `capas_geograficas`
+de esa capa, al insertarla o actualizarla, venga de donde venga. Contiene
+`fauna_aves_camaras` y `herpetos`.
 
 ### usuarios (mig. 06)
 id PK · nombre · **email UNIQUE** · password_hash (bcrypt) ·
-**rol** (administrador · tecnico · consulta) · activo · creado_en · ultimo_acceso.
+**rol** (administrador · tecnico · consulta) · activo · creado_en · ultimo_acceso ·
+**origen** (administrador · registro_publico, mig. 16): quién creó la cuenta. Las del
+registro público siempre nacen con rol `consulta`.
 
 ## Tablas por componente técnico
 
 Las tablas anteriores forman el núcleo espacial de la geodatabase. Las siguientes
-sostienen cada componente del geovisor y se incorporaron en las migraciones 07 a 15.
+sostienen cada componente del geovisor y se incorporaron en las migraciones 07 a 18.
 
 ### Restauración ecológica
 

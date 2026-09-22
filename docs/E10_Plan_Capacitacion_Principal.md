@@ -29,7 +29,7 @@ creada previamente con el rol que corresponda.
 
 *Técnicos y administrador*
 
-- Qué guarda la plataforma: las 25 tablas del esquema `eco_restauracion` agrupadas por
+- Qué guarda la plataforma: las 26 tablas del esquema `eco_restauracion` agrupadas por
   componente, y las 10 vistas de cálculo.
 - Sistemas de referencia: por qué todo se almacena en EPSG:4326 y qué pasa con los datos
   del dron, que llegan en MAGNA-SIRGAS.

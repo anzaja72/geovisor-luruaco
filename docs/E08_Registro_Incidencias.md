@@ -11,7 +11,7 @@
 
 | Concepto | Compromiso |
 |---|---|
-| Canal | Correo electrónico, desde el módulo **Soporte** de la plataforma |
+| Canal | Correo electrónico a **soporte@luruacorenace.online**, desde el módulo **Soporte** de la plataforma |
 | Acuse y primera respuesta | **Dentro de las 4 horas siguientes al envío** del mensaje |
 | Alcance | Corrección de errores atribuibles al desarrollo y ajustes menores derivados del uso normal |
 | Fuera de alcance | Nuevas funcionalidades, cambios de alcance y carga de información que no ha sido entregada |

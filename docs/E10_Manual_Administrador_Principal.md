@@ -66,10 +66,13 @@ Las migraciones están en `04-base-de-datos/`, numeradas por orden de aplicació
 aplican contra el contenedor de PostGIS:
 
 ```bash
-cd /opt/geovisor && docker exec -i geodb-postgis psql -U eco_admin -d restauracion_ecologica < 04-base-de-datos/15_copiloto.sql
+cd /opt/geovisor && docker exec -i geodb-postgis psql -U eco_admin -d restauracion_ecologica -v ON_ERROR_STOP=1 < 04-base-de-datos/18_capas_sensibles_catalogo.sql
 ```
 
-Son idempotentes (`CREATE TABLE IF NOT EXISTS`), así que volver a aplicarlas no rompe nada.
+Todas se pueden volver a aplicar sin perder datos: crean con `IF NOT EXISTS`, las que
+siembran datos de ejemplo (03 y 14) solo reemplazan sus propias filas, y la 17 siembra
+las capas de fauna únicamente si están vacías. La última es la **18**.
+
 El detalle de cada tabla está en el [diccionario de datos](E01_Diccionario_Datos_Principal.md).
 
 ---
@@ -106,6 +109,14 @@ Cada usuario puede cambiar la suya desde **Ajustes**, en la propia plataforma.
 
 El token dura 24 horas y queda solo en la variable de shell de esa sesión.
 
+**Desactivar una cuenta o cambiarle el rol surte efecto de inmediato.** El servidor
+consulta la cuenta en cada petición, así que no hay que esperar a que venza el token de
+esa persona: su siguiente acción ya se evalúa con el estado nuevo.
+
+**Intentos fallidos.** Tras 10 inicios de sesión fallidos desde una misma dirección IP, el
+acceso desde esa IP queda bloqueado 15 minutos. El bloqueo es por IP: no afecta al resto
+de usuarios ni impide entrar a la persona legítima desde otra red.
+
 ---
 
 ## 5. Carga de datos
@@ -119,8 +130,36 @@ El token dura 24 horas y queda solo en la variable de shell de esa sesión.
 | Paquete consolidado | admin (servidor) | `./scripts/import_consolidado.sh "/ruta/Data Py Geodatabase"` |
 | GeoTIFF (ortofoto, MDT, MDS) | admin (servidor) | `gdal2tiles.py` — ver [10-INFRAESTRUCTURA-PRODUCCION.md](../10-INFRAESTRUCTURA-PRODUCCION.md) §4 |
 
-Toda capa importada queda en `capas_geograficas` y aparece en el control de capas del
-visor. Los productos del dron se catalogan en `insumos_dron`.
+Toda capa importada queda en `capas_geograficas`, pero **el visor solo dibuja las capas
+asignadas a un componente**, en `03-frontend/src/lib/capasVisor.ts`. Una capa con un nombre
+nuevo queda guardada y se puede descargar por la API, pero no aparece en ningún mapa
+hasta que se le asigne componente y se despliegue el frontend. Los productos del dron se
+catalogan en `insumos_dron`.
+
+### Capas sensibles
+
+Las ubicaciones de cámaras trampa y transectos de fauna no se entregan al rol de
+consulta. La sensibilidad es de la **capa**: la tabla `capas_sensibles` las enumera y un
+disparador de la base marca cada fila nueva de esas capas, venga del botón *Importar
+datos*, de un script o de SQL. Reimportar una capa de fauna no la expone.
+
+Para proteger una capa nueva —por ejemplo, los puntos de mamíferos cuando lleguen—:
+
+```bash
+docker exec -i geodb-postgis psql -U eco_admin -d restauracion_ecologica <<'SQL'
+INSERT INTO eco_restauracion.capas_sensibles (capa, motivo) VALUES ('mamiferos', 'Puntos de monitoreo de mamíferos');
+UPDATE eco_restauracion.capas_geograficas SET sensible = TRUE WHERE capa = 'mamiferos';
+SQL
+```
+
+Para comprobar qué ve el rol de consulta, basta con que ninguna fila de una capa
+catalogada tenga `sensible = false`:
+
+```bash
+docker exec geodb-postgis psql -U eco_admin -d restauracion_ecologica -c "SELECT g.capa, count(*) FILTER (WHERE NOT g.sensible) AS expuestas FROM eco_restauracion.capas_geograficas g JOIN eco_restauracion.capas_sensibles s USING (capa) GROUP BY 1"
+```
+
+La columna `expuestas` debe dar 0 en todas.
 
 Los tiles de la ortofoto se sirven desde `/opt/geovisor/tiles`, montado en el contenedor
 del frontend. **No están en el repositorio**: si se recrea el servidor hay que regenerarlos.
@@ -158,30 +197,60 @@ las preguntas más repetidas de los últimos 30 días.
 
 ## 7. Respaldo y restauración
 
-> **Atención.** El despliegue actual (`docker-compose.vps.yml`) **no incluye un servicio
-> de respaldo automático**. Mientras no se añada, la copia debe hacerse de forma
-> programada según lo indicado aquí.
-
-Copia manual:
-
-```bash
-docker exec geodb-postgis pg_dump -U eco_admin -d restauracion_ecologica > /opt/geovisor/backups/gdb_$(date +%Y%m%d).sql
-```
-
-Copia diaria automática (línea de `crontab -e`, 2:15 a. m.):
+**El respaldo es automático.** Todos los días a las 2:30 a. m. el servidor genera una
+copia completa de la geodatabase en `/opt/geovisor/backups/geodb_AAAAMMDD_HHMM.dump`
+(formato *custom* de `pg_dump`) y borra las de más de 14 días. Está programado en el
+`crontab` de root:
 
 ```bash
-15 2 * * * docker exec geodb-postgis pg_dump -U eco_admin -d restauracion_ecologica > /opt/geovisor/backups/gdb_$(date +\%Y\%m\%d).sql 2>/dev/null
+30 2 * * * /opt/geovisor/backups/run_backup.sh
 ```
 
-Restaurar una copia:
+El script está versionado en [`scripts/respaldo_diario.sh`](../scripts/respaldo_diario.sh):
+la carpeta `backups/` está fuera de git, así que al reinstalar el servidor hay que copiarlo
+de nuevo (`install -m 755 scripts/respaldo_diario.sh /opt/geovisor/backups/run_backup.sh`)
+y volver a agregar la línea al `crontab`. Si una copia falla, no se borra ninguna anterior
+y el error queda en `backups/backup.log`.
+
+Comprobar que existe la copia de anoche y que es legible:
 
 ```bash
-cat /opt/geovisor/backups/gdb_AAAAMMDD.sql | docker exec -i geodb-postgis psql -U eco_admin -d restauracion_ecologica
+ls -lh /opt/geovisor/backups/ | tail -3
 ```
 
-Se recomienda además una copia fuera del servidor (`rclone sync`) y probar la restauración
-al menos una vez por trimestre: un respaldo que nunca se restauró no es un respaldo.
+```bash
+f=$(ls -t /opt/geovisor/backups/geodb_*.dump | head -1); docker exec -i geodb-postgis pg_restore --list < "$f" | grep -c 'TABLE DATA'
+```
+
+La segunda orden debe devolver el número de tablas de la geodatabase.
+
+Copia manual, por ejemplo antes de una actualización:
+
+```bash
+cd /opt/geovisor && ./scripts/backup_db.sh backups
+```
+
+**Restaurar.** Primero en una base de prueba, para comprobar la copia sin tocar la real:
+
+```bash
+docker exec geodb-postgis createdb -U eco_admin prueba_restauracion
+```
+
+```bash
+docker exec -i geodb-postgis pg_restore -U eco_admin -d prueba_restauracion < /opt/geovisor/backups/geodb_AAAAMMDD_HHMM.dump
+```
+
+Y solo si hay que recuperar la base en producción:
+
+```bash
+docker exec -i geodb-postgis pg_restore -U eco_admin -d restauracion_ecologica --clean --if-exists < /opt/geovisor/backups/geodb_AAAAMMDD_HHMM.dump
+```
+
+**Las copias están en el mismo disco que la base.** Protegen frente a errores de operación
+—un borrado, una migración fallida—, pero no frente a la pérdida del servidor. Se
+recomienda sacar una copia fuera de él (`rclone sync` a un almacenamiento externo) y probar
+la restauración al menos una vez por trimestre: un respaldo que nunca se restauró no es un
+respaldo.
 
 ---
 

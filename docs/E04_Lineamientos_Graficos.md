@@ -179,7 +179,7 @@ página nunca se desplaza horizontalmente**.
 | Respuesta del copiloto | «Generada con inteligencia artificial… verifique con la Dirección del Proyecto» | Presentarla como dato oficial |
 
 Se escribe en español, con unidades del sistema métrico, separador decimal de coma y de
-miles de punto (`41,72 ha`, `17.565 plántulas`).
+miles de punto (`41,72 ha`, `9.605 plántulas`).
 
 ---
 

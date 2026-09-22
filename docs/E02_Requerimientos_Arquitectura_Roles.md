@@ -24,7 +24,7 @@ avance de todos —Dashboard Transversal—, más el módulo de Descarga de Dato
 
 | # | Requerimiento | Dónde se resuelve |
 |---|---|---|
-| RF-01 | Almacenar la información geográfica del proyecto en una base espacial única | PostGIS, esquema `eco_restauracion` (25 tablas, 10 vistas) |
+| RF-01 | Almacenar la información geográfica del proyecto en una base espacial única | PostGIS, esquema `eco_restauracion` (26 tablas, 10 vistas) |
 | RF-02 | Visualizar las capas sobre el predio con cartografía base y ortofoto propia | Geovisor con Leaflet; ortofoto del dron en teselas |
 | RF-03 | Consultar los atributos de cualquier elemento | Ficha emergente por elemento, con la nomenclatura de parcela y el nombre de la técnica aplicada |
 | RF-04 | Integrar cartografía oficial | Geoservicios del IGAC: catastro, pendientes y agrología |
@@ -157,7 +157,9 @@ técnico y administrador solo los asigna un administrador.
 herpetofauna. Divulgarlas facilita la sustracción de los equipos y la presión sobre la
 fauna, así que la consulta pública recibe los indicadores agregados pero no esos puntos.
 La exclusión la aplica el servidor sobre la columna `sensible` de `capas_geograficas`:
-no depende de que la interfaz oculte la capa.
+no depende de que la interfaz oculte la capa. Y la marca la pone la propia geodatabase:
+las capas enumeradas en `capas_sensibles` quedan marcadas en toda fila nueva, venga del
+importador, de un script o de SQL, de modo que una reimportación no las expone.
 
 ### 5.3 Aplicación técnica
 
@@ -165,7 +167,11 @@ El control se aplica en el servidor, ruta por ruta, no en la interfaz: aunque un
 manipule el navegador, la API rechaza lo que su rol no autoriza.
 
 - Sin token o con token vencido → **401**
+- Cuenta desactivada → **401**, aunque su token siga vigente
 - Token válido con rol insuficiente → **403**
+
+En cada petición el servidor consulta la cuenta: desactivarla o cambiarle el rol surte
+efecto en la siguiente acción de esa persona, no al vencer su token.
 
 La interfaz se limita a ocultar lo que el usuario no puede usar, como comodidad. El
 detalle por endpoint está en la [especificación de la API](E05_API_OpenAPI.yaml) y la
@@ -174,6 +180,8 @@ verificación, en el [informe de pruebas](E06_Informe_Pruebas_Tecnicas.md), caso
 ### 5.4 Gestión de credenciales
 
 Las contraseñas se almacenan con `bcrypt`; nunca en texto plano ni de forma reversible.
+Tras 10 intentos fallidos de inicio de sesión desde una misma IP en 15 minutos, esa IP
+queda bloqueada temporalmente; el registro público admite 5 cuentas por hora e IP.
 El administrador inicial se crea al arrancar el backend con las variables del entorno. Los
 tokens se firman con `JWT_SECRET` y caducan a las 24 horas.
 

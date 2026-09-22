@@ -5,7 +5,7 @@ set -euo pipefail
 DEST="${1:-./backups}"
 mkdir -p "$DEST"
 STAMP=$(date +%Y%m%d_%H%M)
-docker exec gdb-postgis pg_dump -U eco_admin -d restauracion_ecologica -F c \
+docker exec geodb-postgis pg_dump -U eco_admin -d restauracion_ecologica -F c \
   > "$DEST/gdb_${STAMP}.dump" 2>/dev/null \
   || docker exec postgis-eco-restauracion pg_dump -U eco_admin -d restauracion_ecologica -F c \
   > "$DEST/gdb_${STAMP}.dump"
