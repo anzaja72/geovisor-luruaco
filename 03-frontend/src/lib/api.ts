@@ -265,6 +265,12 @@ export interface FicorMedicion {
   abundancia?: number
   riqueza?: number
   sin_valor?: boolean
+  /** Campaña a la que pertenece la medición: 'Línea base', 'Muestreo 1'… */
+  campana?: string
+  /** Código del punto de muestreo (FICO-1…FICO-5). La biota no se desagrega por punto. */
+  punto?: string
+  /** true: siembra de demostración, no resultado de laboratorio. */
+  es_demostracion?: boolean
 }
 
 export interface FicorMediciones {

@@ -4,7 +4,7 @@ import MapView, { type GeovisorMapProps } from '../components/MapView'
 import OrtoFoto from '../components/OrtoFoto'
 import GaleriaFotos from '../components/GaleriaFotos'
 import { FICOR_BIOTA } from './data'
-import { AGUA_DEMO, BIOTA_DEMO, CAMPANAS_DEMO, PUNTOS_DEMO, SEDIMENTOS_DEMO } from './ficorDemo'
+import { construirFicor, FICOR_VACIO, type DatosFicor } from './ficorDatos'
 import {
   calcularICA, categoriaICA, ESCALA_ICA, fmtICA, PESOS_ICA,
   type ResultadoICA, type SubindiceCalculado,
@@ -149,66 +149,78 @@ function BarrasBiota({
 // ---------------------------------------------------------------------------
 
 export default function FicorView(map: GeovisorMapProps) {
-  const [campana, setCampana] = useState(CAMPANAS_DEMO[CAMPANAS_DEMO.length - 1].nombre)
-  const [punto, setPunto] = useState<string>(PUNTOS_DEMO[0])
+  const [campana, setCampana] = useState('')
+  const [punto, setPunto] = useState('')
   const [iVar, setIVar] = useState(0)
   const [matriz, setMatriz] = useState<'agua' | 'sedimentos' | 'biota'>('agua')
-  // Esta pantalla todavía calcula SOLO sobre los datos de demostración: leer las
-  // mediciones reales requiere que la geodatabase guarde punto y campaña por
-  // registro (migración pendiente). Por eso el aviso no depende de la API. Si ya
-  // hay mediciones cargadas, se dice explícitamente que no son las que se ven.
-  const [hayReales, setHayReales] = useState(false)
+
+  // Todo lo que se dibuja sale de la geodatabase. Los valores de demostración
+  // están en las mismas tablas, marcados; el aviso depende de esa marca, no de
+  // una constante, así que se apaga solo cuando se carguen los reales.
+  const [datos, setDatos] = useState<DatosFicor>(FICOR_VACIO)
+  const [cargando, setCargando] = useState(true)
   useEffect(() => {
     const ac = new AbortController()
     fetchFicorMediciones(ac.signal)
-      .then((d) => { if (!ac.signal.aborted && !d.sin_datos) setHayReales(true) })
-      .catch(() => { /* sin backend: solo demostración */ })
+      .then((d) => {
+        if (ac.signal.aborted) return
+        const f = construirFicor(d)
+        setDatos(f)
+        setCampana(f.campanas[f.campanas.length - 1]?.nombre ?? '')
+        setPunto(f.puntos[0] ?? '')
+        setCargando(false)
+      })
+      .catch(() => { if (!ac.signal.aborted) setCargando(false) })
     return () => ac.abort()
   }, [])
+
+  const CAMPANAS = datos.campanas
+  const PUNTOS = datos.puntos
+  const AGUA = datos.agua
 
   /** ICA de cada punto en la campaña activa. */
   const resultados = useMemo(() => {
     const m = new Map<string, ResultadoICA>()
-    const lecturas = AGUA_DEMO[campana] ?? {}
-    for (const p of PUNTOS_DEMO) {
+    const lecturas = AGUA[campana] ?? {}
+    for (const p of PUNTOS) {
       const l = lecturas[p]
       if (l) m.set(p, calcularICA(l))
     }
     return m
-  }, [campana])
+  }, [campana, AGUA, PUNTOS])
 
   const res = resultados.get(punto)
-  const idxPunto = PUNTOS_DEMO.indexOf(punto as (typeof PUNTOS_DEMO)[number])
+  const idxPunto = PUNTOS.indexOf(punto)
   const irPunto = (d: number) =>
-    setPunto(PUNTOS_DEMO[(idxPunto + d + PUNTOS_DEMO.length) % PUNTOS_DEMO.length])
+    setPunto(PUNTOS[(idxPunto + d + PUNTOS.length) % PUNTOS.length] ?? punto)
 
   const sub: SubindiceCalculado | undefined = res?.subindices[iVar]
 
   /** Serie de la variable seleccionada, a través de las campañas. */
   const serieVar = useMemo(
-    () => CAMPANAS_DEMO.map((c) => {
-      const l = AGUA_DEMO[c.nombre]?.[punto]
+    () => CAMPANAS.map((c) => {
+      const l = AGUA[c.nombre]?.[punto]
       if (!l) return { campana: c.nombre, valor: null, sub: null }
       const s = calcularICA(l).subindices[iVar]
       return { campana: c.nombre, valor: s.valor, sub: s.subindice }
     }),
-    [punto, iVar],
+    [punto, iVar, CAMPANAS, AGUA],
   )
 
   /** Serie del índice completo, a través de las campañas. */
   const serieICA = useMemo(
-    () => CAMPANAS_DEMO.map((c) => {
-      const l = AGUA_DEMO[c.nombre]?.[punto]
+    () => CAMPANAS.map((c) => {
+      const l = AGUA[c.nombre]?.[punto]
       const r = l ? calcularICA(l) : null
       return { campana: c.nombre, valor: r?.ica ?? null, sub: r?.ica ?? null }
     }),
-    [punto],
+    [punto, CAMPANAS, AGUA],
   )
 
-  const biota = BIOTA_DEMO[campana] ?? {}
-  const sedimentos = SEDIMENTOS_DEMO[campana] ?? {}
+  const biota = datos.biota[campana] ?? {}
+  const sedimentos = datos.sedimentos[campana] ?? {}
 
-  const fecha = CAMPANAS_DEMO.find((c) => c.nombre === campana)?.fecha
+  const fecha = CAMPANAS.find((c) => c.nombre === campana)?.fecha
 
   return (
     <>
@@ -217,18 +229,26 @@ export default function FicorView(map: GeovisorMapProps) {
         <EscalaCalificacion activa={res?.categoria.key} />
       </div>
 
-      <div className="aviso-demo">
-        <b>Datos de demostración.</b> Lo que se ve aquí son valores construidos para revisar la
-        pantalla, no mediciones de laboratorio, y no están en la geodatabase.
-        {hayReales
-          ? ' Ya hay mediciones reales registradas, pero esta pantalla todavía no las lee: los valores de abajo siguen siendo de demostración.'
-          : ' El laboratorio aún no entrega los resultados del muestreo.'}
-      </div>
+      {datos.demostracion && (
+        <div className="aviso-demo">
+          <b>Datos de demostración.</b> Los valores que se muestran están en la geodatabase
+          marcados como prueba: sirven para revisar el tablero mientras el laboratorio no
+          entrega los resultados del muestreo. No son mediciones y no deben citarse como
+          tales. Al cargarse los resultados reales, este aviso desaparece solo.
+        </div>
+      )}
+      {!cargando && CAMPANAS.length === 0 && (
+        <div className="aviso-demo">
+          <b>Sin mediciones.</b> La geodatabase todavía no tiene registros de
+          ficorremediación. En cuanto se carguen —por el formulario o por importación—
+          aparecerán aquí.
+        </div>
+      )}
 
       <div className="filters">
         <span className="lab" style={{ alignSelf: 'center' }}>Campaña</span>
         <div className="tl">
-          {CAMPANAS_DEMO.map((c) => (
+          {CAMPANAS.map((c) => (
             <button key={c.nombre} className={campana === c.nombre ? 'on' : ''} onClick={() => setCampana(c.nombre)}>
               {c.nombre}
             </button>
@@ -249,8 +269,8 @@ export default function FicorView(map: GeovisorMapProps) {
             <div className="ica-tiles">
               <div><em>Variables</em><b>{res ? `${res.disponibles} / 6` : '—'}</b></div>
               <div><em>Cobertura</em><b>{res ? `${Math.round(res.cobertura * 100)} %` : '—'}</b></div>
-              <div><em>Campañas</em><b>{CAMPANAS_DEMO.length}</b></div>
-              <div><em>Puntos</em><b>{PUNTOS_DEMO.length}</b></div>
+              <div><em>Campañas</em><b>{CAMPANAS.length}</b></div>
+              <div><em>Puntos</em><b>{PUNTOS.length}</b></div>
             </div>
             <p className="ica-nota">
               ICA del IDEAM, seis variables. Ponderación: conductividad, oxígeno, sólidos, DQO y
@@ -264,7 +284,7 @@ export default function FicorView(map: GeovisorMapProps) {
             <h3><Icon id="pin" /> Punto de muestreo</h3>
             <span className="ica-pager">
               <button onClick={() => irPunto(-1)} aria-label="Punto anterior">‹</button>
-              {idxPunto + 1} de {PUNTOS_DEMO.length}
+              {idxPunto + 1} de {PUNTOS.length}
               <button onClick={() => irPunto(1)} aria-label="Punto siguiente">›</button>
             </span>
           </div>
@@ -352,15 +372,15 @@ export default function FicorView(map: GeovisorMapProps) {
             <table className="fauna-table">
               <thead><tr>
                 <th>Variable</th><th>Unidad</th>
-                {PUNTOS_DEMO.map((p) => <th key={p}>{p}</th>)}
+                {PUNTOS.map((p) => <th key={p}>{p}</th>)}
                 <th>Peso</th>
               </tr></thead>
               <tbody>
-                {resultados.get(PUNTOS_DEMO[0])?.subindices.map((s, i) => (
+                {resultados.get(PUNTOS[0])?.subindices.map((s, i) => (
                   <tr key={s.clave}>
                     <td><b>{s.nombre}</b></td>
                     <td>{s.unidad}</td>
-                    {PUNTOS_DEMO.map((p) => {
+                    {PUNTOS.map((p) => {
                       const si = resultados.get(p)?.subindices[i]
                       const meta = categoriaICA(si?.subindice)
                       return (
@@ -376,7 +396,7 @@ export default function FicorView(map: GeovisorMapProps) {
                 ))}
                 <tr className="fila-total">
                   <td colSpan={2}><b>Índice de calidad del agua</b></td>
-                  {PUNTOS_DEMO.map((p) => {
+                  {PUNTOS.map((p) => {
                     const r = resultados.get(p)
                     return (
                       <td key={p}>
@@ -407,7 +427,7 @@ export default function FicorView(map: GeovisorMapProps) {
               <table className="fauna-table">
                 <thead><tr>
                   <th>Sustancia</th><th>ISQG</th><th>PEL</th>
-                  {PUNTOS_DEMO.map((p) => <th key={p}>{p}</th>)}
+                  {PUNTOS.map((p) => <th key={p}>{p}</th>)}
                 </tr></thead>
                 <tbody>
                   {GUIAS_SEDIMENTO.map((g) => {
@@ -417,7 +437,7 @@ export default function FicorView(map: GeovisorMapProps) {
                         <td><b>{g.nombre}</b> <small>({g.variable})</small></td>
                         <td>{g.isqg ?? '—'}</td>
                         <td>{g.pel ?? '—'}</td>
-                        {PUNTOS_DEMO.map((p, i) => {
+                        {PUNTOS.map((p, i) => {
                           const v = vals[i]
                           const meta = nivelSedimento(g.variable, v)
                           return (

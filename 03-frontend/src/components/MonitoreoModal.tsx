@@ -25,6 +25,8 @@ const FECHAS_REST = ['Linea base', 'Monitoreo 1', 'Monitoreo 2', 'Monitoreo 3', 
 const FECHAS_MALEZA = ['Línea base', 'Marzo', 'Abril', 'Mayo']
 const CAT_ARBOL = ['Brinzal', 'Latizal', 'Fustal']
 const BIOTA = ['fitoplancton', 'zooplancton', 'ictioplancton', 'macroinvertebrados_bentonicos', 'perifiton', 'ictiofauna']
+// Puntos de inoculación de ficorremediación, tal como están en puntos_monitoreo.
+const PUNTOS_FICOR = ['FICO-1', 'FICO-2', 'FICO-3', 'FICO-4', 'FICO-5']
 const hoy = new Date().toISOString().slice(0, 10)
 
 const num = (v: string) => (v.trim() === '' ? undefined : Number(v))
@@ -94,6 +96,7 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
           path: '/api/ficor/medicion',
           body: {
             tipo: f.tipo || 'agua', fecha: f.fecha || hoy, variable: f.variable,
+            campana: f.campana || 'Muestreo 1', punto: f.punto,
             categoria: f.categoria, grupo: f.grupo, valor: num(f.valor || ''),
             unidad: f.unidad, abundancia: int(f.abundancia || ''), riqueza: int(f.riqueza || ''),
           },
@@ -245,8 +248,22 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
                   <option value="sedimento">Calidad de sedimentos</option>
                   <option value="biota">Biota</option>
                 </select></label>
+              <label>Campaña *
+                <input list="campanas-ficor" value={f.campana ?? ''} onChange={set('campana')}
+                  placeholder="Muestreo 1" required />
+                <datalist id="campanas-ficor">
+                  <option value="Línea base" /><option value="Muestreo 1" />
+                  <option value="Muestreo 2" /><option value="Muestreo 3" />
+                </datalist></label>
               <label>Fecha
                 <input type="date" value={f.fecha ?? hoy} onChange={set('fecha')} /></label>
+              {tipoFicor !== 'biota' && (
+                <label>Punto de muestreo *
+                  <select value={f.punto ?? ''} onChange={set('punto')} required>
+                    <option value="" disabled>Elija un punto…</option>
+                    {PUNTOS_FICOR.map((v) => <option key={v} value={v}>{v}</option>)}
+                  </select></label>
+              )}
               {tipoFicor === 'sedimento' && (
                 <label>Categoría
                   <select value={f.categoria ?? 'metal_pesado'} onChange={set('categoria')}>

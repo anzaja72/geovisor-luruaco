@@ -102,6 +102,8 @@ func crearFaunaGrupo(c *fiber.Ctx) error {
 type ficorBody struct {
 	Tipo       string   `json:"tipo"` // agua | sedimento | biota
 	Fecha      string   `json:"fecha"`
+	Campana    string   `json:"campana"` // 'Línea base', 'Muestreo 1'… agrupa la medición
+	Punto      string   `json:"punto"`   // codigo_punto de puntos_monitoreo (FICO-1…FICO-5)
 	Variable   string   `json:"variable"`
 	Categoria  string   `json:"categoria"` // sedimento: metal_pesado | plaguicida
 	Grupo      string   `json:"grupo"`     // biota
@@ -120,6 +122,23 @@ func crearFicorMedicion(c *fiber.Ctx) error {
 	if b.Fecha == "" {
 		return badReq(c, "La fecha es obligatoria (AAAA-MM-DD)")
 	}
+	b.Campana = strings.TrimSpace(b.Campana)
+	if b.Campana == "" {
+		return badReq(c, "La campaña es obligatoria (p. ej. «Muestreo 1»): el tablero agrupa por ella")
+	}
+	// El punto solo aplica a agua y sedimentos; la biota se reporta por campaña.
+	var puntoID *int64
+	if b.Punto = strings.TrimSpace(b.Punto); b.Punto != "" {
+		var pid int64
+		if err := db.QueryRowContext(c.UserContext(),
+			`SELECT id FROM eco_restauracion.puntos_monitoreo WHERE codigo_punto = $1`, b.Punto,
+		).Scan(&pid); err != nil {
+			return badReq(c, "Punto de muestreo desconocido: "+b.Punto)
+		}
+		puntoID = &pid
+	} else if b.Tipo != "biota" {
+		return badReq(c, "El punto de muestreo es obligatorio (FICO-1…FICO-5)")
+	}
 	var id int64
 	var err error
 	switch b.Tipo {
@@ -128,9 +147,9 @@ func crearFicorMedicion(c *fiber.Ctx) error {
 			return badReq(c, "La variable es obligatoria")
 		}
 		err = db.QueryRowContext(c.UserContext(), `
-			INSERT INTO eco_restauracion.ficor_calidad_agua (fecha, variable, valor, unidad)
-			VALUES ($1::date,$2,$3,$4) RETURNING id`,
-			b.Fecha, b.Variable, b.Valor, nullIfEmpty(b.Unidad)).Scan(&id)
+			INSERT INTO eco_restauracion.ficor_calidad_agua (punto_id, campana, fecha, variable, valor, unidad)
+			VALUES ($1,$2,$3::date,$4,$5,$6) RETURNING id`,
+			puntoID, b.Campana, b.Fecha, b.Variable, b.Valor, nullIfEmpty(b.Unidad)).Scan(&id)
 	case "sedimento":
 		if b.Categoria != "metal_pesado" && b.Categoria != "plaguicida" {
 			return badReq(c, "Categoría inválida (metal_pesado | plaguicida)")
@@ -139,17 +158,17 @@ func crearFicorMedicion(c *fiber.Ctx) error {
 			return badReq(c, "La variable es obligatoria")
 		}
 		err = db.QueryRowContext(c.UserContext(), `
-			INSERT INTO eco_restauracion.ficor_calidad_sedimentos (fecha, categoria, variable, valor, unidad)
-			VALUES ($1::date,$2,$3,$4,$5) RETURNING id`,
-			b.Fecha, b.Categoria, b.Variable, b.Valor, nullIfEmpty(b.Unidad)).Scan(&id)
+			INSERT INTO eco_restauracion.ficor_calidad_sedimentos (punto_id, campana, fecha, categoria, variable, valor, unidad)
+			VALUES ($1,$2,$3::date,$4,$5,$6,$7) RETURNING id`,
+			puntoID, b.Campana, b.Fecha, b.Categoria, b.Variable, b.Valor, nullIfEmpty(b.Unidad)).Scan(&id)
 	case "biota":
 		if strings.TrimSpace(b.Grupo) == "" {
 			return badReq(c, "El grupo de biota es obligatorio")
 		}
 		err = db.QueryRowContext(c.UserContext(), `
-			INSERT INTO eco_restauracion.ficor_biota (fecha, grupo, abundancia, riqueza)
-			VALUES ($1::date,$2,$3,$4) RETURNING id`,
-			b.Fecha, b.Grupo, b.Abundancia, b.Riqueza).Scan(&id)
+			INSERT INTO eco_restauracion.ficor_biota (punto_id, campana, fecha, grupo, abundancia, riqueza)
+			VALUES ($1,$2,$3::date,$4,$5,$6) RETURNING id`,
+			puntoID, b.Campana, b.Fecha, b.Grupo, b.Abundancia, b.Riqueza).Scan(&id)
 	default:
 		return badReq(c, "Tipo inválido (agua | sedimento | biota)")
 	}

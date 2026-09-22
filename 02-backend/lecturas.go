@@ -94,66 +94,88 @@ func getMalezaLimpiezas(c *fiber.Ctx) error {
 func getFicorMediciones(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 
-	leer := func(q string, campos int) []fiber.Map {
-		rows, err := db.QueryContext(ctx, q)
-		if err != nil {
-			return nil
-		}
+	// Cada fila lleva su campaña y su punto: el tablero del ICA agrupa por ambos.
+	// `es_demostracion` distingue la siembra de prueba de los resultados del
+	// laboratorio, para que la pantalla lo advierta sin que nadie tenga que saberlo.
+	agua := []fiber.Map{}
+	sed := []fiber.Map{}
+	biota := []fiber.Map{}
+	fallo := false
+
+	if rows, err := db.QueryContext(ctx, `
+		SELECT COALESCE(a.campana,''), COALESCE(p.codigo_punto,''), a.fecha::text,
+		       a.variable, a.valor, COALESCE(a.unidad,''), a.es_demostracion
+		  FROM eco_restauracion.ficor_calidad_agua a
+		  LEFT JOIN eco_restauracion.puntos_monitoreo p ON p.id = a.punto_id
+		 ORDER BY a.fecha, p.codigo_punto, a.variable`); err != nil {
+		fallo = true
+	} else {
 		defer rows.Close()
-		out := []fiber.Map{}
 		for rows.Next() {
-			var fecha, a, b sql.NullString
+			var campana, punto, fecha, variable, unidad string
 			var valor sql.NullFloat64
-			var n1, n2 sql.NullInt64
-			switch campos {
-			case 4: // agua: fecha, variable, valor, unidad
-				if rows.Scan(&fecha, &a, &valor, &b) != nil {
-					continue
-				}
-				out = append(out, fiber.Map{
-					"fecha": fecha.String, "variable": a.String,
-					"valor": valor.Float64, "unidad": b.String, "sin_valor": !valor.Valid,
-				})
-			case 5: // sedimentos: fecha, categoria, variable, valor, unidad
-				var cat sql.NullString
-				if rows.Scan(&fecha, &cat, &a, &valor, &b) != nil {
-					continue
-				}
-				out = append(out, fiber.Map{
-					"fecha": fecha.String, "categoria": cat.String, "variable": a.String,
-					"valor": valor.Float64, "unidad": b.String, "sin_valor": !valor.Valid,
-				})
-			default: // biota: fecha, grupo, abundancia, riqueza
-				if rows.Scan(&fecha, &a, &n1, &n2) != nil {
-					continue
-				}
-				out = append(out, fiber.Map{
-					"fecha": fecha.String, "grupo": a.String,
-					"abundancia": n1.Int64, "riqueza": n2.Int64,
-				})
+			var demo bool
+			if rows.Scan(&campana, &punto, &fecha, &variable, &valor, &unidad, &demo) != nil {
+				continue
 			}
+			agua = append(agua, fiber.Map{
+				"campana": campana, "punto": punto, "fecha": fecha, "variable": variable,
+				"valor": valor.Float64, "unidad": unidad, "sin_valor": !valor.Valid,
+				"es_demostracion": demo,
+			})
 		}
-		return out
 	}
 
-	agua := leer(`SELECT fecha::text, variable, valor, COALESCE(unidad,'')
-	              FROM eco_restauracion.ficor_calidad_agua ORDER BY fecha, variable`, 4)
-	sed := leer(`SELECT fecha::text, categoria, variable, valor, COALESCE(unidad,'')
-	             FROM eco_restauracion.ficor_calidad_sedimentos ORDER BY fecha, categoria, variable`, 5)
-	biota := leer(`SELECT fecha::text, grupo, abundancia, riqueza
-	               FROM eco_restauracion.ficor_biota ORDER BY fecha, grupo`, 3)
+	if rows, err := db.QueryContext(ctx, `
+		SELECT COALESCE(s.campana,''), COALESCE(p.codigo_punto,''), s.fecha::text,
+		       s.categoria, s.variable, s.valor, COALESCE(s.unidad,''), s.es_demostracion
+		  FROM eco_restauracion.ficor_calidad_sedimentos s
+		  LEFT JOIN eco_restauracion.puntos_monitoreo p ON p.id = s.punto_id
+		 ORDER BY s.fecha, s.categoria, s.variable, p.codigo_punto`); err != nil {
+		fallo = true
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var campana, punto, fecha, categoria, variable, unidad string
+			var valor sql.NullFloat64
+			var demo bool
+			if rows.Scan(&campana, &punto, &fecha, &categoria, &variable, &valor, &unidad, &demo) != nil {
+				continue
+			}
+			sed = append(sed, fiber.Map{
+				"campana": campana, "punto": punto, "fecha": fecha, "categoria": categoria,
+				"variable": variable, "valor": valor.Float64, "unidad": unidad,
+				"sin_valor": !valor.Valid, "es_demostracion": demo,
+			})
+		}
+	}
 
-	if agua == nil && sed == nil && biota == nil {
+	if rows, err := db.QueryContext(ctx, `
+		SELECT COALESCE(campana,''), fecha::text, grupo, abundancia, riqueza, es_demostracion
+		  FROM eco_restauracion.ficor_biota ORDER BY fecha, grupo`); err != nil {
+		fallo = true
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var campana, fecha, grupo string
+			var abundancia, riqueza sql.NullInt64
+			var demo bool
+			if rows.Scan(&campana, &fecha, &grupo, &abundancia, &riqueza, &demo) != nil {
+				continue
+			}
+			biota = append(biota, fiber.Map{
+				"campana": campana, "fecha": fecha, "grupo": grupo,
+				"abundancia": abundancia.Int64, "riqueza": riqueza.Int64,
+				"es_demostracion": demo,
+			})
+		}
+	}
+
+	if fallo && len(agua)+len(sed)+len(biota) == 0 {
 		return serverError(c, "Error al consultar ficorremediación", nil)
 	}
-	vacio := func(m []fiber.Map) []fiber.Map {
-		if m == nil {
-			return []fiber.Map{}
-		}
-		return m
-	}
 	return c.JSON(fiber.Map{
-		"agua": vacio(agua), "sedimentos": vacio(sed), "biota": vacio(biota),
+		"agua": agua, "sedimentos": sed, "biota": biota,
 		"sin_datos": len(agua)+len(sed)+len(biota) == 0,
 	})
 }
