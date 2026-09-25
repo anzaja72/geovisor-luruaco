@@ -262,6 +262,8 @@ export interface FicorMedicion {
   grupo?: string
   valor?: number
   unidad?: string
+  /** «<» cuando el laboratorio reportó el valor bajo el límite de detección. */
+  operador?: string
   abundancia?: number
   riqueza?: number
   sin_valor?: boolean

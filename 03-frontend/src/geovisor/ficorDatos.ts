@@ -17,9 +17,20 @@ export interface Lectura {
   dqo: number; sst: number; nitrogenoTotal: number; fosforoTotal: number
 }
 
+/** Una medición tal como la reporta el laboratorio, para el pop-up del mapa. */
+export interface Medicion {
+  variable: string
+  valor: number | null
+  unidad: string
+  /** «<» cuando el valor está bajo el límite de detección. */
+  operador: string
+}
+
 export interface DatosFicor {
   campanas: Campana[]
   puntos: string[]
+  /** campaña → punto → todas las variables medidas, no solo las del índice */
+  detalle: Record<string, Record<string, Medicion[]>>
   /** campaña → punto → lectura completa (solo los puntos con las ocho variables) */
   agua: Record<string, Record<string, Lectura>>
   /** campaña → variable → valor por punto, en el orden de `puntos` */
@@ -45,7 +56,7 @@ const CLAVE_AGUA: Record<string, keyof Lectura> = {
 const VARIABLES = Object.keys(CLAVE_AGUA).length
 
 export const FICOR_VACIO: DatosFicor = {
-  campanas: [], puntos: [], agua: {}, sedimentos: {}, biota: {}, demostracion: false,
+  campanas: [], puntos: [], detalle: {}, agua: {}, sedimentos: {}, biota: {}, demostracion: false,
 }
 
 export function construirFicor(d: FicorMediciones): DatosFicor {
@@ -62,11 +73,23 @@ export function construirFicor(d: FicorMediciones): DatosFicor {
   // Con una variable de menos el ICA no se puede calcular, y media nota es peor
   // que ninguna: ese punto queda fuera en vez de calificado a medias.
   const parcial: Record<string, Record<string, Partial<Lectura>>> = {}
+  const detalle: DatosFicor['detalle'] = {}
   for (const m of d.agua ?? []) {
     anotar(m.campana, m.fecha, m.es_demostracion)
-    const clave = CLAVE_AGUA[m.variable ?? '']
-    if (!clave || !m.campana || !m.punto || m.sin_valor || m.valor == null) continue
+    if (!m.campana || !m.punto || !m.variable) continue
     puntos.add(m.punto)
+
+    // El detalle guarda TODAS las variables del informe —22 en el muestreo 2—,
+    // porque el pop-up del mapa las muestra completas. El índice solo usa ocho.
+    ;((detalle[m.campana] ??= {})[m.punto] ??= []).push({
+      variable: m.variable,
+      valor: m.sin_valor ? null : (m.valor ?? null),
+      unidad: m.unidad ?? '',
+      operador: m.operador ?? '',
+    })
+
+    const clave = CLAVE_AGUA[m.variable]
+    if (!clave || m.sin_valor || m.valor == null) continue
     ;(parcial[m.campana] ??= {})[m.punto] ??= {}
     parcial[m.campana][m.punto][clave] = m.valor
   }
@@ -105,5 +128,5 @@ export function construirFicor(d: FicorMediciones): DatosFicor {
     .map(([nombre, fecha]) => ({ nombre, fecha }))
     .sort((a, b) => a.fecha.localeCompare(b.fecha))
 
-  return { campanas, puntos: orden, agua, sedimentos, biota, demostracion }
+  return { campanas, puntos: orden, detalle, agua, sedimentos, biota, demostracion }
 }

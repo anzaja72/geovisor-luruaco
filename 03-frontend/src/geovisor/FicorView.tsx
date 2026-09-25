@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
-import MapView, { type GeovisorMapProps } from '../components/MapView'
+import MapView, { type GeovisorMapProps, type PuntoFicor } from '../components/MapView'
 import OrtoFoto from '../components/OrtoFoto'
 import GaleriaFotos from '../components/GaleriaFotos'
 import { FICOR_BIOTA } from './data'
@@ -189,6 +189,26 @@ export default function FicorView(map: GeovisorMapProps) {
     return m
   }, [campana, AGUA, PUNTOS])
 
+  /** Lo que el mapa necesita de cada punto: su calificación en la campaña
+   *  activa y el informe completo del laboratorio para el pop-up. */
+  const ficorMapa = useMemo(() => {
+    const m: Record<string, PuntoFicor> = {}
+    const porPunto = datos.detalle[campana] ?? {}
+    for (const p of PUNTOS) {
+      const r = resultados.get(p)
+      const meta = r ? r.categoria : categoriaICA(null)
+      m[p] = {
+        campana,
+        ica: r?.ica ?? null,
+        etiqueta: meta.label,
+        color: meta.color,
+        texto: meta.text,
+        mediciones: porPunto[p] ?? [],
+      }
+    }
+    return m
+  }, [campana, datos.detalle, PUNTOS, resultados])
+
   const res = resultados.get(punto)
   const idxPunto = PUNTOS.indexOf(punto)
   const irPunto = (d: number) =>
@@ -353,7 +373,7 @@ export default function FicorView(map: GeovisorMapProps) {
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="ph"><h3><Icon id="layers" /> Geovisor de Ficorremediación</h3>
           <div className="tools"><Icon id="search" /><Icon id="layers" /></div></div>
-        <MapView {...map} componente="ficorremediacion" className="map tall" />
+        <MapView {...map} componente="ficorremediacion" ficor={ficorMapa} className="map tall" />
       </div>
 
       {/* ── Matrices: agua, sedimentos, biota ─────────────────────────────── */}
