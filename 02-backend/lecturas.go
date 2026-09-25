@@ -104,7 +104,8 @@ func getFicorMediciones(c *fiber.Ctx) error {
 
 	if rows, err := db.QueryContext(ctx, `
 		SELECT COALESCE(a.campana,''), COALESCE(p.codigo_punto,''), a.fecha::text,
-		       a.variable, a.valor, COALESCE(a.unidad,''), a.es_demostracion
+		       a.variable, a.valor, COALESCE(a.unidad,''), COALESCE(a.operador,''),
+		       a.es_demostracion
 		  FROM eco_restauracion.ficor_calidad_agua a
 		  LEFT JOIN eco_restauracion.puntos_monitoreo p ON p.id = a.punto_id
 		 ORDER BY a.fecha, p.codigo_punto, a.variable`); err != nil {
@@ -112,16 +113,18 @@ func getFicorMediciones(c *fiber.Ctx) error {
 	} else {
 		defer rows.Close()
 		for rows.Next() {
-			var campana, punto, fecha, variable, unidad string
+			var campana, punto, fecha, variable, unidad, operador string
 			var valor sql.NullFloat64
 			var demo bool
-			if rows.Scan(&campana, &punto, &fecha, &variable, &valor, &unidad, &demo) != nil {
+			if rows.Scan(&campana, &punto, &fecha, &variable, &valor, &unidad, &operador, &demo) != nil {
 				continue
 			}
+			// `operador` lleva el «<» de los valores bajo el límite de detección:
+			// la pantalla debe decir «< 10», no «10».
 			agua = append(agua, fiber.Map{
 				"campana": campana, "punto": punto, "fecha": fecha, "variable": variable,
-				"valor": valor.Float64, "unidad": unidad, "sin_valor": !valor.Valid,
-				"es_demostracion": demo,
+				"valor": valor.Float64, "unidad": unidad, "operador": operador,
+				"sin_valor": !valor.Valid, "es_demostracion": demo,
 			})
 		}
 	}

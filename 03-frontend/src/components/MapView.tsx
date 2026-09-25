@@ -30,6 +30,9 @@ const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 // Límites de la ortofoto del predio (vuelo de septiembre de 2026, «Ortofoto #1.1»).
 // El encuadre anterior abarcaba 311 ha para un predio de 90: era la huella del vuelo
 // antiguo, no la del predio. Este ajusta al aislamiento externo con ~40 m de margen.
+/** Vuelo del que salen las teselas del predio. Al cambiarlas, cambiar esto. */
+const VUELO_PREDIO = '2026-09'
+
 const PREDIO_BOUNDS: [[number, number], [number, number]] = [
   [10.6013802, -75.1735691],
   [10.6119370, -75.1652677],
@@ -45,6 +48,26 @@ const FICOR_BOUNDS: [[number, number], [number, number]] = [
   [10.5965, -75.1665],
   [10.6180, -75.1460],
 ]
+
+/** Punto de ficorremediación pintado con el color de su calificación ICA.
+ *  Se cachea por color: Leaflet recrea el icono en cada render si no. */
+const iconosICA = new Map<string, L.DivIcon>()
+function iconoICA(color: string): L.DivIcon {
+  const cache = iconosICA.get(color)
+  if (cache) return cache
+  const icono = L.divIcon({
+    className: 'punto-ica',
+    html:
+      `<svg width="26" height="26" viewBox="0 0 26 26">` +
+      `<circle cx="13" cy="13" r="9" fill="${color}" stroke="#fff" stroke-width="3"/>` +
+      `<circle cx="13" cy="13" r="10.5" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1"/>` +
+      `</svg>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+  })
+  iconosICA.set(color, icono)
+  return icono
+}
 
 // Símbolo de punto de control topográfico (crosshair morado).
 const controlIcon = L.divIcon({
@@ -62,6 +85,17 @@ export type ComponenteGeovisor = 'restauracion' | 'maleza' | 'ficorremediacion' 
 
 /** Props de datos comunes a los componentes con mapa (todas las vistas reciben el mismo paquete;
  *  MapView decide internamente qué es pertinente según `componente`). */
+/** Lo que el tablero de ficorremediación sabe de cada punto y le pasa al mapa:
+ *  su calificación en la campaña activa y el informe completo del laboratorio. */
+export interface PuntoFicor {
+  campana: string
+  ica: number | null
+  etiqueta: string
+  color: string
+  texto: string
+  mediciones: { variable: string; valor: number | null; unidad: string; operador: string }[]
+}
+
 export interface GeovisorMapProps {
   zonas: GeoFeature[]
   puntos: GeoFeature[]
@@ -80,6 +114,8 @@ interface Props extends GeovisorMapProps {
   /** Mes de limpieza activo (Vegetación Acuática): filtra polígonos y ortofotos.
    *  undefined o 'Todos' = se muestran todos los meses. */
   mesLimpieza?: string
+  /** Calificación e informe por punto de ficorremediación, indexado por código. */
+  ficor?: Record<string, PuntoFicor>
   /** Encuadre pedido desde la vista (p. ej. el polígono del mes elegido). Manda
    *  sobre el encuadre automático, pero no sobre el elemento seleccionado. */
   focus?: [[number, number], [number, number]] | null
@@ -323,6 +359,7 @@ export default function MapView({
   selected,
   onSelect,
   coberturasActivas,
+  ficor,
   mesLimpieza,
   focus,
   className = 'map',
@@ -427,7 +464,10 @@ export default function MapView({
         {cfg.ortofotoPredio && (
           <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
             <TileLayer
-              url="/tiles/ortofoto/{z}/{x}/{y}.png"
+              // La versión del vuelo va en la URL: nginx sirve las teselas como
+              // «immutable» por 30 días, así que sin esto un navegador que ya
+              // cargó la ortofoto anterior nunca pide la nueva.
+              url={`/tiles/ortofoto/{z}/{x}/{y}.png?v=${VUELO_PREDIO}`}
               minNativeZoom={13}
               maxNativeZoom={20}
               maxZoom={22}
@@ -450,13 +490,26 @@ export default function MapView({
                 if (!coords || coords.length < 2) return null
                 const p = pt.properties
                 const esFicor = p.tipo_monitoreo === 'ficorremediacion'
+                const f = esFicor ? ficor?.[String(p.codigo_punto ?? '')] : undefined
                 return (
-                  <Marker key={`ctrl-${p.id}`} position={[coords[1], coords[0]]} icon={controlIcon}>
+                  <Marker
+                    key={`ctrl-${p.id}`}
+                    position={[coords[1], coords[0]]}
+                    icon={f ? iconoICA(f.color) : controlIcon}
+                  >
                     <Popup>
                       <div className="popup">
                         <h3 className="popup-title">{p.nombre_punto ?? p.codigo_punto ?? 'Punto'}</h3>
-                        <span className="popup-chip" style={{ background: esFicor ? '#00838f' : '#7c3aed', color: '#fff' }}>
-                          {esFicor ? 'PUNTO DE FICORREMEDIACIÓN' : 'PARCELA DE MONITOREO'}
+                        <span
+                          className="popup-chip"
+                          style={{
+                            background: f ? f.color : esFicor ? '#00838f' : '#7c3aed',
+                            color: f ? f.texto : '#fff',
+                          }}
+                        >
+                          {f
+                            ? `ICA ${f.ica == null ? '—' : f.ica.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · ${f.etiqueta}`
+                            : esFicor ? 'PUNTO DE FICORREMEDIACIÓN' : 'PARCELA DE MONITOREO'}
                         </span>
                         <dl className="popup-grid">
                           {p.nombre_punto && (
@@ -487,6 +540,24 @@ export default function MapView({
                             </>
                           )}
                         </dl>
+                        {f && f.mediciones.length > 0 && (
+                          <table className="popup-lab">
+                            <caption>Calidad del agua · {f.campana}</caption>
+                            <tbody>
+                              {f.mediciones.map((m) => (
+                                <tr key={m.variable}>
+                                  <th scope="row">{m.variable}</th>
+                                  <td>
+                                    {m.valor == null
+                                      ? '—'
+                                      : `${m.operador ? m.operador + ' ' : ''}${m.valor.toLocaleString('es-CO', { maximumFractionDigits: 4 })}`}
+                                  </td>
+                                  <td className="u">{m.unidad}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
                         {esFicor && p.descripcion && <p className="popup-desc">{p.descripcion}</p>}
                       </div>
                     </Popup>

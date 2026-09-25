@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '../geovisor/Shell'
-import type { FaunaObservacion } from '../lib/api'
+import { API_URL, type FaunaObservacion } from '../lib/api'
 
 // Registros de fauna agrupados por grupo taxonómico y filtrables por columna.
 //
@@ -34,6 +34,9 @@ const COLUMNAS: Columna[] = [
   { key: 'hora', label: 'Hora', tipo: 'texto' },
   { key: 'observacion', label: 'Observación', tipo: 'texto' },
 ]
+
+/** La foto no se filtra: es una columna de acceso, no un dato que se busque. */
+const COL_FOTO = 'Foto'
 
 /** Por encima de este número de valores distintos, una lista deja de ser práctica. */
 const MAX_OPCIONES = 25
@@ -181,6 +184,7 @@ export default function RegistrosFauna({
           <thead>
             <tr>
               {COLUMNAS.map((c) => <th key={c.key}>{c.label}</th>)}
+              <th>{COL_FOTO}</th>
             </tr>
             <tr className="reg-filtros">
               {COLUMNAS.map((c) => {
@@ -229,7 +233,7 @@ export default function RegistrosFauna({
             return (
               <tbody key={g.id} className={`reg-grupo${inactivo ? ' vacio' : ''}`}>
                 <tr className="reg-cab">
-                  <td colSpan={COLUMNAS.length}>
+                  <td colSpan={COLUMNAS.length + 1}>
                     <button
                       type="button"
                       onClick={() => alternar(g.id)}
@@ -262,6 +266,18 @@ export default function RegistrosFauna({
                       <td>{o.fecha || '—'}</td>
                       <td>{o.hora || '—'}</td>
                       <td>{o.observacion || '—'}</td>
+                      <td className="foto">
+                        {o.foto_id ? (
+                          <a
+                            href={`${API_URL}/api/fotografias/${o.foto_id}/imagen`}
+                            target="_blank"
+                            rel="noopener"
+                            title="Ver la fotografía del avistamiento"
+                          >
+                            <img src={`${API_URL}/api/fotografias/${o.foto_id}/imagen`} alt="" loading="lazy" />
+                          </a>
+                        ) : '—'}
+                      </td>
                     </tr>
                 ))}
               </tbody>

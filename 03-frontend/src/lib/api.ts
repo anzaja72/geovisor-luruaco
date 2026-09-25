@@ -99,6 +99,8 @@ export function fetchCoberturas(signal?: AbortSignal): Promise<FeatureCollection
 
 export interface FaunaObservacion {
   id: number
+  /** Id de la fotografía asociada, o 0 si no tiene. Se sirve en /api/fotografias/:id/imagen. */
+  foto_id?: number
   grupo: string
   nombre_comun: string
   nombre_cientifico: string
@@ -262,6 +264,8 @@ export interface FicorMedicion {
   grupo?: string
   valor?: number
   unidad?: string
+  /** «<» cuando el laboratorio reportó el valor bajo el límite de detección. */
+  operador?: string
   abundancia?: number
   riqueza?: number
   sin_valor?: boolean
