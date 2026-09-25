@@ -4,6 +4,8 @@ package main
 // componente. Cada handler inserta en la tabla del componente correspondiente.
 
 import (
+	"encoding/base64"
+	"fmt"
 	"math"
 	"net/http"
 	"strings"
@@ -226,6 +228,47 @@ type faunaObsBody struct {
 	Fecha            string `json:"fecha"`
 	Hora             string `json:"hora"`
 	Observacion      string `json:"observacion"`
+	// Fotografía opcional del avistamiento, como data URL
+	// («data:image/jpeg;base64,…»). Se guarda en la base, no en disco.
+	Foto       string `json:"foto"`
+	FotoNombre string `json:"foto_nombre"`
+}
+
+// Tamaño máximo de una fotografía. Las imágenes viven en la base, así que cada
+// una pesa también en los respaldos: 5 MB alcanza de sobra para una foto de
+// campo y mantiene el volcado manejable.
+const maxFotoBytes = 5 << 20
+
+var mimesFoto = map[string]bool{"image/jpeg": true, "image/png": true, "image/webp": true}
+
+// decodificarFoto convierte la data URL que manda el formulario en bytes,
+// validando tipo y tamaño. Devuelve (nil, "", nil) si no venía foto.
+func decodificarFoto(dataURL string) ([]byte, string, error) {
+	dataURL = strings.TrimSpace(dataURL)
+	if dataURL == "" {
+		return nil, "", nil
+	}
+	coma := strings.Index(dataURL, ",")
+	if !strings.HasPrefix(dataURL, "data:") || coma < 0 {
+		return nil, "", fmt.Errorf("la imagen debe venir como data URL")
+	}
+	cabecera := dataURL[5:coma]
+	mime := strings.TrimSuffix(cabecera, ";base64")
+	if mime == cabecera {
+		return nil, "", fmt.Errorf("la imagen debe venir codificada en base64")
+	}
+	if !mimesFoto[mime] {
+		return nil, "", fmt.Errorf("formato no admitido (%s): usa JPG, PNG o WebP", mime)
+	}
+	datos, err := base64.StdEncoding.DecodeString(dataURL[coma+1:])
+	if err != nil {
+		return nil, "", fmt.Errorf("la imagen no se pudo decodificar")
+	}
+	if len(datos) > maxFotoBytes {
+		return nil, "", fmt.Errorf("la imagen pesa %.1f MB; el máximo es %d MB",
+			float64(len(datos))/(1<<20), maxFotoBytes>>20)
+	}
+	return datos, mime, nil
 }
 
 func crearFaunaObservacion(c *fiber.Ctx) error {
@@ -254,33 +297,60 @@ func crearFaunaObservacion(c *fiber.Ctx) error {
 	if err != nil {
 		return serverError(c, "Error al registrar observación de fauna", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"id": id})
+
+	// La foto se guarda aparte, ligada a la observación. Si falla, la
+	// observación ya quedó registrada: se informa el problema de la foto sin
+	// perder el dato de campo, que es lo caro de volver a tomar.
+	imagen, mime, errFoto := decodificarFoto(b.Foto)
+	if errFoto != nil {
+		return c.Status(http.StatusCreated).JSON(fiber.Map{
+			"id": id, "aviso": "La observación se guardó, pero la foto no: " + errFoto.Error(),
+		})
+	}
+	var fotoID int64
+	if imagen != nil {
+		if e := db.QueryRowContext(c.UserContext(), `
+			INSERT INTO eco_restauracion.fotografias
+			  (observacion_id, imagen, mime, nombre_archivo, tamano_bytes, descripcion, fecha)
+			VALUES ($1,$2,$3,$4,$5,$6,$7::date) RETURNING id`,
+			id, imagen, mime, nullIfEmpty(b.FotoNombre), len(imagen),
+			nullIfEmpty(strings.TrimSpace(b.NombreComun+" "+b.NombreCientifico)), fecha,
+		).Scan(&fotoID); e != nil {
+			return c.Status(http.StatusCreated).JSON(fiber.Map{
+				"id": id, "aviso": "La observación se guardó, pero la foto no se pudo almacenar",
+			})
+		}
+	}
+	return c.Status(http.StatusCreated).JSON(fiber.Map{"id": id, "foto_id": fotoID})
 }
 
 // GET /api/fauna/observaciones
 func listarFaunaObservaciones(c *fiber.Ctx) error {
 	rows, err := db.QueryContext(c.UserContext(), `
-		SELECT id, COALESCE(grupo,''), COALESCE(nombre_comun,''), COALESCE(nombre_cientifico,''),
-		       COALESCE(cobertura_vegetal,''), COALESCE(n_individuos,0),
-		       COALESCE(lugar_percha,''), COALESCE(habito,''), COALESCE(comportamiento,''),
-		       COALESCE(fecha::text,''), COALESCE(hora,''), COALESCE(observacion,'')
-		FROM eco_restauracion.fauna_observaciones
-		ORDER BY grupo, nombre_cientifico, id DESC LIMIT 2000`)
+		SELECT o.id, COALESCE(o.grupo,''), COALESCE(o.nombre_comun,''), COALESCE(o.nombre_cientifico,''),
+		       COALESCE(o.cobertura_vegetal,''), COALESCE(o.n_individuos,0),
+		       COALESCE(o.lugar_percha,''), COALESCE(o.habito,''), COALESCE(o.comportamiento,''),
+		       COALESCE(o.fecha::text,''), COALESCE(o.hora,''), COALESCE(o.observacion,''),
+		       COALESCE((SELECT f.id FROM eco_restauracion.fotografias f
+		                  WHERE f.observacion_id = o.id AND f.imagen IS NOT NULL
+		                  ORDER BY f.id DESC LIMIT 1), 0)
+		FROM eco_restauracion.fauna_observaciones o
+		ORDER BY o.grupo, o.nombre_cientifico, o.id DESC LIMIT 2000`)
 	if err != nil {
 		return serverError(c, "Error al listar observaciones de fauna", err)
 	}
 	defer rows.Close()
 	out := []fiber.Map{}
 	for rows.Next() {
-		var id, n int64
+		var id, n, fotoID int64
 		var gr, nc, ns, cv, lp, hb, cp, fe, ho, ob string
-		if rows.Scan(&id, &gr, &nc, &ns, &cv, &n, &lp, &hb, &cp, &fe, &ho, &ob) != nil {
+		if rows.Scan(&id, &gr, &nc, &ns, &cv, &n, &lp, &hb, &cp, &fe, &ho, &ob, &fotoID) != nil {
 			continue
 		}
 		out = append(out, fiber.Map{
 			"id": id, "grupo": gr, "nombre_comun": nc, "nombre_cientifico": ns, "cobertura_vegetal": cv,
 			"n_individuos": n, "lugar_percha": lp, "habito": hb, "comportamiento": cp,
-			"fecha": fe, "hora": ho, "observacion": ob,
+			"fecha": fe, "hora": ho, "observacion": ob, "foto_id": fotoID,
 		})
 	}
 	return c.JSON(out)
@@ -315,4 +385,26 @@ func crearMalezaLimpieza(c *fiber.Ctx) error {
 		return serverError(c, "Error al registrar limpieza de maleza", err)
 	}
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"id": id})
+}
+
+// GET /api/fotografias/:id/imagen
+// Devuelve el binario de una fotografía guardada en la base. Va con caché larga
+// porque una foto de campo no cambia: si se reemplaza, cambia el id.
+func getFotografiaImagen(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil || id <= 0 {
+		return badReq(c, "Identificador de fotografía inválido")
+	}
+	var imagen []byte
+	var mime string
+	err = db.QueryRowContext(c.UserContext(), `
+		SELECT imagen, COALESCE(mime,'image/jpeg')
+		FROM eco_restauracion.fotografias
+		WHERE id = $1 AND imagen IS NOT NULL`, id).Scan(&imagen, &mime)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Fotografía no encontrada"})
+	}
+	c.Set("Content-Type", mime)
+	c.Set("Cache-Control", "private, max-age=86400")
+	return c.Send(imagen)
 }

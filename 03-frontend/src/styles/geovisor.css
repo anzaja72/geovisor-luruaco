@@ -600,3 +600,19 @@ table.cob tr.tot td{font-weight:800;background:#fafbfc}
 .popup-lab td{text-align:right;padding:3px 0;border-bottom:1px solid var(--line);
   font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink);font-weight:600}
 .popup-lab td.u{text-align:left;padding-left:6px;color:var(--muted);font-weight:400}
+
+/* Fotografía del avistamiento en el formulario de registro */
+.form-grid .ayuda{display:block;margin-top:4px;font-size:10.5px;color:var(--muted);font-weight:400}
+.foto-previa{display:flex;align-items:center;gap:12px;padding:9px 11px;border:1px solid var(--line);
+  border-radius:9px;background:var(--bg)}
+.foto-previa img{width:86px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:#0f172a}
+.foto-previa span{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.foto-previa b{font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;max-width:100%}
+.foto-previa button{font-size:11px;font-weight:600;color:#9a3412;background:#fff7ed;
+  border:1px solid #fed7aa;border-radius:6px;padding:3px 9px;cursor:pointer}
+.reg-tabla td.foto{text-align:center}
+.reg-tabla td.foto img{width:46px;height:34px;object-fit:cover;border-radius:5px;
+  border:1px solid var(--line);display:block}
+.nota-cobertura{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--line);
+  font-size:11px;color:var(--muted);line-height:1.55}

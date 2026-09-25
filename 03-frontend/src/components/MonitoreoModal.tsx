@@ -60,6 +60,30 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
     setF((s) => ({ ...s, [k]: e.target.value }))
   const cambiarTab = (t: Tab) => { setTab(t); setF({}); setOk(null); setError(null) }
 
+  /** Máximo por foto. Las imágenes se guardan en la base, así que cada una
+   *  pesa también en los respaldos; conviene avisar antes de subirla. */
+  const MAX_FOTO = 5 * 1024 * 1024
+  const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp']
+
+  const elegirFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) { setF((s) => ({ ...s, foto: '', foto_nombre: '' })); return }
+    if (!TIPOS_FOTO.includes(file.type)) {
+      setError('La foto debe ser JPG, PNG o WebP.'); e.target.value = ''; return
+    }
+    if (file.size > MAX_FOTO) {
+      setError(`La foto pesa ${(file.size / 1048576).toFixed(1)} MB; el máximo es 5 MB.`)
+      e.target.value = ''
+      return
+    }
+    setError(null)
+    const lector = new FileReader()
+    lector.onload = () =>
+      setF((s) => ({ ...s, foto: String(lector.result ?? ''), foto_nombre: file.name }))
+    lector.onerror = () => setError('No se pudo leer la imagen.')
+    lector.readAsDataURL(file)
+  }
+
   // Construye {path, body} según la pestaña.
   function preparar(): { path: string; body: Record<string, unknown> } {
     switch (tab) {
@@ -89,6 +113,7 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
             cobertura_vegetal: f.cobertura, n_individuos: int(f.individuos || ''),
             lugar_percha: f.percha, habito: f.habito, comportamiento: f.comportamiento,
             fecha: f.fecha, hora: f.hora, observacion: f.observacion,
+            foto: f.foto, foto_nombre: f.foto_nombre,
           },
         }
       case 'ficorremediacion':
@@ -237,6 +262,21 @@ export default function MonitoreoModal({ open, onClose, estaciones, onSaved, com
                 <input type="time" value={f.hora ?? ''} onChange={set('hora')} /></label>
               <label className="col2">Observación
                 <input value={f.observacion ?? ''} onChange={set('observacion')} /></label>
+              <label className="col2">Fotografía del avistamiento
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={elegirFoto} />
+                <small className="ayuda">JPG, PNG o WebP · máximo 5 MB · se guarda en la geodatabase</small>
+              </label>
+              {f.foto && (
+                <div className="foto-previa col2">
+                  <img src={f.foto} alt="Vista previa de la fotografía seleccionada" />
+                  <span>
+                    <b>{f.foto_nombre}</b>
+                    <button type="button" onClick={() => setF((s) => ({ ...s, foto: '', foto_nombre: '' }))}>
+                      Quitar
+                    </button>
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

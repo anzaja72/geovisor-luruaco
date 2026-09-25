@@ -149,6 +149,7 @@ func main() {
 	api.Post("/fauna/grupo", edicion, crearFaunaGrupo)
 	api.Post("/fauna/observacion", edicion, crearFaunaObservacion)
 	api.Get("/fauna/observaciones", lectura, listarFaunaObservaciones)
+	api.Get("/fotografias/:id/imagen", lectura, getFotografiaImagen)
 	api.Get("/fauna/grupos", lectura, getFaunaGrupos)
 	api.Get("/gobernanza/actividades", lectura, getGobernanza)
 	api.Get("/maleza/limpiezas", lectura, getMalezaLimpiezas)

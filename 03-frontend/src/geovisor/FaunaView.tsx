@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps } from '../components/MapView'
 import FaunaViewer3D from '../components/FaunaViewer3D'
@@ -40,6 +40,23 @@ export default function FaunaView(map: GeovisorMapProps) {
     porGrupo[g].ab += o.n_individuos || 0
     if (o.nombre_cientifico) porGrupo[g].esp.add(o.nombre_cientifico)
   }
+  // Riqueza y abundancia por cobertura vegetal. Es la lectura que conecta el
+  // monitoreo de fauna con el de restauración: dice qué coberturas sostienen
+  // más especies, que es la pregunta que el proyecto existe para responder.
+  const porCobertura = useMemo(() => {
+    const m = new Map<string, { esp: Set<string>; ind: number }>()
+    for (const o of obs) {
+      const c = (o.cobertura_vegetal || '').trim() || 'Sin registrar'
+      const e = m.get(c) ?? { esp: new Set<string>(), ind: 0 }
+      if (o.nombre_cientifico) e.esp.add(o.nombre_cientifico)
+      e.ind += o.n_individuos || 0
+      m.set(c, e)
+    }
+    return [...m.entries()]
+      .map(([cobertura, v]) => ({ cobertura, especies: v.esp.size, individuos: v.ind }))
+      .sort((a, b) => b.especies - a.especies)
+  }, [obs])
+
   const ab = (id: string) => porGrupo[id]?.ab || 0
   const riq = (id: string) => porGrupo[id]?.esp.size || 0
 
@@ -198,6 +215,23 @@ export default function FaunaView(map: GeovisorMapProps) {
             }))}
           />
         </div>
+      </div>
+
+      <div className="panel chart-b" style={{ marginTop: 14 }}>
+        <div className="ph" style={{ padding: '0 0 8px', border: 0 }}>
+          <h3><Icon id="leaf" /> Riqueza de especies por cobertura vegetal</h3>
+          <span className="badge-soft">{porCobertura.length} coberturas con registros</span>
+        </div>
+        <BarrasGrupo
+          titulo="Especies distintas registradas en cada cobertura"
+          color="var(--cra-azul)"
+          datos={porCobertura.map((c) => ({ grupo: c.cobertura, valor: c.especies }))}
+        />
+        <p className="nota-cobertura">
+          Cuenta especies, no individuos: una cobertura puede concentrar muchos avistamientos de
+          pocas especies. Contrastarla con la abundancia de arriba muestra dónde hay diversidad y
+          dónde solo hay volumen.
+        </p>
       </div>
 
       <div className="panel" style={{ marginTop: 14 }}>
