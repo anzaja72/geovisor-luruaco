@@ -88,7 +88,7 @@ export default function MalezaView(map: GeovisorMapProps) {
       <div className="grid3">
         <div className="bigstat">
           <div className="lab">Maleza acuática removida</div>
-          <div className="v num">19,0 <small>ha</small></div>
+          <div className="v num">{acumulado.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 3 })} <small>ha</small></div>
           <div className="sub">Acumulado a {serie.length ? serie[serie.length - 1][0].toLowerCase() : 'la última jornada'} · línea base = 0 ha</div>
         </div>
         <div className="panel chart-b">

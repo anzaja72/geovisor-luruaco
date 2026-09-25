@@ -5,7 +5,10 @@ import type { ComponenteGeovisor } from '../components/MapView'
 // curvas_nivel no está en ninguno: satura el mapa y pesa 6,6 MB.
 export const CAPAS_POR_COMPONENTE: Record<ComponenteGeovisor, string[]> = {
   restauracion: ['aislamiento_interno'],
-  maleza: ['maleza_acuatica'],
+  // Sin capas importadas: los polígonos de limpieza se dibujan desde
+  // limpiezaMensual.json. La capa 'maleza_acuatica' de la base repetía esos
+  // mismos bordes en azul, encima de los verdes.
+  maleza: [],
   ficorremediacion: [],
   // Cámaras trampa y transectos: la API solo las entrega a técnico y administrador.
   fauna: ['fauna_aves_camaras', 'herpetos'],

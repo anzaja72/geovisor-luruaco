@@ -30,6 +30,9 @@ const LURUACO_CENTER: [number, number] = [10.61, -75.1]
 // Límites de la ortofoto del predio (vuelo de septiembre de 2026, «Ortofoto #1.1»).
 // El encuadre anterior abarcaba 311 ha para un predio de 90: era la huella del vuelo
 // antiguo, no la del predio. Este ajusta al aislamiento externo con ~40 m de margen.
+/** Vuelo del que salen las teselas del predio. Al cambiarlas, cambiar esto. */
+const VUELO_PREDIO = '2026-09'
+
 const PREDIO_BOUNDS: [[number, number], [number, number]] = [
   [10.6013802, -75.1735691],
   [10.6119370, -75.1652677],
@@ -427,7 +430,10 @@ export default function MapView({
         {cfg.ortofotoPredio && (
           <LayersControl.Overlay checked name="🛩 Ortofoto dron (predio)">
             <TileLayer
-              url="/tiles/ortofoto/{z}/{x}/{y}.png"
+              // La versión del vuelo va en la URL: nginx sirve las teselas como
+              // «immutable» por 30 días, así que sin esto un navegador que ya
+              // cargó la ortofoto anterior nunca pide la nueva.
+              url={`/tiles/ortofoto/{z}/{x}/{y}.png?v=${VUELO_PREDIO}`}
               minNativeZoom={13}
               maxNativeZoom={20}
               maxZoom={22}
