@@ -3,6 +3,7 @@ import { Footer, Icon } from './Shell'
 import MapView, { type GeovisorMapProps, type PuntoFicor } from '../components/MapView'
 import OrtoFoto from '../components/OrtoFoto'
 import GaleriaFotos from '../components/GaleriaFotos'
+import BarrasGrupo from '../components/BarrasGrupo'
 import { FICOR_BIOTA } from './data'
 import { construirFicor, FICOR_VACIO, type DatosFicor } from './ficorDatos'
 import {
@@ -117,31 +118,6 @@ function Historico({
           )
         })}
       </div>
-    </div>
-  )
-}
-
-/** Barras horizontales de riqueza y abundancia por grupo de biota. */
-function BarrasBiota({
-  titulo, datos, color,
-}: {
-  titulo: string
-  datos: { grupo: string; valor: number }[]
-  color: string
-}) {
-  const max = Math.max(...datos.map((d) => d.valor), 1)
-  return (
-    <div className="biota-barras">
-      <div className="t">{titulo}</div>
-      {datos.map((d) => (
-        <div key={d.grupo} className="fila">
-          <span className="lab">{d.grupo}</span>
-          <span className="pista">
-            <i style={{ width: `${Math.max(2, (d.valor / max) * 100)}%`, background: color }} />
-          </span>
-          <b>{d.valor.toLocaleString('es-CO')}</b>
-        </div>
-      ))}
     </div>
   )
 }
@@ -479,12 +455,12 @@ export default function FicorView(map: GeovisorMapProps) {
 
         {matriz === 'biota' && (
           <div className="grid2" style={{ padding: 14, margin: 0 }}>
-            <BarrasBiota
+            <BarrasGrupo
               titulo="Riqueza por grupo (número de especies)"
               color="var(--cra-verde)"
               datos={FICOR_BIOTA.map((b) => ({ grupo: b.nombre, valor: biota[b.id]?.[0] ?? 0 }))}
             />
-            <BarrasBiota
+            <BarrasGrupo
               titulo="Abundancia por grupo (individuos)"
               color="var(--cra-cian)"
               datos={FICOR_BIOTA.map((b) => ({ grupo: b.nombre, valor: biota[b.id]?.[1] ?? 0 }))}
