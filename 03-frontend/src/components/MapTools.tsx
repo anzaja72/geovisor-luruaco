@@ -19,14 +19,27 @@ export function CoordsControl() {
   )
 }
 
+// El hash (#zoom/lat/lng) es una sola posición global: no dice a qué componente
+// pertenece. Cada cambio de pestaña (Restauración ↔ Vegetación Acuática ↔ ...)
+// remonta el mapa entero —incluido este botón—, así que restaurar el hash en
+// cada montaje reimponía la posición que había dejado la pestaña anterior por
+// encima del fitBounds correcto del componente nuevo (se veía descentrado al
+// entrar). Solo tiene sentido restaurarlo en el primer mapa que monta la
+// página (recarga o enlace compartido); de ahí en adelante manda el encuadre
+// propio de cada componente.
+let hashRestaurado = false
+
 /** Sincroniza la vista con el hash de la URL y permite copiar el enlace. */
 function ShareButton() {
   const map = useMap()
   const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
-    const m = window.location.hash.replace('#', '').match(/^(\d+)\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/)
-    if (m) map.setView([parseFloat(m[2]), parseFloat(m[3])], parseInt(m[1]))
+    if (!hashRestaurado) {
+      hashRestaurado = true
+      const m = window.location.hash.replace('#', '').match(/^(\d+)\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/)
+      if (m) map.setView([parseFloat(m[2]), parseFloat(m[3])], parseInt(m[1]))
+    }
     const onMove = () => {
       const c = map.getCenter()
       window.history.replaceState(
