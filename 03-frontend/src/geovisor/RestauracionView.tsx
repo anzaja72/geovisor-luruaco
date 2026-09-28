@@ -4,6 +4,8 @@ import { Footer, Icon } from './Shell'
 import { RESTAURACION as R, ACTIVA_TXT, PASIVA_TXT, SEMBRADOS_TXT } from './data'
 import { CRA, PALETA_CRA } from '../lib/marca'
 import { fetchIndicadoresRestauracion, type IndicadoresRestauracion } from '../lib/api'
+import GaleriaFotos from '../components/GaleriaFotos'
+import { FOTOS_SIEMBRA } from './fotosSiembra'
 
 type MapProps = GeovisorMapProps
 
@@ -213,6 +215,16 @@ export default function RestauracionView(map: MapProps) {
               ))}
             </div>
           )}</div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="ph"><h3><Icon id="camera" /> Registro fotográfico de la siembra</h3>
+          <span className="badge-soft">{FOTOS_SIEMBRA.length} fotos · leyenda 1 a 19</span></div>
+        <GaleriaFotos fotos={FOTOS_SIEMBRA} />
+        <p className="foto-leyenda-nota">
+          Numeración según la leyenda del informe fotográfico de siembra. El punto 3
+          (suministro de material vegetal) queda con dos fotos.
+        </p>
       </div>
 
       <div className="note"><b>{live && !sinMediciones ? 'Datos en vivo' : 'Datos reales'}</b> del censo <i>arboles_resumen.xlsx</i> — Línea base: 75 árboles, 136 fustes, 12 especies, 15 parcelas.
