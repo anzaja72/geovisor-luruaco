@@ -78,6 +78,6 @@ echo
 echo "✅ Listo: $DIR/$SALIDA_BASE"
 echo
 echo "   Siguiente paso — generar las teselas del visor:"
-echo "     gdal2tiles.py -z 13-21 --xyz --processes=4 \"$DIR/$SALIDA_BASE\" tiles/<etiqueta>"
+echo "     gdal2tiles.py -z 13-21 --xyz --processes=4 --resampling=near \"$DIR/$SALIDA_BASE\" tiles/<etiqueta>"
 echo
 echo "   Y anotar en MapView.tsx los bounds que imprimió gdalinfo arriba."
