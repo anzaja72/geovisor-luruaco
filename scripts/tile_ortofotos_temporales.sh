@@ -14,6 +14,11 @@ ZMIN="${2:-13}"
 ZMAX="${3:-21}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/tiles"
 
+# --resampling=near: con 'average' (el valor por defecto de gdal2tiles), el
+# borde de la huella real del vuelo sale con un halo blanco en los zooms bajos
+# —la reducción de la pirámide promedia el color con el blanco del área sin
+# datos, aunque el canal alfa en sí sea correcto—. 'near' no mezcla píxeles de
+# distinta procedencia, así que ese halo no puede aparecer.
 command -v gdal2tiles.py >/dev/null 2>&1 || { echo "❌ Falta GDAL (brew install gdal / apt install gdal-bin)"; exit 1; }
 
 # Mapa: archivo .tif  ->  etiqueta (carpeta de tiles y capa en el visor)
@@ -29,7 +34,7 @@ for tif in "${!MAP[@]}"; do
   in="$SRC/$tif"
   if [[ ! -f "$in" ]]; then echo "⚠️  No encontrado: $in (saltando)"; continue; fi
   echo "▶ Tileando '$tif' → tiles/$label (z$ZMIN-$ZMAX)"
-  gdal2tiles.py -z "$ZMIN-$ZMAX" --xyz --processes=4 "$in" "$OUT/$label"
+  gdal2tiles.py -z "$ZMIN-$ZMAX" --xyz --processes=4 --resampling=near "$in" "$OUT/$label"
 done
 
 echo "✅ Listo. Añadir cada capa al visor como TileLayer:  /tiles/<label>/{z}/{x}/{y}.png"

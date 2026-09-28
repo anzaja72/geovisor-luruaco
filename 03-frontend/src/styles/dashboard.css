@@ -1004,12 +1004,30 @@
   padding: 0; border: 1px solid var(--line); border-radius: 8px;
   overflow: hidden; cursor: pointer; background: #000; aspect-ratio: 4 / 3;
 }
+.foto-thumb { position: relative; }
+.foto-num {
+  position: absolute; top: 6px; left: 6px; z-index: 1;
+  min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  background: rgba(17,24,28,.72); color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
 .foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .15s; }
 .foto-thumb:hover img { transform: scale(1.05); }
 .foto-lightbox {
   position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,.9);
   display: flex; align-items: center; justify-content: center;
 }
+/* Cuando la foto trae pie de leyenda, el layout se vuelve vertical: la
+   imagen arriba, con margen para no chocar con las flechas, el texto debajo. */
+.foto-lightbox-cont {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  max-width: 78vw; max-height: 88vh;
+}
+.foto-lightbox-cont img { max-width: 78vw; max-height: 74vh; border-radius: 6px; display: block; }
+.foto-caption {
+  margin: 0; max-width: 640px; color: #e8ecef; font-size: 13px; line-height: 1.5; text-align: center;
+}
+.foto-caption b { color: #fff; }
 .foto-lightbox img { max-width: 92vw; max-height: 88vh; border-radius: 6px; }
 .foto-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
@@ -1502,3 +1520,5 @@
   border-radius: 8px;
   padding: 9px 11px;
 }
+
+.foto-leyenda-nota { margin: 0; padding: 8px 12px 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }

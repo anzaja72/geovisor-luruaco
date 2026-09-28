@@ -146,7 +146,9 @@ const CONFIG_COMPONENTE: Record<ComponenteGeovisor, ConfigComponente> = {
   // Calles (OSM) por pedido expreso: el contexto urbano ubica los puntos de muestreo.
   ficorremediacion: { basemap: 'calles', ortofotoPredio: false, aoi: FICOR_BOUNDS, coberturas: false },
   // El monitoreo de fauna se lee contra las coberturas del área de restauración.
-  fauna: { basemap: 's2', ortofotoPredio: false, aoi: PREDIO_BOUNDS, coberturas: true },
+  // Igual que Restauración: sin la ortofoto del dron, los puntos de monitoreo
+  // quedan sobre el satelital genérico, difícil de leer contra el terreno real.
+  fauna: { basemap: 's2', ortofotoPredio: true, aoi: PREDIO_BOUNDS, coberturas: true },
 }
 
 const CAPA_LABEL: Record<string, string> = {
@@ -262,13 +264,25 @@ function FitController({
 }) {
   const map = useMap()
   useEffect(() => {
+    // El panel puede seguir asentando su layout (fuentes, otros paneles) en el
+    // instante en que este efecto corre —sobre todo la primera vez que se abre
+    // el componente—, así que Leaflet mide un contenedor más angosto del real y
+    // el encuadre sale desplazado. Se fuerza una medición fresca antes de
+    // encuadrar, y otra vez un frame más tarde por si el layout se movió justo
+    // después (fuente web, panel vecino).
+    map.invalidateSize(false)
+    const reencuadrar = requestAnimationFrame(() => map.invalidateSize(false))
     const fc = (fs: GeoFeature[]) =>
       L.geoJSON({ type: 'FeatureCollection', features: fs } as unknown as GeoJSON.GeoJsonObject)
+    // Todo camino de salida cancela el reencuadre pendiente: si no, un efecto
+    // que se re-ejecuta antes de que llegue el frame deja un invalidateSize()
+    // corriendo sobre un mapa que ya cambió de bounds.
+    const limpiar = () => cancelAnimationFrame(reencuadrar)
     if (selected) {
       try {
         const b = fc([selected]).getBounds()
         if (b.isValid()) map.flyToBounds(b, { padding: [60, 60], maxZoom: 15 })
-        return
+        return limpiar
       } catch {
         /* noop */
       }
@@ -276,7 +290,7 @@ function FitController({
     if (focus) {
       try {
         map.flyToBounds(focus, { padding: [50, 50], maxZoom: 17 })
-        return
+        return limpiar
       } catch {
         /* noop */
       }
@@ -286,7 +300,7 @@ function FitController({
         const b = fc(all).getBounds()
         if (b.isValid()) {
           map.fitBounds(b, { padding: [40, 40], animate: false })
-          return
+          return limpiar
         }
       } catch {
         /* noop */
@@ -299,6 +313,7 @@ function FitController({
     } catch {
       map.setView(LURUACO_CENTER, 13)
     }
+    return limpiar
   }, [selected, all, aoi, focus, map])
   return null
 }
