@@ -35,7 +35,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?definir JWT_SECRET}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@luruaco.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?definir ADMIN_PASSWORD}
-      CORS_ALLOW_ORIGINS: https://geodatabase.mcconsultorias.com.co
+      CORS_ALLOW_ORIGINS: https://geodatabase.mcconsultorias.com.co,https://luruacorenace.online,https://www.luruacorenace.online
       PORT: "8080"
       # Copiloto: proveedor del modelo de lenguaje. Sin LLM_API_KEY el asistente
       # sigue respondiendo con los datos de la geodatabase, solo que sin redacción.
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.geodb.rule=Host(`geodatabase.mcconsultorias.com.co`)"
+      - "traefik.http.routers.geodb.rule=Host(`geodatabase.mcconsultorias.com.co`) || Host(`luruacorenace.online`) || Host(`www.luruacorenace.online`)"
       - "traefik.http.routers.geodb.entrypoints=websecure"
       - "traefik.http.routers.geodb.tls.certresolver=letsencrypt"
       - "traefik.http.services.geodb.loadbalancer.server.port=80"
