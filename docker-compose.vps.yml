@@ -4,6 +4,8 @@
 # quedan en la red interna, sin exponer puertos públicos.
 #   docker compose -f docker-compose.vps.yml up -d --build
 # Requiere .env con: DB_PASSWORD, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+# y, para el servidor MCP: MCP_TOKEN_SECRET (openssl rand -hex 32).
+# El MCP exige además un registro DNS A de mcp.luruacorenace.online → IP del VPS.
 # ============================================================
 services:
   postgis:
@@ -65,5 +67,30 @@ services:
       - "traefik.http.routers.geodb.tls.certresolver=letsencrypt"
       - "traefik.http.services.geodb.loadbalancer.server.port=80"
 
+  # Servidor MCP (solo lectura, roles tecnico/administrador). Habla únicamente con
+  # la API REST del backend; no tiene credenciales de PostgreSQL ni publica puertos.
+  mcp:
+    build: ./06-mcp
+    container_name: geodb-mcp
+    environment:
+      BACKEND_URL: http://backend:8080
+      MCP_PUBLIC_URL: ${MCP_PUBLIC_URL:-https://mcp.luruacorenace.online}
+      MCP_TOKEN_SECRET: ${MCP_TOKEN_SECRET:?definir MCP_TOKEN_SECRET (openssl rand -hex 32)}
+      MCP_RATE_PER_MIN: ${MCP_RATE_PER_MIN:-60}
+      MCP_MAX_RESPONSE_BYTES: ${MCP_MAX_RESPONSE_BYTES:-200000}
+      MCP_AUDIT_FILE: /var/log/mcp/audit.jsonl
+    volumes:
+      - mcp_audit:/var/log/mcp
+    depends_on:
+      - backend
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.geodb-mcp.rule=Host(`mcp.luruacorenace.online`)"
+      - "traefik.http.routers.geodb-mcp.entrypoints=websecure"
+      - "traefik.http.routers.geodb-mcp.tls.certresolver=letsencrypt"
+      - "traefik.http.services.geodb-mcp.loadbalancer.server.port=8090"
+
 volumes:
   postgis_data:
+  mcp_audit:
